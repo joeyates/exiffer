@@ -8,11 +8,11 @@ defmodule Exiffer do
 
   ## Examples
 
-      iex> Exiffer.run(["example.jpg"])
+      iex> Exiffer.dump(["example.jpg"])
       {:ok}
 
   """
-  def run([filename]) do
+  def dump([filename]) do
     {:ok, io_device} = File.open(filename)
     head = IO.binread(io_device, 2048)
     exif = parse(io_device, head)
