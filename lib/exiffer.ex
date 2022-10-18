@@ -15,20 +15,20 @@ defmodule Exiffer do
   def run([filename]) do
     {:ok, io_device} = File.open(filename)
     head = IO.binread(io_device, 2048)
+    exif = parse(io_device, head)
     File.close(io_device)
 
-    exif = parse(head)
     IO.puts "exif: #{inspect(exif, [pretty: true, width: 0])}"
 
     {:ok}
   end
 
-  defp parse(<<0xff, 0xd8>> <> body) do
+  defp parse(_io_device, <<0xff, 0xd8>> <> body) do
     {_rest, headers} = jpeg_headers(body, [])
     headers
   end
 
-  defp parse(_data) do
+  defp parse(_io_device, _data) do
     IO.puts "Unrecognized file format"
   end
 
