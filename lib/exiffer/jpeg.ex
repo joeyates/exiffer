@@ -98,7 +98,9 @@ defmodule Exiffer.JPEG do
   @tiff_header_marker <<0x2a, 0x00>>
 
   # APP1 header
-  def headers(<<0xff, 0xe1, app1_length::binary-size(2), "Exif\0\0", rest::binary>>, headers) do
+  def headers(<<0xff, 0xe1, app1_length_bytes::binary-size(2), "Exif\0\0", rest::binary>> = binary, headers) do
+    IO.puts "APP1"
+    app1_length = big_endian_to_decimal(app1_length_bytes)
     app1_header = %{
       type: "APP1",
       length: app1_length
@@ -110,8 +112,11 @@ defmodule Exiffer.JPEG do
       byte_order: byte_order,
       ifd_header_offset: offset
     }
-    {rest3, ifds} = read_ifds({rest2, offset}, [])
-    {rest3, headers ++ ifds ++ [app1_header, tiff_header]}
+    {{_rest, _offset}, ifds} = read_ifds({rest2, offset}, [])
+    # Skip to end of APP1
+    <<_skip::binary-size(app1_length + 2), rest3::binary>> = binary
+    {rest3, headers} = headers(rest3, headers ++ ifds ++ [app1_header, tiff_header])
+    {rest3, headers}
   end
 
   def headers(<<0xff, 0xfe, _unknown, length, rest::binary>>, headers) do
