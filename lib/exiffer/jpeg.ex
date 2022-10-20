@@ -142,6 +142,8 @@ defmodule Exiffer.JPEG do
   end
 
   def headers(rest, headers) do
+    IO.puts "Unknown"
+    Exiffer.Debug.dump("Unknown header", rest)
     {rest, headers}
   end
 
