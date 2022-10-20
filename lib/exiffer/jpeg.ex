@@ -3,6 +3,8 @@ defmodule Exiffer.JPEG do
   Documentation for `Exiffer.JPEG`.
   """
 
+  import Exiffer.Binary
+
   @doc """
   Parse JPEG headers.
   """
