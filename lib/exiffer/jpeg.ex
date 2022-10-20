@@ -133,6 +133,7 @@ defmodule Exiffer.JPEG do
   end
 
   def headers(<<0xff, 0xfe, _unknown, length, rest::binary>>, headers) do
+    IO.puts "COM"
     comment_length = length - 3
     <<comment::binary-size(comment_length), 0x00, rest2::binary>> = rest
     header = %{type: "JPEG COM Comment", comment: comment}
