@@ -30,13 +30,10 @@ defmodule Exiffer.JPEG do
     {rest4, [header | headers]}
   end
 
-  def headers(<<0xff, 0xda, _unknown, length, rest::binary>>, headers) do
-    IO.puts "SOS"
-    binary_length = length - 3
-    <<body::binary-size(binary_length), rest2::binary>> = rest
-    {rest3, data} = Exiffer.Binary.consume_until(0xff, rest2, "")
-    header = %{type: "JPEG SOS", body: body, data: data}
-    {rest3, [header | headers]}
+  def headers(<<0xff, 0xda, rest::binary>>, headers) do
+    IO.puts "SOS - Image data"
+    header = %{type: "JPEG SOS"}
+    {rest, [header | headers]}
   end
 
   # DRI header
