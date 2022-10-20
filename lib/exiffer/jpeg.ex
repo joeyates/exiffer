@@ -39,6 +39,20 @@ defmodule Exiffer.JPEG do
     {rest3, [header | headers]}
   end
 
+  # DRI header
+  def headers(<<0xff, 0xdd, length_bytes::binary-size(2), _rest::binary>> = binary, headers) do
+    IO.puts "DRI"
+    length = big_endian_to_decimal(length_bytes)
+    header = %{
+      type: "JPEG DRI",
+      comment: "Define Restart Interval",
+      length: length
+    }
+    <<_skip::binary-size(length + 2), rest::binary>> = binary
+    {rest3, headers} = headers(rest, [header | headers])
+    {rest3, headers}
+  end
+
   def headers(<<0xff, 0xdb, _unknown, length, rest::binary>>, headers) do
     IO.puts "DQT"
     dqt_length = length - 3
