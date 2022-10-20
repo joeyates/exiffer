@@ -14,7 +14,7 @@ defmodule Exiffer do
   """
   def dump([filename]) do
     {:ok, io_device} = File.open(filename)
-    head = IO.binread(io_device, 2048)
+    head = IO.binread(io_device, 0xf000)
     exif = parse(io_device, head)
     File.close(io_device)
 
