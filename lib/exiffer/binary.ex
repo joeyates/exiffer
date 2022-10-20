@@ -6,6 +6,13 @@ defmodule Exiffer.Binary do
   @doc """
   Convert binary bytes to decimal.
   """
+  def big_endian_to_decimal(<<hi, lo>>) do
+    lo + 256 * hi
+  end
+
+  @doc """
+  Convert binary bytes to decimal.
+  """
   def little_endian_to_decimal(<<lo, hi>>) do
     lo + 256 * hi
   end
