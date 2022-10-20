@@ -119,6 +119,19 @@ defmodule Exiffer.JPEG do
     {rest3, headers}
   end
 
+  # APP4 header
+  def headers(<<0xff, 0xe4, app4_length_bytes::binary-size(2), _rest::binary>> = binary, headers) do
+    IO.puts "APP4"
+    app4_length = big_endian_to_decimal(app4_length_bytes)
+    app4_header = %{
+      type: "APP4",
+      length: app4_length
+    }
+    <<_skip::binary-size(app4_length + 2), rest::binary>> = binary
+    {rest3, headers} = headers(rest, [app4_header | headers])
+    {rest3, headers}
+  end
+
   def headers(<<0xff, 0xfe, _unknown, length, rest::binary>>, headers) do
     comment_length = length - 3
     <<comment::binary-size(comment_length), 0x00, rest2::binary>> = rest
