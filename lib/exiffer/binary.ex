@@ -10,6 +10,10 @@ defmodule Exiffer.Binary do
     lo + 256 * hi
   end
 
+  def little_endian_to_decimal(<<b0, b1, b2, b3>>) do
+    b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
+  end
+
   @doc """
   Read bytes from binary data up until, but excluding, a specific byte value.
   """

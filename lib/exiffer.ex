@@ -25,7 +25,7 @@ defmodule Exiffer do
 
   defp parse(_io_device, <<0xff, 0xd8>> <> body) do
     {_rest, headers} = Exiffer.JPEG.headers(body, [])
-    headers
+    Enum.reverse(headers)
   end
 
   defp parse(_io_device, _data) do
