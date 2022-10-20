@@ -209,9 +209,10 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
+    value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "ImageWidth",
-      value: value_binary
+      value: value
     }
     read_ifd_entry({rest, offset + 12}, count - 1, [entry | ifd_entries])
   end
@@ -224,9 +225,10 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
+    value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "ImageHeight",
-      value: value_binary
+      value: value
     }
     read_ifd_entry({rest, offset + 12}, count - 1, [entry | ifd_entries])
   end
