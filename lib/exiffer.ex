@@ -13,22 +13,22 @@ defmodule Exiffer do
 
   """
   def dump([filename]) do
-    {:ok, io_device} = File.open(filename)
-    head = IO.binread(io_device, 0xf000)
-    exif = parse(io_device, head)
-    File.close(io_device)
+    buffer = Exiffer.Buffer.new(filename)
+    exif = parse(buffer)
+    :ok = Exiffer.Buffer.close(buffer)
 
     IO.puts "exif: #{inspect(exif, [pretty: true, width: 0])}"
 
     {:ok}
   end
 
-  defp parse(_io_device, <<0xff, 0xd8>> <> body) do
-    {_rest, headers} = Exiffer.JPEG.headers(body, [])
+  defp parse(%Exiffer.Buffer{data: <<0xff, 0xd8, _rest::binary>>} = buffer) do
+    buffer = Exiffer.Buffer.skip(buffer, 2)
+    {_buffer, headers} = Exiffer.JPEG.headers(buffer, [])
     Enum.reverse(headers)
   end
 
-  defp parse(_io_device, _data) do
+  defp parse(%Exiffer.Buffer{}) do
     IO.puts "Unrecognized file format"
   end
 end
