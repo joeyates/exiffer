@@ -58,6 +58,32 @@ defmodule Exiffer.Buffer do
     seek(buffer, buffer.offset + count)
   end
 
+  @doc """
+  Read some bytes without changing the current buffer position.
+
+  If the bytes are in the current read buffer, simply return them.
+  Otherwise, position the buffer, read the bytes, then reposition the buffer
+  to the previous position.
+  """
+  def random(%__MODULE__{data: data, offset: offset, remaining: remaining} = buffer, position, count) when position > offset and (position + count) < (offset + remaining) do
+    start = position - offset
+    <<_before::binary-size(start), result::binary-size(count), _rest::binary>> = data
+    {result, buffer}
+  end
+
+  def random(%__MODULE__{} = buffer, position, count) do
+    %__MODULE__{io_device: io_device, offset: offset} = buffer
+    {:ok, _position} = :file.position(io_device, position)
+    result = case IO.binread(io_device, count) do
+      :eof ->
+        nil
+      chunk ->
+        chunk
+    end
+    {:ok, _position} = :file.position(io_device, offset)
+    {result, buffer}
+  end
+
   def close(%__MODULE__{io_device: io_device}) do
     :ok = File.close(io_device)
   end
