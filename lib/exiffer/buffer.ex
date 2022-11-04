@@ -8,7 +8,7 @@ defmodule Exiffer.Buffer do
   so that enough data has been read.
   """
 
-  defstruct [:io_device, data: <<>>, offset: 0, remaining: 0, read_ahead: 1000]
+  defstruct [:io_device, data: <<>>, position: 0, remaining: 0, read_ahead: 1000]
 
   def new(filename, opts \\ []) do
     read_ahead = Keyword.get(opts, :read_ahead, 1000)
@@ -27,7 +27,7 @@ defmodule Exiffer.Buffer do
   end
 
   def seek(%__MODULE__{io_device: io_device} = buffer, position) do
-    start = buffer.offset
+    start = buffer.position
     finish = start + buffer.remaining
     {data, remaining} = if position >= start && position < finish do
       count = position - start
@@ -39,23 +39,23 @@ defmodule Exiffer.Buffer do
     end
     {:ok, _position} = :file.position(io_device, position)
 
-    struct!(buffer, data: data, offset: position, remaining: remaining)
+    struct!(buffer, data: data, position: position, remaining: remaining)
     |> ensure(buffer.read_ahead)
   end
 
   def consume(%__MODULE__{} = buffer, count) do
     buffer = ensure(buffer, count)
-    %__MODULE__{data: data, offset: offset, remaining: remaining} = buffer = ensure(buffer, count)
+    %__MODULE__{data: data, position: position, remaining: remaining} = buffer = ensure(buffer, count)
     <<consumed::binary-size(count), rest::binary>> = data
     buffer =
-      struct!(buffer, data: rest, offset: offset + count, remaining: remaining - count)
+      struct!(buffer, data: rest, position: position + count, remaining: remaining - count)
       |> ensure(buffer.read_ahead)
 
     {consumed, buffer}
   end
 
   def skip(%__MODULE__{} = buffer, count) do
-    seek(buffer, buffer.offset + count)
+    seek(buffer, buffer.position + count)
   end
 
   @doc """
@@ -65,22 +65,22 @@ defmodule Exiffer.Buffer do
   Otherwise, position the buffer, read the bytes, then reposition the buffer
   to the previous position.
   """
-  def random(%__MODULE__{data: data, offset: offset, remaining: remaining} = buffer, position, count) when position > offset and (position + count) < (offset + remaining) do
-    start = position - offset
+  def random(%__MODULE__{data: data, position: position, remaining: remaining} = buffer, read_position, count) when read_position > position and (read_position + count) < (position + remaining) do
+    start = read_position - position
     <<_before::binary-size(start), result::binary-size(count), _rest::binary>> = data
     {result, buffer}
   end
 
-  def random(%__MODULE__{} = buffer, position, count) do
-    %__MODULE__{io_device: io_device, offset: offset} = buffer
-    {:ok, _position} = :file.position(io_device, position)
+  def random(%__MODULE__{} = buffer, read_position, count) do
+    %__MODULE__{io_device: io_device, position: position} = buffer
+    {:ok, _position} = :file.position(io_device, read_position)
     result = case IO.binread(io_device, count) do
       :eof ->
         nil
       chunk ->
         chunk
     end
-    {:ok, _position} = :file.position(io_device, offset)
+    {:ok, _position} = :file.position(io_device, position)
     {result, buffer}
   end
 

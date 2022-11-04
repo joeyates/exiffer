@@ -104,7 +104,7 @@ defmodule Exiffer.JPEG do
   def headers(%Exiffer.Buffer{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
     IO.puts "APP1"
     buffer = skip(buffer, 2)
-    app1_start = buffer.offset
+    app1_start = buffer.position
     {<<length_bytes::binary-size(2)>>, buffer} = consume(buffer, 2)
     length = big_endian_to_decimal(length_bytes)
     {"Exif\0\0", buffer} = consume(buffer, 6)
@@ -115,7 +115,7 @@ defmodule Exiffer.JPEG do
       byte_order: byte_order,
       relative_ifd_header_offset: ifd_header_offset
     }
-    IO.puts "buffer.offset: #{Integer.to_string(buffer.offset, 16)}"
+    IO.puts "buffer.position: #{Integer.to_string(buffer.position, 16)}"
     {buffer, ifds} = read_ifds(buffer, [], app1_start + ifd_header_offset)
     {thumbnail, buffer} = read_thumbnail(buffer, ifds)
     app1_header = %{
@@ -198,6 +198,8 @@ defmodule Exiffer.JPEG do
   @ifd_tag_exif_offset <<0x69, 0x87>>
   @ifd_tag_gps_info <<0x25, 0x88>>
 
+  @ifd_tag_exposure_time <<0x9a, 0x82>>
+
   @ifd_format_string <<0x02, 0x00>>
   @ifd_format_int16u <<0x03, 0x00>>
   @ifd_format_int32u <<0x04, 0x00>>
@@ -222,7 +224,7 @@ defmodule Exiffer.JPEG do
       type: "ImageWidth",
       value: value
     }
-    IO.puts "ImageWidth at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "ImageWidth at #{Integer.to_string(buffer.position - offset, 16)}"
 
     buffer
     |> skip(12)
@@ -237,7 +239,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "ImageHeight at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "ImageHeight at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "ImageHeight",
@@ -257,7 +259,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "Compression at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "Compression at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "Compression",
@@ -277,7 +279,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "Make at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "Make at #{Integer.to_string(buffer.position - offset, 16)}"
     string_offset = little_endian_to_decimal(string_offset_binary)
     string_length = little_endian_to_decimal(length_binary)
     {make, buffer} = random(buffer, offset + string_offset, string_length - 1)
@@ -299,7 +301,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "Model at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "Model at #{Integer.to_string(buffer.position - offset, 16)}"
     string_offset = little_endian_to_decimal(string_offset_binary)
     string_length = little_endian_to_decimal(length_binary)
     {model, buffer} = random(buffer, offset + string_offset, string_length - 1)
@@ -321,7 +323,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "Orientation at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "Orientation at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "Orientation",
@@ -341,7 +343,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "XResolution at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "XResolution at #{Integer.to_string(buffer.position - offset, 16)}"
     value_offset = little_endian_to_decimal(offset_binary)
     {<<high_binary::binary-size(4), low_binary::binary-size(4)>>, buffer} = random(buffer, offset + value_offset, 8)
     entry = %{
@@ -363,7 +365,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "YResolution at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "YResolution at #{Integer.to_string(buffer.position - offset, 16)}"
     value_offset = little_endian_to_decimal(offset_binary)
     {<<high_binary::binary-size(4), low_binary::binary-size(4)>>, buffer} = random(buffer, offset + value_offset, 8)
     entry = %{
@@ -385,7 +387,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "ResolutionUnit at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "ResolutionUnit at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "ResolutionUnit",
@@ -405,7 +407,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "Software at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "Software at #{Integer.to_string(buffer.position - offset, 16)}"
     string_offset = little_endian_to_decimal(string_offset_binary)
     string_length = little_endian_to_decimal(length_binary)
     {value, buffer} = random(buffer, offset + string_offset, string_length - 1)
@@ -427,7 +429,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "ModificationDate at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "ModificationDate at #{Integer.to_string(buffer.position - offset, 16)}"
     string_offset = little_endian_to_decimal(string_offset_binary)
     string_length = little_endian_to_decimal(length_binary)
     {value, buffer} = random(buffer, offset + string_offset, string_length - 1)
@@ -449,7 +451,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "ThumbnailOffset at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "ThumbnailOffset at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "ThumbnailOffset",
@@ -469,7 +471,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "ThumbnailLength at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "ThumbnailLength at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "ThumbnailLength",
@@ -489,7 +491,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "YCbCrPositioning at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "YCbCrPositioning at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "YCbCrPositioning",
@@ -509,14 +511,15 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "ExifOffset (#{count}) at #{Integer.to_string(buffer.offset - offset, 16)}"
-    position = buffer.offset
+    IO.puts "ExifOffset (#{count}) at #{Integer.to_string(buffer.position - offset, 16)}"
+    position = buffer.position
     exif_offset = little_endian_to_decimal(value_binary)
     buffer = seek(buffer, offset + exif_offset)
     {buffer, ifd} = read_ifd(buffer, offset)
     entry = %{
       type: "ExifOffset",
-      value: exif_offset
+      value: exif_offset,
+      ifd: ifd
     }
 
     next_entry_position = position + 12
@@ -534,7 +537,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "GPSInfo at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "GPSInfo at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "GPSInfo",
@@ -554,7 +557,7 @@ defmodule Exiffer.JPEG do
     count,
     ifd_entries
   ) do
-    IO.puts "ExposureTime at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "ExposureTime at #{Integer.to_string(buffer.position - offset, 16)}"
     value = little_endian_to_decimal(value_binary)
     entry = %{
       type: "ExposureTime",
@@ -575,7 +578,7 @@ defmodule Exiffer.JPEG do
     ifd_entries
   ) do
     tag = little_endian_to_decimal(tag_bytes)
-    IO.puts "Unknown IFD #{count} Tag #{Integer.to_string(tag, 16)} at #{Integer.to_string(buffer.offset - offset, 16)}"
+    IO.puts "Unknown IFD #{count} Tag #{Integer.to_string(tag, 16)} at #{Integer.to_string(buffer.position - offset, 16)}"
     entry = %{
       type: "Unknown IFD",
       tag: tag_bytes,
