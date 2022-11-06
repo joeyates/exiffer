@@ -18,14 +18,6 @@ defmodule Exiffer.Buffer do
     |> ensure(read_ahead)
   end
 
-  def ensure(%__MODULE__{remaining: remaining} = buffer, amount) when remaining > amount, do: buffer
-
-  def ensure(%__MODULE__{remaining: remaining, read_ahead: read_ahead} = buffer, amount) do
-    new_length = max(amount, read_ahead)
-    needed = new_length - remaining
-    read(buffer, needed)
-  end
-
   def seek(%__MODULE__{io_device: io_device} = buffer, position) do
     start = buffer.position
     finish = start + buffer.remaining
@@ -86,6 +78,14 @@ defmodule Exiffer.Buffer do
 
   def close(%__MODULE__{io_device: io_device}) do
     :ok = File.close(io_device)
+  end
+
+  defp ensure(%__MODULE__{remaining: remaining} = buffer, amount) when remaining > amount, do: buffer
+
+  defp ensure(%__MODULE__{remaining: remaining, read_ahead: read_ahead} = buffer, amount) do
+    new_length = max(amount, read_ahead)
+    needed = new_length - remaining
+    read(buffer, needed)
   end
 
   defp read(%__MODULE__{io_device: io_device, data: data, remaining: remaining} = buffer, amount) do
