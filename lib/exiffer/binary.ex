@@ -6,19 +6,57 @@ defmodule Exiffer.Binary do
   @doc """
   Convert binary bytes to decimal.
   """
-  def big_endian_to_decimal(<<hi, lo>>) do
+  def big_endian_to_integer(<<hi, lo>>) do
     lo + 256 * hi
   end
 
   @doc """
   Convert binary bytes to decimal.
   """
-  def little_endian_to_decimal(<<lo, hi>>) do
+  def little_endian_to_integer(<<lo, hi>>) do
     lo + 256 * hi
   end
 
-  def little_endian_to_decimal(<<b0, b1, b2, b3>>) do
+  def little_endian_to_integer(<<b0, b1, b2, b3>>) do
     b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
+  end
+
+  # TODO: handle negatives
+  def to_signed(<<b0, b1, b2, b3>>) do
+    b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
+  end
+
+  @doc """
+  When given 8 bytes, returns a single {numerator, denominator} tuple.
+  When given multiples of 8 bytes, returns a list of those tuples.
+  """
+  def to_rational(<<numerator::binary-size(4), denominator::binary-size(4)>>) do
+    {little_endian_to_integer(numerator), little_endian_to_integer(denominator)}
+  end
+
+  def to_rational(<<rational1::binary-size(8), rational2::binary-size(8)>>) do
+    [to_rational(rational1), to_rational(rational2)]
+  end
+
+  def to_rational(<<rational::binary-size(8), rest::binary>>) do
+    [to_rational(rational) | to_rational(rest)]
+  end
+
+  @doc """
+  When given 8 bytes, returns a single {numerator, denominator} tuple.
+  When given multiples of 8 bytes, returns a list of those tuples.
+  """
+  def to_signed_rational(<<numerator::binary-size(4), denominator::binary-size(4)>>) do
+    # TODO: handle signed
+    {little_endian_to_integer(numerator), little_endian_to_integer(denominator)}
+  end
+
+  def to_signed_rational(<<rational1::binary-size(8), rational2::binary-size(8)>>) do
+    [to_signed_rational(rational1), to_signed_rational(rational2)]
+  end
+
+  def to_signed_rational(<<rational::binary-size(8), rest::binary>>) do
+    [to_signed_rational(rational) | to_signed_rational(rest)]
   end
 
   @doc """
