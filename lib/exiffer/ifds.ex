@@ -4,50 +4,52 @@ defmodule Exiffer.IFDs do
   """
 
   alias Exiffer.Binary
-  import Exiffer.OffsetBuffer, only: [consume: 2, random: 3, seek: 2, tell: 1]
+  alias Exiffer.Buffer
+  alias Exiffer.IFD
+  alias Exiffer.OffsetBuffer
 
-  def read(%Exiffer.Buffer{} = main_buffer, offset) do
+  def read(%Buffer{} = main_buffer, offset) do
     {_offset_buffer, ifds} =
-      Exiffer.OffsetBuffer.new(main_buffer, offset)
+      OffsetBuffer.new(main_buffer, offset)
       |> do_read([])
     ifds
   end
 
-  def read_thumbnail(%Exiffer.Buffer{} = main_buffer, offset, ifds) do
+  def read_thumbnail(%Buffer{} = main_buffer, offset, ifds) do
     case thumbnail_entries(ifds) do
       {thumbnail_offset, thumbnail_length} ->
         {thumbnail, _offset_buffer} =
-          Exiffer.OffsetBuffer.new(main_buffer, offset)
-          |> random(thumbnail_offset, thumbnail_length)
+          OffsetBuffer.new(main_buffer, offset)
+          |> OffsetBuffer.random(thumbnail_offset, thumbnail_length)
         {thumbnail, main_buffer}
       _ ->
         {nil, main_buffer}
     end
   end
 
-  def read_ifd(%Exiffer.Buffer{} = main_buffer, offset, ifds, type) do
+  def read_ifd(%Buffer{} = main_buffer, offset, ifds, type) do
     case find_value(ifds, type) do
       nil ->
         {nil, main_buffer}
       ifd_offset ->
-        buffer = Exiffer.OffsetBuffer.new(main_buffer, offset)
-        position = tell(buffer)
+        buffer = OffsetBuffer.new(main_buffer, offset)
+        position = OffsetBuffer.tell(buffer)
         {_buffer, ifd} =
-          seek(buffer, ifd_offset)
-          |> Exiffer.IFD.read()
-        _buffer = seek(buffer, position)
+          OffsetBuffer.seek(buffer, ifd_offset)
+          |> IFD.read()
+        _buffer = OffsetBuffer.seek(buffer, position)
         {ifd, main_buffer}
     end
   end
 
-  defp do_read(%Exiffer.OffsetBuffer{} = buffer, ifds) do
-    {buffer, ifd} = Exiffer.IFD.read(buffer)
-    {next_ifd_bytes, buffer} = consume(buffer, 4)
+  defp do_read(%OffsetBuffer{} = buffer, ifds) do
+    {buffer, ifd} = IFD.read(buffer)
+    {next_ifd_bytes, buffer} = OffsetBuffer.consume(buffer, 4)
     next_ifd = Binary.little_endian_to_integer(next_ifd_bytes)
     if next_ifd == 0 do
       {buffer, [ifd | ifds]}
     else
-      buffer = seek(buffer, next_ifd)
+      buffer = OffsetBuffer.seek(buffer, next_ifd)
       do_read(buffer, [ifd | ifds])
     end
   end

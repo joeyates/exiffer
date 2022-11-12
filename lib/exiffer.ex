@@ -3,6 +3,9 @@ defmodule Exiffer do
   Documentation for `Exiffer`.
   """
 
+  alias Exiffer.Buffer
+  alias Exiffer.JPEG
+
   @doc """
   Dump image file metadata.
 
@@ -13,22 +16,22 @@ defmodule Exiffer do
 
   """
   def dump([filename]) do
-    buffer = Exiffer.Buffer.new(filename)
+    buffer = Buffer.new(filename)
     exif = parse(buffer)
-    :ok = Exiffer.Buffer.close(buffer)
+    :ok = Buffer.close(buffer)
 
     IO.puts "exif: #{inspect(exif, [pretty: true, width: 0])}"
 
     {:ok}
   end
 
-  defp parse(%Exiffer.Buffer{data: <<0xff, 0xd8, _rest::binary>>} = buffer) do
-    buffer = Exiffer.Buffer.skip(buffer, 2)
-    {_buffer, headers} = Exiffer.JPEG.headers(buffer, [])
+  defp parse(%Buffer{data: <<0xff, 0xd8, _rest::binary>>} = buffer) do
+    buffer = Buffer.skip(buffer, 2)
+    {_buffer, headers} = JPEG.headers(buffer, [])
     Enum.reverse(headers)
   end
 
-  defp parse(%Exiffer.Buffer{}) do
+  defp parse(%Buffer{}) do
     IO.puts "Unrecognized file format"
   end
 end

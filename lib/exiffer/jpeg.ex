@@ -3,8 +3,8 @@ defmodule Exiffer.JPEG do
   Documentation for `Exiffer.JPEG`.
   """
 
-  import Exiffer.Buffer, only: [consume: 2, seek: 2, skip: 2, random: 3]
   alias Exiffer.Binary
+  alias Exiffer.Buffer
   alias Exiffer.IFDs
 
   @doc """
@@ -12,38 +12,38 @@ defmodule Exiffer.JPEG do
   """
   def headers(buffer, headers)
 
-  def headers(%Exiffer.Buffer{data: <<0xff, 0xc0, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
+  def headers(%Buffer{data: <<0xff, 0xc0, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
     IO.puts "SOF0"
-    buffer = skip(buffer, 4)
+    buffer = Buffer.skip(buffer, 4)
     length = Binary.big_endian_to_integer(length_bytes)
     binary_length = length - 2
-    {data, buffer} = consume(buffer, binary_length)
+    {data, buffer} = Buffer.consume(buffer, binary_length)
     header = %{type: "JPEG SOF0", data: data}
     headers(buffer, [header | headers])
   end
 
-  def headers(%Exiffer.Buffer{data: <<0xff, 0xc4, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
+  def headers(%Buffer{data: <<0xff, 0xc4, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
     IO.puts "DHT"
-    buffer = skip(buffer, 4)
+    buffer = Buffer.skip(buffer, 4)
     length = Binary.big_endian_to_integer(length_bytes)
     dht_length = length - 2
-    {data, buffer} = consume(buffer, dht_length)
+    {data, buffer} = Buffer.consume(buffer, dht_length)
     header = %{type: "JPEG DHT", dht: data}
     headers(buffer, [header | headers])
   end
 
-  def headers(%Exiffer.Buffer{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
+  def headers(%Buffer{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
     IO.puts "SOS - Image data"
     header = %{type: "JPEG SOS"}
     {buffer, [header | headers]}
   end
 
   # DRI header
-  def headers(%Exiffer.Buffer{data: <<0xff, 0xdd, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
+  def headers(%Buffer{data: <<0xff, 0xdd, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
     IO.puts "DRI"
-    buffer = skip(buffer, 4)
+    buffer = Buffer.skip(buffer, 4)
     length = Binary.big_endian_to_integer(length_bytes)
-    {data, buffer} = consume(buffer, length - 2)
+    {data, buffer} = Buffer.consume(buffer, length - 2)
     header = %{
       type: "JPEG DRI",
       comment: "Define Restart Interval",
@@ -52,18 +52,18 @@ defmodule Exiffer.JPEG do
     headers(buffer, [header | headers])
   end
 
-  def headers(%Exiffer.Buffer{data: <<0xff, 0xdb, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
+  def headers(%Buffer{data: <<0xff, 0xdb, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
     IO.puts "DQT"
-    buffer = skip(buffer, 4)
+    buffer = Buffer.skip(buffer, 4)
     length = Binary.big_endian_to_integer(length_bytes)
     binary_length = length - 2
-    {data, buffer} = consume(buffer, binary_length)
+    {data, buffer} = Buffer.consume(buffer, binary_length)
     header = %{type: "JPEG DQT", dqt: data}
     headers(buffer, [header | headers])
   end
 
   def headers(
-    %Exiffer.Buffer{
+    %Buffer{
       data: <<
       0xff,
       0xe0,
@@ -82,9 +82,9 @@ defmodule Exiffer.JPEG do
     headers
   ) do
     IO.puts "JFIF"
-    buffer = skip(buffer, 18)
+    buffer = Buffer.skip(buffer, 18)
     thumbnail_bytes = 3 * x_thumbnail * y_thumbnail
-    {thumbnail, buffer} = consume(buffer, thumbnail_bytes)
+    {thumbnail, buffer} = Buffer.consume(buffer, thumbnail_bytes)
     header = %{
       type: "JFIF APP0",
       length: Binary.little_endian_to_integer(length),
@@ -102,14 +102,14 @@ defmodule Exiffer.JPEG do
   @tiff_header_marker <<0x2a, 0x00>>
 
   # APP1 header
-  def headers(%Exiffer.Buffer{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
+  def headers(%Buffer{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
     IO.puts "APP1"
-    buffer = skip(buffer, 2)
+    buffer = Buffer.skip(buffer, 2)
     app1_start = buffer.position
-    {<<length_bytes::binary-size(2)>>, buffer} = consume(buffer, 2)
+    {<<length_bytes::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)
     length = Binary.big_endian_to_integer(length_bytes)
-    {"Exif\0\0", buffer} = consume(buffer, 6)
-    {<<byte_order::binary-size(2), @tiff_header_marker, ifd_header_offset_binary::binary-size(4)>>, buffer} = consume(buffer, 8)
+    {"Exif\0\0", buffer} = Buffer.consume(buffer, 6)
+    {<<byte_order::binary-size(2), @tiff_header_marker, ifd_header_offset_binary::binary-size(4)>>, buffer} = Buffer.consume(buffer, 8)
     ifd_header_offset = Binary.little_endian_to_integer(ifd_header_offset_binary)
     tiff_header = %{
       type: "TIFF Header Block",
@@ -130,28 +130,28 @@ defmodule Exiffer.JPEG do
       gps_ifd: gps_ifd
     }
     # Skip to end of APP1
-    buffer = seek(buffer, app1_start + length)
+    buffer = Buffer.seek(buffer, app1_start + length)
     headers(buffer, headers ++ [app1_header, tiff_header])
   end
 
   # APP4 header
-  def headers(%Exiffer.Buffer{data: <<0xff, 0xe4, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
+  def headers(%Buffer{data: <<0xff, 0xe4, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
     IO.puts "APP4"
     length = Binary.big_endian_to_integer(length_bytes)
     app4_header = %{
       type: "APP4",
       length: length
     }
-    buffer = skip(buffer, length + 2)
+    buffer = Buffer.skip(buffer, length + 2)
     headers(buffer, [app4_header | headers])
   end
 
-  def headers(%Exiffer.Buffer{data: <<0xff, 0xfe, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
+  def headers(%Buffer{data: <<0xff, 0xfe, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
     IO.puts "COM"
-    buffer = skip(buffer, 4)
+    buffer = Buffer.skip(buffer, 4)
     length = Binary.big_endian_to_integer(length_bytes)
-    {comment, buffer} = consume(buffer, length - 2)
-    buffer = skip(buffer, 1)
+    {comment, buffer} = Buffer.consume(buffer, length - 2)
+    buffer = Buffer.skip(buffer, 1)
     header = %{type: "JPEG COM Comment", comment: comment}
     headers(buffer, [header | headers])
   end
