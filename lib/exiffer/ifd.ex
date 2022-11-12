@@ -99,10 +99,7 @@ defmodule Exiffer.IFD do
       IO.puts "Unknown tag #{inspect(tag)} found"
     end
     value = Binary.little_endian_to_integer(value_binary)
-    entry = %{
-      type: type,
-      value: value
-    }
+    entry = %{type: type, value: value}
 
     buffer
     |> skip(12)
@@ -148,10 +145,7 @@ defmodule Exiffer.IFD do
     string_offset = Binary.little_endian_to_integer(string_offset_binary)
     string_length = Binary.little_endian_to_integer(length_binary)
     {value, buffer} = random(buffer, string_offset, string_length - 1)
-    entry = %{
-      type: type,
-      value: value
-    }
+    entry = %{type: type, value: value}
 
     buffer
     |> skip(12)
@@ -175,10 +169,8 @@ defmodule Exiffer.IFD do
     rational_count = Binary.little_endian_to_integer(count_binary)
     value_offset = Binary.little_endian_to_integer(offset_binary)
     {<<rational_binaries::binary-size(rational_count * 8)>>, buffer} = random(buffer, value_offset, rational_count * 8)
-    entry = %{
-      type: type,
-      value: Binary.to_rational(rational_binaries)
-    }
+    value = Binary.to_rational(rational_binaries)
+    entry = %{type: type, value: value}
 
     buffer
     |> skip(12)
@@ -201,10 +193,8 @@ defmodule Exiffer.IFD do
     end
     value_offset = Binary.little_endian_to_integer(offset_binary)
     {<<rational::binary-size(8)>>, buffer} = random(buffer, value_offset, 8)
-    entry = %{
-      type: type,
-      value: Binary.to_signed_rational(rational)
-    }
+    value = Binary.to_signed_rational(rational)
+    entry = %{type: type, value: value}
 
     buffer
     |> skip(12)
@@ -227,10 +217,7 @@ defmodule Exiffer.IFD do
     end
     size = Binary.little_endian_to_integer(size_binary)
     <<value::binary-size(size), _rest::binary>> = value_binary
-    entry = %{
-      type: type,
-      value: value
-    }
+    entry = %{type: type, value: value}
 
     buffer
     |> skip(12)
