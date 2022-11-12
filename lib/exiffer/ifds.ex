@@ -54,17 +54,11 @@ defmodule Exiffer.IFDs do
     end
   end
 
-  defp thumbnail_entries(ifds) when is_list(ifds) do
-    Enum.find_value(ifds, &(thumbnail_entries(&1)))
-  end
-
-  defp thumbnail_entries(ifd) when is_map(ifd) do
-    offset_entry = Enum.find(ifd.entries, &(&1.type == "ThumbnailOffset"))
-    length_entry = Enum.find(ifd.entries, &(&1.type == "ThumbnailLength"))
-    if offset_entry && length_entry do
-      {offset_entry.value, length_entry.value}
-    else
-      nil
+  defp thumbnail_entries(ifds) do
+    thumbnail_offset = find_value(ifds, "ThumbnailOffset")
+    thumbnail_length = find_value(ifds, "ThumbnailLength")
+    if thumbnail_offset && thumbnail_length do
+      {thumbnail_offset, thumbnail_length}
     end
   end
 
