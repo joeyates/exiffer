@@ -155,10 +155,4 @@ defmodule Exiffer.JPEG do
     header = %{type: "JPEG COM Comment", comment: comment}
     headers(buffer, [header | headers])
   end
-
-  def headers(buffer, headers) do
-    IO.puts "Unknown"
-    Exiffer.Debug.dump("Unknown header", buffer.data)
-    {buffer, headers}
-  end
 end
