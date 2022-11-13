@@ -18,19 +18,26 @@ defmodule Exiffer do
   """
   def dump(filename) do
     Logger.info "Exiffer.dump: '#{filename}'"
-    buffer = Buffer.new(filename)
-    exif = parse(buffer)
-    :ok = Buffer.close(buffer)
+    headers = parse(filename)
 
-    IO.puts "exif: #{inspect(exif, [pretty: true, width: 0])}"
+    IO.puts "headers: #{inspect(headers, [pretty: true, width: 0])}"
 
     {:ok}
+  end
+
+  defp parse(filename) when is_binary(filename) do
+    buffer = Buffer.new(filename)
+    {headers, _buffer} = parse(buffer)
+    :ok = Buffer.close(buffer)
+
+    headers
   end
 
   defp parse(%Buffer{data: <<0xff, 0xd8, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     {_buffer, headers} = JPEG.headers(buffer, [])
-    Enum.reverse(headers)
+    headers = Enum.reverse(headers)
+    {headers, buffer}
   end
 
   defp parse(%Buffer{}) do
