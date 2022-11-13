@@ -83,7 +83,7 @@ defmodule Exiffer.Entry do
     {tag, buffer} = OffsetBuffer.consume(buffer, 2)
     type = @entry[tag]
     if !type do
-      IO.puts "Unknown tag #{inspect(tag)} found"
+      raise "Unknown tag #{inspect(tag)} found"
     end
     {value, format, buffer} = value(buffer)
     buffer = OffsetBuffer.skip(buffer, 10)
