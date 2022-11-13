@@ -15,7 +15,7 @@ defmodule Exiffer do
       {:ok}
 
   """
-  def dump([filename]) do
+  def dump(filename) do
     buffer = Buffer.new(filename)
     exif = parse(buffer)
     :ok = Buffer.close(buffer)

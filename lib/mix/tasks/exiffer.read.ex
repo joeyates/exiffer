@@ -8,6 +8,7 @@ defmodule Mix.Tasks.Exiffer.Read do
   @shortdoc "Prints image file metadata"
   @callback run([String.t()]) :: {:ok}
   def run(args) do
-    {:ok} = Exiffer.dump(args)
+    [filename] = args
+    {:ok} = Exiffer.dump(filename)
   end
 end
