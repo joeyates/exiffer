@@ -6,6 +6,7 @@ defmodule Exiffer.IFD do
   alias Exiffer.Binary
   alias Exiffer.Entry
   alias Exiffer.OffsetBuffer
+  require Logger
 
   def read(%OffsetBuffer{} = buffer) do
     {<<ifd_count_bytes::binary-size(2)>>, buffer} = OffsetBuffer.consume(buffer, 2)
@@ -26,7 +27,7 @@ defmodule Exiffer.IFD do
   def read_entry(%OffsetBuffer{} = buffer, count, ifd_entries) do
     {entry, buffer} = Entry.new(buffer)
     format = Entry.format_name(entry)
-    IO.puts "Entry #{count}, '#{entry.type}' (#{format}) at #{Integer.to_string(buffer.buffer.position, 16)}"
+    Logger.debug "Entry #{count}, '#{entry.type}' (#{format}) at #{Integer.to_string(buffer.buffer.position, 16)}"
 
     read_entry(buffer, count - 1, [entry | ifd_entries])
   end

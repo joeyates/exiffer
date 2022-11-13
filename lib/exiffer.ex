@@ -5,6 +5,7 @@ defmodule Exiffer do
 
   alias Exiffer.Buffer
   alias Exiffer.JPEG
+  require Logger
 
   @doc """
   Dump image file metadata.
@@ -16,6 +17,7 @@ defmodule Exiffer do
 
   """
   def dump(filename) do
+    Logger.info "Exiffer.dump: '#{filename}'"
     buffer = Buffer.new(filename)
     exif = parse(buffer)
     :ok = Buffer.close(buffer)
