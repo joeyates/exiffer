@@ -4,10 +4,29 @@ defmodule Exiffer.Binary do
   """
 
   @doc """
+  Convert binary bytes to decimal based on endianness.
+  """
+  def endian_to_integer(<<hi, lo>>, :be) do
+    256 * hi + lo
+  end
+
+  def endian_to_integer(<<lo, hi>>, :le) do
+    lo + 256 * hi
+  end
+
+  def endian_to_integer(<<b0, b1, b2, b3>>, :be) do
+    0x1000000 * b0 + 0x10000 * b1 + 0x100 * b2 + b3
+  end
+
+  def endian_to_integer(<<b0, b1, b2, b3>>, :le) do
+    b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
+  end
+
+  @doc """
   Convert binary bytes to decimal.
   """
   def big_endian_to_integer(<<hi, lo>>) do
-    lo + 256 * hi
+    256 * hi + lo
   end
 
   @doc """
