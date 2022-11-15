@@ -5,6 +5,8 @@ defmodule Exiffer.Entry do
 
   alias Exiffer.Binary
   alias Exiffer.Buffer
+  alias Exiffer.Entry.MakerNotes
+  alias Exiffer.IFD
   alias Exiffer.OffsetBuffer
   require Logger
 
@@ -32,6 +34,7 @@ defmodule Exiffer.Entry do
   @format_name Enum.into(@format, %{}, fn {_k, %{type: type, name: name}} -> {type, name} end)
 
   @entry %{
+    <<0x00, 0x00>> => %{type: :version, name: "Version"},
     <<0x00, 0x01>> => %{type: :gps_latitude_ref, name: "GPSLatitudeRef"},
     <<0x00, 0x02>> => %{type: :gps_latitude, name: "GPSLatitude"},
     <<0x00, 0x03>> => %{type: :gps_longitude_ref, name: "GPSLongitudeRef"},
@@ -52,6 +55,20 @@ defmodule Exiffer.Entry do
     <<0x02, 0x01>> => %{type: :thumbnail_offset, name: "ThumbnailOffset"},
     <<0x02, 0x02>> => %{type: :thumbnail_length, name: "ThumbnailLength"},
     <<0x02, 0x13>> => %{type: :ycbcr_positioning, name: "YcbcrPositioning"},
+    <<0x10, 0x00>> => %{type: :quality, name: "Quality"},
+    <<0x10, 0x01>> => %{type: :sharpness, name: "Sharpness"},
+    <<0x10, 0x02>> => %{type: :white_balance, name: "WhiteBalance"},
+    <<0x10, 0x10>> => %{type: :fuji_flash_mode, name: "FujiFlashMode"},
+    <<0x10, 0x11>> => %{type: :flash_exposure_comp, name: "FlashExposureComp"},
+    <<0x10, 0x20>> => %{type: :macro, name: "Macro"},
+    <<0x10, 0x21>> => %{type: :focus_mode, name: "FocusMode"},
+    <<0x10, 0x30>> => %{type: :slow_sync, name: "SlowSync"},
+    <<0x10, 0x31>> => %{type: :picture_mode, name: "PictureMode"},
+    <<0x11, 0x00>> => %{type: :auto_bracketing, name: "AutoBracketing"},
+    <<0x12, 0x00>> => %{type: :tag_0x1200, name: "Tag0x1200"},
+    <<0x13, 0x00>> => %{type: :blur_warning, name: "BlurWarning"},
+    <<0x13, 0x01>> => %{type: :focus_warning, name: "FocusWarning"},
+    <<0x13, 0x02>> => %{type: :exposure_warning, name: "ExposureWarning"},
     <<0x87, 0x69>> => %{type: :exif_offset, name: "ExifOffset"},
     <<0x88, 0x25>> => %{type: :gps_info, name: "GPSInfo"},
     <<0x82, 0x98>> => %{type: :copyright, name: "Copyright"},
@@ -107,7 +124,7 @@ defmodule Exiffer.Entry do
     {format, buffer} = OffsetBuffer.consume(buffer, 2)
     big_endian_format = Binary.big_endian(format)
     format_type = @format[big_endian_format].type
-    value = value(big_endian_format, buffer)
+    value = value(entry_type, big_endian_format, buffer)
     buffer = OffsetBuffer.skip(buffer, 8)
     {%__MODULE__{type: entry_type, format: format_type, value: value}, buffer}
   end
@@ -117,6 +134,7 @@ defmodule Exiffer.Entry do
   end
 
   defp value(
+    _type,
     @format_string,
     %OffsetBuffer{
       buffer: %Buffer{
@@ -130,6 +148,7 @@ defmodule Exiffer.Entry do
   end
 
   defp value(
+    _type,
     @format_int16u,
     %OffsetBuffer{
       buffer: %Buffer{
@@ -141,6 +160,7 @@ defmodule Exiffer.Entry do
   end
 
   defp value(
+    _type,
     @format_int32u,
     %OffsetBuffer{
       buffer: %Buffer{
@@ -152,6 +172,7 @@ defmodule Exiffer.Entry do
   end
 
   defp value(
+    _type,
     @format_rational_64u,
     %OffsetBuffer{
       buffer: %Buffer{
@@ -166,6 +187,7 @@ defmodule Exiffer.Entry do
   end
 
   defp value(
+    _type,
     @format_rational_64s,
     %OffsetBuffer{
       buffer: %Buffer{
@@ -179,6 +201,29 @@ defmodule Exiffer.Entry do
   end
 
   defp value(
+    :maker_notes,
+    @format_inline_string,
+    %OffsetBuffer{
+      buffer: %Buffer{
+        data: <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>>
+      }
+    } = buffer
+  ) do
+    ifd_offset = Binary.to_integer(offset_binary)
+    position = OffsetBuffer.tell(buffer)
+    buffer = OffsetBuffer.seek(buffer, ifd_offset)
+    {header, buffer} = OffsetBuffer.consume(buffer, 12)
+    # Temporarily set process-local byte order
+    file_byte_order = Binary.byte_order()
+    Binary.set_byte_order(:little)
+    {ifd, buffer} = IFD.read(buffer)
+    Binary.set_byte_order(file_byte_order)
+    _buffer = OffsetBuffer.seek(buffer, position)
+    %MakerNotes{header: header, ifd: ifd}
+  end
+
+  defp value(
+    _type,
     @format_inline_string,
     %OffsetBuffer{
       buffer: %Buffer{
