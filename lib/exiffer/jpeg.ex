@@ -59,7 +59,7 @@ defmodule Exiffer.JPEG do
     headers(buffer, [header | headers])
   end
 
-  @tiff_header_marker <<0x2a, 0x00>>
+  @tiff_header_marker <<0x00, 0x2a>>
 
   def headers(%Buffer{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
     Logger.debug ~s(Header "APP1" at #{Integer.to_string(buffer.position, 16)})
@@ -71,7 +71,8 @@ defmodule Exiffer.JPEG do
     {byte_order_marker, buffer} = Buffer.consume(buffer, 2)
     byte_order = if byte_order_marker == "MM", do: :big, else: :little
     Binary.set_byte_order(byte_order)
-    {<<_tiff_header_marker::binary-size(2), ifd_header_offset_binary::binary-size(4)>>, buffer} = Buffer.consume(buffer, 6)
+    tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
+    {<<^tiff_header_marker::binary-size(2), ifd_header_offset_binary::binary-size(4)>>, buffer} = Buffer.consume(buffer, 6)
     ifd_header_offset = Binary.to_integer(ifd_header_offset_binary)
     offset = app1_start + ifd_header_offset
     ifds = IFDs.read(buffer, offset)

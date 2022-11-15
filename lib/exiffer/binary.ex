@@ -37,10 +37,29 @@ defmodule Exiffer.Binary do
   def big_endian(binary) do
     case byte_order() do
       :little ->
+        reverse(binary)
+      :big ->
         binary
-        |> :binary.bin_to_list()
-        |> Enum.reverse()
-        |> :binary.list_to_bin()
+    end
+  end
+
+  @doc """
+  Reverse the given binary bytes
+  """
+  def reverse(binary) do
+    binary
+    |> :binary.bin_to_list()
+    |> Enum.reverse()
+    |> :binary.list_to_bin()
+  end
+
+  @doc """
+  Convert big endian to the currently selected byte order
+  """
+  def big_endian_to_current(binary) do
+    case byte_order() do
+      :little ->
+        reverse(binary)
       :big ->
         binary
     end
