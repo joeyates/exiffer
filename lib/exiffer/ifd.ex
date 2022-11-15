@@ -14,8 +14,7 @@ defmodule Exiffer.IFD do
     {buffer, ifd_entries} = read_entry(buffer, ifd_count, [])
     ifd = %{
       type: "IFD",
-      entries: Enum.reverse(ifd_entries),
-      count: ifd_count
+      entries: Enum.reverse(ifd_entries)
     }
     {buffer, ifd}
   end
