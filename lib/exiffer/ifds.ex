@@ -45,7 +45,7 @@ defmodule Exiffer.IFDs do
   defp do_read(%OffsetBuffer{} = buffer, ifds) do
     {buffer, ifd} = IFD.read(buffer)
     {next_ifd_bytes, buffer} = OffsetBuffer.consume(buffer, 4)
-    next_ifd = Binary.little_endian_to_integer(next_ifd_bytes)
+    next_ifd = Binary.to_integer(next_ifd_bytes)
     if next_ifd == 0 do
       {buffer, [ifd | ifds]}
     else

@@ -10,7 +10,7 @@ defmodule Exiffer.IFD do
 
   def read(%OffsetBuffer{} = buffer) do
     {<<ifd_count_bytes::binary-size(2)>>, buffer} = OffsetBuffer.consume(buffer, 2)
-    ifd_count = Binary.little_endian_to_integer(ifd_count_bytes)
+    ifd_count = Binary.to_integer(ifd_count_bytes)
     {buffer, ifd_entries} = read_entry(buffer, ifd_count, [])
     ifd = %{
       type: "IFD",

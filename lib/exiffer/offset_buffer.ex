@@ -6,6 +6,7 @@ defmodule Exiffer.OffsetBuffer do
   """
 
   alias Exiffer.Buffer
+  require Logger
 
   defstruct [:buffer, :offset]
 
@@ -28,9 +29,8 @@ defmodule Exiffer.OffsetBuffer do
     struct!(offset_buffer, buffer: buffer)
   end
 
-  def random(%__MODULE__{buffer: buffer, offset: offset} = offset_buffer, position, count) do
-    {result, buffer} = Buffer.random(buffer, offset + position, count)
-    {result, struct!(offset_buffer, buffer: buffer)}
+  def random(%__MODULE__{buffer: buffer, offset: offset}, position, count) do
+    Buffer.random(buffer, offset + position, count)
   end
 
   def tell(%__MODULE__{buffer: buffer, offset: offset}) do

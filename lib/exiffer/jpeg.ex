@@ -50,8 +50,8 @@ defmodule Exiffer.JPEG do
       type: "JFIF APP0",
       version: version,
       density_units: density_units,
-      x_density: Binary.little_endian_to_integer(x_density),
-      y_density: Binary.little_endian_to_integer(y_density),
+      x_density: Binary.to_integer(x_density),
+      y_density: Binary.to_integer(y_density),
       x_thumbnail: x_thumbnail,
       y_thumbnail: y_thumbnail,
       thumbnail: thumbnail
@@ -68,8 +68,11 @@ defmodule Exiffer.JPEG do
     {<<length_bytes::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)
     length = Binary.big_endian_to_integer(length_bytes)
     {"Exif\0\0", buffer} = Buffer.consume(buffer, 6)
-    {<<byte_order::binary-size(2), @tiff_header_marker, ifd_header_offset_binary::binary-size(4)>>, buffer} = Buffer.consume(buffer, 8)
-    ifd_header_offset = Binary.little_endian_to_integer(ifd_header_offset_binary)
+    {byte_order_marker, buffer} = Buffer.consume(buffer, 2)
+    byte_order = if byte_order_marker == "MM", do: :big, else: :little
+    Binary.set_byte_order(byte_order)
+    {<<_tiff_header_marker::binary-size(2), ifd_header_offset_binary::binary-size(4)>>, buffer} = Buffer.consume(buffer, 6)
+    ifd_header_offset = Binary.to_integer(ifd_header_offset_binary)
     offset = app1_start + ifd_header_offset
     ifds = IFDs.read(buffer, offset)
     {thumbnail, buffer} = IFDs.read_thumbnail(buffer, offset, ifds)
@@ -111,5 +114,8 @@ defmodule Exiffer.JPEG do
     Logger.debug ~s(Header Data at #{Integer.to_string(buffer.position, 16)})
     {header, buffer} = Data.new(buffer)
     headers(buffer, [header | headers])
+  end
+
+  def write(%Buffer{} = _buffer, _headers) do
   end
 end
