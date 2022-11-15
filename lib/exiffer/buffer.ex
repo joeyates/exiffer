@@ -92,7 +92,8 @@ defmodule Exiffer.Buffer do
       :eof ->
         buffer
       chunk ->
-        struct!(buffer, data: <<data::binary, chunk::binary>>, remaining: remaining + amount)
+        data = <<data::binary, chunk::binary>>
+        struct!(buffer, data: data, remaining: remaining + amount)
     end
   end
 end
