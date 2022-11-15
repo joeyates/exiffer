@@ -36,7 +36,6 @@ defmodule Exiffer.Buffer do
   end
 
   def consume(%__MODULE__{} = buffer, count) do
-    buffer = ensure(buffer, count)
     %__MODULE__{data: data, position: position, remaining: remaining} = buffer = ensure(buffer, count)
     <<consumed::binary-size(count), rest::binary>> = data
     buffer =
