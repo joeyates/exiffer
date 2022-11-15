@@ -3,10 +3,14 @@ defmodule Exiffer.Binary do
   Documentation for `Exiffer.Binary`.
   """
 
+  require Logger
+
   @table :exiffer
 
   def optionally_create_ets_table() do
-    if :ets.whereis(@table) do
+    ref = :ets.whereis(@table)
+    if ref == :undefined do
+      Logger.debug "Initializing ETS table #{@table}"
       _name = :ets.new(@table, [:set, :public, :named_table])
     end
   end
