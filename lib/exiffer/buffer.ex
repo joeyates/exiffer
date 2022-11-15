@@ -56,10 +56,10 @@ defmodule Exiffer.Buffer do
   Otherwise, position the buffer, read the bytes, then reposition the buffer
   to the previous position.
   """
-  def random(%__MODULE__{data: data, position: position, remaining: remaining} = buffer, read_position, count) when read_position > position and (read_position + count) < (position + remaining) do
+  def random(%__MODULE__{data: data, position: position, remaining: remaining}, read_position, count) when read_position > position and (read_position + count) < (position + remaining) do
     start = read_position - position
     <<_before::binary-size(start), result::binary-size(count), _rest::binary>> = data
-    {result, buffer}
+    result
   end
 
   def random(%__MODULE__{} = buffer, read_position, count) do
@@ -72,7 +72,7 @@ defmodule Exiffer.Buffer do
         chunk
     end
     {:ok, _position} = :file.position(io_device, position)
-    {result, buffer}
+    result
   end
 
   def close(%__MODULE__{io_device: io_device}) do

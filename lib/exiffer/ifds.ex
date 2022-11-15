@@ -18,7 +18,7 @@ defmodule Exiffer.IFDs do
   def read_thumbnail(%Buffer{} = main_buffer, offset, ifds) do
     case thumbnail_entries(ifds) do
       {thumbnail_offset, thumbnail_length} ->
-        {thumbnail, _offset_buffer} =
+        thumbnail =
           OffsetBuffer.new(main_buffer, offset)
           |> OffsetBuffer.random(thumbnail_offset, thumbnail_length)
         {thumbnail, main_buffer}
