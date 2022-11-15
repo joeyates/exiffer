@@ -63,7 +63,7 @@ defmodule Exiffer.Buffer do
   end
 
   def random(%__MODULE__{} = buffer, read_position, count) do
-    %__MODULE__{io_device: io_device, position: position} = buffer
+    %__MODULE__{io_device: io_device, position: position, remaining: remaining} = buffer
     {:ok, _position} = :file.position(io_device, read_position)
     result = case IO.binread(io_device, count) do
       :eof ->
@@ -71,7 +71,7 @@ defmodule Exiffer.Buffer do
       chunk ->
         chunk
     end
-    {:ok, _position} = :file.position(io_device, position)
+    {:ok, _position} = :file.position(io_device, position + remaining)
     result
   end
 
