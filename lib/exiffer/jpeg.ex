@@ -86,7 +86,6 @@ defmodule Exiffer.JPEG do
       exif_ifd: exif_ifd,
       gps_ifd: gps_ifd
     }
-    # Skip to end of APP1
     app1_end = app1_start + length
     Logger.debug "APP1 read completed, seeking to #{Integer.to_string(app1_end, 16)}"
     buffer = Buffer.seek(buffer, app1_end)

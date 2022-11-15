@@ -8,6 +8,8 @@ defmodule Exiffer.Buffer do
   so that enough data has been read.
   """
 
+  require Logger
+
   defstruct [:io_device, data: <<>>, position: 0, remaining: 0, read_ahead: 1000]
 
   def new(filename, opts \\ []) do
@@ -90,6 +92,7 @@ defmodule Exiffer.Buffer do
   defp read(%__MODULE__{io_device: io_device, data: data, remaining: remaining} = buffer, amount) do
     case IO.binread(io_device, amount) do
       :eof ->
+        Logger.error "Buffer.read failed, EOF!"
         buffer
       chunk ->
         data = <<data::binary, chunk::binary>>

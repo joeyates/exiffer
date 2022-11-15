@@ -210,6 +210,7 @@ defmodule Exiffer.Entry do
     } = buffer
   ) do
     ifd_offset = Binary.to_integer(offset_binary)
+    Logger.info "maker_notes, ifd_offset: #{inspect(ifd_offset, [base: :hex, pretty: true, width: 0])}"
     position = OffsetBuffer.tell(buffer)
     buffer = OffsetBuffer.seek(buffer, ifd_offset)
     {header, buffer} = OffsetBuffer.consume(buffer, 12)
