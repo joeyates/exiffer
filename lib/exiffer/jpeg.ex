@@ -77,8 +77,8 @@ defmodule Exiffer.JPEG do
     offset = app1_start + ifd_header_offset
     ifds = IFDs.read(buffer, offset)
     {thumbnail, buffer} = IFDs.read_thumbnail(buffer, offset, ifds)
-    {exif_ifd, buffer} = IFDs.read_ifd(buffer, offset, ifds, "ExifOffset")
-    {gps_ifd, buffer} = IFDs.read_ifd(buffer, offset, ifds, "GPSInfo")
+    {exif_ifd, buffer} = IFDs.read_ifd(buffer, offset, ifds, :exif_offset)
+    {gps_ifd, buffer} = IFDs.read_ifd(buffer, offset, ifds, :gps_info)
     app1_header = %APP1{
       byte_order: byte_order,
       ifds: ifds,

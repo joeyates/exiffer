@@ -11,17 +11,17 @@ defmodule Exiffer.IFD do
   def read(%OffsetBuffer{} = buffer) do
     {<<ifd_count_bytes::binary-size(2)>>, buffer} = OffsetBuffer.consume(buffer, 2)
     ifd_count = Binary.to_integer(ifd_count_bytes)
-    {buffer, ifd_entries} = read_entry(buffer, ifd_count, [])
     Logger.debug "IFD reading #{ifd_count} entries"
+    {ifd_entries, buffer} = read_entry(buffer, ifd_count, [])
     ifd = %{
       type: "IFD",
       entries: Enum.reverse(ifd_entries)
     }
-    {buffer, ifd}
+    {ifd, buffer}
   end
 
   def read_entry(buffer, 0, ifd_entries) do
-    {buffer, ifd_entries}
+    {ifd_entries, buffer}
   end
 
   def read_entry(%OffsetBuffer{} = buffer, count, ifd_entries) do

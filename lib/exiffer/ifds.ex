@@ -10,7 +10,7 @@ defmodule Exiffer.IFDs do
   require Logger
 
   def read(%Buffer{} = main_buffer, offset) do
-    {_offset_buffer, ifds} =
+    {ifds, _offset_buffer} =
       OffsetBuffer.new(main_buffer, offset)
       |> do_read([])
     ifds
@@ -36,7 +36,7 @@ defmodule Exiffer.IFDs do
         Logger.debug "IFDs.read_ifd #{type} at #{Integer.to_string(ifd_offset, 16)}"
         buffer = OffsetBuffer.new(main_buffer, offset)
         position = OffsetBuffer.tell(buffer)
-        {_buffer, ifd} =
+        {ifd, _buffer} =
           OffsetBuffer.seek(buffer, ifd_offset)
           |> IFD.read()
         _buffer = OffsetBuffer.seek(buffer, position)
@@ -45,14 +45,14 @@ defmodule Exiffer.IFDs do
   end
 
   defp do_read(%OffsetBuffer{} = buffer, ifds) do
-    {buffer, ifd} = IFD.read(buffer)
     position = OffsetBuffer.tell(buffer) - 2
     offset = buffer.offset
     Logger.info "IFDs.do_read at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+    {ifd, buffer} = IFD.read(buffer)
     {next_ifd_bytes, buffer} = OffsetBuffer.consume(buffer, 4)
     next_ifd = Binary.to_integer(next_ifd_bytes)
     if next_ifd == 0 do
-      {buffer, [ifd | ifds]}
+      {[ifd | ifds], buffer}
     else
       Logger.info "IFDs.do_read, reading next IFD at 0x#{Integer.to_string(next_ifd, 16)}"
       buffer = OffsetBuffer.seek(buffer, next_ifd)
