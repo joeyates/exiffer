@@ -27,9 +27,9 @@ defmodule Exiffer.Buffer do
       remaining = buffer.remaining - count
       {rest, remaining}
     else
+      {:ok, _position} = :file.position(io_device, position)
       {<<>>, 0}
     end
-    {:ok, _position} = :file.position(io_device, position)
 
     struct!(buffer, data: data, position: position, remaining: remaining)
     |> ensure(buffer.read_ahead)
