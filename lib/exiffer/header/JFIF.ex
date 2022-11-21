@@ -5,6 +5,7 @@ defmodule Exiffer.Header.JFIF do
   JFIF is the "JPEG File Interchange Format"
   """
 
+  @enforce_keys ~w(type)a
   defstruct ~w(
     type
     version
