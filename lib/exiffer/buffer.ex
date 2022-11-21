@@ -39,9 +39,10 @@ defmodule Exiffer.Buffer do
 
   def consume(%__MODULE__{} = buffer, count) do
     %__MODULE__{data: data, position: position, remaining: remaining} = buffer = ensure(buffer, count)
-    <<consumed::binary-size(count), rest::binary>> = data
+    available = if remaining >= count, do: count, else: remaining
+    <<consumed::binary-size(available), rest::binary>> = data
     buffer =
-      struct!(buffer, data: rest, position: position + count, remaining: remaining - count)
+      struct!(buffer, data: rest, position: position + count, remaining: remaining - available)
       |> ensure(buffer.read_ahead)
 
     {consumed, buffer}
@@ -95,8 +96,9 @@ defmodule Exiffer.Buffer do
         Logger.error "Buffer.read failed, EOF!"
         buffer
       chunk ->
+        size = byte_size(chunk)
         data = <<data::binary, chunk::binary>>
-        struct!(buffer, data: data, remaining: remaining + amount)
+        struct!(buffer, data: data, remaining: remaining + size)
     end
   end
 end
