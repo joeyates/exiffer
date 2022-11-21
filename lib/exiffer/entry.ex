@@ -10,8 +10,8 @@ defmodule Exiffer.Entry do
   alias Exiffer.OffsetBuffer
   require Logger
 
-  @enforce_keys ~w(type format value)a
-  defstruct ~w(type format value)a
+  @enforce_keys ~w(type value)a
+  defstruct ~w(type value)a
 
   # Binaries are big endian
 
@@ -19,132 +19,278 @@ defmodule Exiffer.Entry do
   @format_int16u <<0x00, 0x03>>
   @format_int32u <<0x00, 0x04>>
   @format_rational_64u <<0x00, 0x05>>
-  @format_inline_string <<0x00, 0x07>>
+  @format_inline_string <<0x00, 0x07>> # TODO: this is actually raw data
   @format_rational_64s <<0x00, 0x0a>>
 
+  @format_type %{
+    @format_string => :string,
+    @format_int16u => :int16u,
+    @format_int32u => :int32u,
+    @format_rational_64u => :rational_64u,
+    @format_inline_string => :inline_string,
+    @format_rational_64s => :rational_64s
+  }
+
   @format %{
-    @format_string => %{type: :string, name: "String"},
-    @format_int16u => %{type: :int16u, name: "16-bit integer"},
-    @format_int32u => %{type: :int32u, name: "32-bit integer"},
-    @format_rational_64u => %{type: :rational_64u, name: "64-bit rational"},
-    @format_inline_string => %{type: :inline_string, name: "Inline String"},
-    @format_rational_64s => %{type: :rational_64s, name: "64-bit signed rational"}
+    string: %{magic: @format_string, type: :string, name: "String"},
+    int16u: %{magic: @format_int16u, type: :int16u, name: "16-bit integer"},
+    int32u: %{magic: @format_int32u, type: :int32u, name: "32-bit integer"},
+    rational_64u: %{magic: @format_rational_64u, type: :rational_64u, name: "64-bit rational"},
+    inline_string: %{magic: @format_inline_string, type: :inline_string, name: "Inline String"},
+    rational_64s: %{magic: @format_rational_64s, type: :rational_64s, name: "64-bit signed rational"}
   }
 
-  @format_name Enum.into(@format, %{}, fn {_k, %{type: type, name: name}} -> {type, name} end)
+  # Map format magic to format type
+  @format_type Enum.into(@format, %{}, fn {type, %{magic: magic}} -> {magic, type} end)
 
+  @doc "Formats whose data fits in 4 bytes"
+
+  # Map entry type to entry info
+  # TODO: sort by type
   @entry %{
-    <<0x00, 0x00>> => %{type: :version, name: "Version"},
-    <<0x00, 0x01>> => %{type: :gps_latitude_ref, name: "GPSLatitudeRef"},
-    <<0x00, 0x02>> => %{type: :gps_latitude, name: "GPSLatitude"},
-    <<0x00, 0x03>> => %{type: :gps_longitude_ref, name: "GPSLongitudeRef"},
-    <<0x00, 0x04>> => %{type: :gps_longitude, name: "GPSLongitude"},
-    <<0x00, 0x05>> => %{type: :gps_altitude_ref, name: "GPSAltitudeRef"},
-    <<0x00, 0x06>> => %{type: :gps_altitude, name: "GPSAltitude"},
-    <<0x01, 0x00>> => %{type: :image_width, name: "ImageWidth"},
-    <<0x01, 0x01>> => %{type: :image_height, name: "ImageHeight"},
-    <<0x01, 0x03>> => %{type: :compression, name: "Compression"},
-    <<0x01, 0x0f>> => %{type: :make, name: "Make"},
-    <<0x01, 0x10>> => %{type: :model, name: "Model"},
-    <<0x01, 0x12>> => %{type: :orientation, name: "Orientation"},
-    <<0x01, 0x1a>> => %{type: :x_resolution, name: "XResolution"},
-    <<0x01, 0x1b>> => %{type: :y_resolution, name: "YResolution"},
-    <<0x01, 0x28>> => %{type: :resolution_unit, name: "ResolutionUnit"},
-    <<0x01, 0x31>> => %{type: :software, name: "Software"},
-    <<0x01, 0x32>> => %{type: :modification_date, name: "ModificationDate"},
-    <<0x02, 0x01>> => %{type: :thumbnail_offset, name: "ThumbnailOffset"},
-    <<0x02, 0x02>> => %{type: :thumbnail_length, name: "ThumbnailLength"},
-    <<0x02, 0x13>> => %{type: :ycbcr_positioning, name: "YcbcrPositioning"},
-    <<0x10, 0x00>> => %{type: :quality, name: "Quality"},
-    <<0x10, 0x01>> => %{type: :sharpness, name: "Sharpness"},
-    <<0x10, 0x02>> => %{type: :white_balance, name: "WhiteBalance"},
-    <<0x10, 0x10>> => %{type: :fuji_flash_mode, name: "FujiFlashMode"},
-    <<0x10, 0x11>> => %{type: :flash_exposure_comp, name: "FlashExposureComp"},
-    <<0x10, 0x20>> => %{type: :macro, name: "Macro"},
-    <<0x10, 0x21>> => %{type: :focus_mode, name: "FocusMode"},
-    <<0x10, 0x30>> => %{type: :slow_sync, name: "SlowSync"},
-    <<0x10, 0x31>> => %{type: :picture_mode, name: "PictureMode"},
-    <<0x11, 0x00>> => %{type: :auto_bracketing, name: "AutoBracketing"},
-    <<0x12, 0x00>> => %{type: :tag_0x1200, name: "Tag0x1200"},
-    <<0x13, 0x00>> => %{type: :blur_warning, name: "BlurWarning"},
-    <<0x13, 0x01>> => %{type: :focus_warning, name: "FocusWarning"},
-    <<0x13, 0x02>> => %{type: :exposure_warning, name: "ExposureWarning"},
-    <<0x87, 0x69>> => %{type: :exif_offset, name: "ExifOffset"},
-    <<0x88, 0x25>> => %{type: :gps_info, name: "GPSInfo"},
-    <<0x82, 0x98>> => %{type: :copyright, name: "Copyright"},
-    <<0x82, 0x9a>> => %{type: :exposure_time, name: "ExposureTime"},
-    <<0x82, 0x9d>> => %{type: :f_number, name: "FNumber"},
-    <<0x88, 0x22>> => %{type: :exposure_program, name: "ExposureProgram"},
-    <<0x88, 0x27>> => %{type: :iso, name: "Iso"},
-    <<0x90, 0x00>> => %{type: :exif_version, name: "ExifVersion"},
-    <<0x90, 0x03>> => %{type: :date_time_original, name: "DateTimeOriginal"},
-    <<0x90, 0x04>> => %{type: :create_date, name: "CreateDate"},
-    <<0x90, 0x10>> => %{type: :offset_time, name: "OffsetTime"},
-    <<0x90, 0x11>> => %{type: :offset_time_original, name: "OffsetTimeOriginal"},
-    <<0x91, 0x01>> => %{type: :components_configuration, name: "ComponentsConfiguration"},
-    <<0x91, 0x02>> => %{type: :compressed_bits_per_pixel, name: "CompressedBitsPerPixel"},
-    <<0x92, 0x01>> => %{type: :shutter_speed_value, name: "ShutterSpeedValue"},
-    <<0x92, 0x02>> => %{type: :aperture_value, name: "ApertureValue"},
-    <<0x92, 0x03>> => %{type: :brightness_value, name: "BrightnessValue"},
-    <<0x92, 0x04>> => %{type: :exposure_compensation, name: "ExposureCompensation"},
-    <<0x92, 0x05>> => %{type: :max_aperture_value, name: "MaxApertureValue"},
-    <<0x92, 0x07>> => %{type: :metering_mode, name: "MeteringMode"},
-    <<0x92, 0x09>> => %{type: :flash, name: "Flash"},
-    <<0x92, 0x0a>> => %{type: :focal_length, name: "FocalLength"},
-    <<0x92, 0x7c>> => %{type: :maker_notes, name: "MakerNotes"},
-    <<0xa0, 0x00>> => %{type: :flashpix_version, name: "FlashpixVersion"},
-    <<0xa0, 0x01>> => %{type: :color_space, name: "ColorSpace"},
-    <<0xa0, 0x02>> => %{type: :exif_image_width, name: "ExifImageWidth"},
-    <<0xa0, 0x03>> => %{type: :exif_image_height, name: "ExifImageHeight"},
-    <<0xa0, 0x05>> => %{type: :interop_offset, name: "InteropOffset"},
-    <<0xa2, 0x0e>> => %{type: :focal_plane_x_resolution, name: "FocalPlaneXResolution"},
-    <<0xa2, 0x0f>> => %{type: :focal_plane_y_resolution, name: "FocalPlaneYResolution"},
-    <<0xa2, 0x10>> => %{type: :focal_plane_resolution_unit, name: "FocalPlaneResolutionUnit"},
-    <<0xa2, 0x17>> => %{type: :sensing_method, name: "SensingMethod"},
-    <<0xa3, 0x00>> => %{type: :file_source, name: "FileSource"},
-    <<0xa3, 0x01>> => %{type: :scene_type, name: "SceneType"},
-    <<0xa4, 0x02>> => %{type: :exposure_mode, name: "ExposureMode"},
-    <<0xa4, 0x03>> => %{type: :white_balance, name: "WhiteBalance"},
-    <<0xa4, 0x04>> => %{type: :digital_zoom_ratio, name: "DigitalZoomRatio"},
-    <<0xa4, 0x05>> => %{type: :focal_length_in_35mm_format, name: "FocalLengthIn35mmFormat"},
-    <<0xa4, 0x06>> => %{type: :scene_capture_type, name: "SceneCaptureType"},
-    <<0xa4, 0x20>> => %{type: :image_unique_id, name: "ImageUniqueId"}
+    version: %{type: :version, magic: <<0x00, 0x00>>, format: @format_inline_string, name: "Version"},
+    gps_latitude_ref: %{type: :gps_latitude_ref, magic: <<0x00, 0x01>>, format: @format_string, name: "GPSLatitudeRef"},
+    gps_latitude: %{type: :gps_latitude, magic: <<0x00, 0x02>>, format: @format_rational_64u, name: "GPSLatitude"},
+    gps_longitude_ref: %{type: :gps_longitude_ref, magic: <<0x00, 0x03>>, format: @format_string, name: "GPSLongitudeRef"},
+    gps_longitude: %{type: :gps_longitude, magic: <<0x00, 0x04>>, format: @format_rational_64u, name: "GPSLongitude"},
+    gps_altitude_ref: %{type: :gps_altitude_ref, magic: <<0x00, 0x05>>, format: @format_int16u, name: "GPSAltitudeRef"},
+    gps_altitude: %{type: :gps_altitude, magic: <<0x00, 0x06>>, format: @format_rational_64u, name: "GPSAltitude"},
+    image_width: %{type: :image_width, magic: <<0x01, 0x00>>, format: @format_int32u, name: "ImageWidth"},
+    image_height: %{type: :image_height, magic: <<0x01, 0x01>>, format: @format_int32u, name: "ImageHeight"},
+    compression: %{type: :compression, magic: <<0x01, 0x03>>, format: @format_int16u, name: "Compression"},
+    make: %{type: :make, magic: <<0x01, 0x0f>>, format: @format_string, name: "Make"},
+    model: %{type: :model, magic: <<0x01, 0x10>>, format: @format_string, name: "Model"},
+    orientation: %{type: :orientation, magic: <<0x01, 0x12>>, format: @format_int16u, name: "Orientation"},
+    x_resolution: %{type: :x_resolution, magic: <<0x01, 0x1a>>, format: @format_rational_64u, name: "XResolution"},
+    y_resolution: %{type: :y_resolution, magic: <<0x01, 0x1b>>, format: @format_rational_64u, name: "YResolution"},
+    resolution_unit: %{type: :resolution_unit, magic: <<0x01, 0x28>>, format: @format_int16u, name: "ResolutionUnit"},
+    software: %{type: :software, magic: <<0x01, 0x31>>, format: @format_string, name: "Software"},
+    modification_date: %{type: :modification_date, magic: <<0x01, 0x32>>, format: @format_string, name: "ModificationDate"},
+    thumbnail_offset: %{type: :thumbnail_offset, magic: <<0x02, 0x01>>, format: @format_int32u, name: "ThumbnailOffset"},
+    thumbnail_length: %{type: :thumbnail_length, magic: <<0x02, 0x02>>, format: @format_int32u, name: "ThumbnailLength"},
+    ycbcr_positioning: %{type: :ycbcr_positioning, magic: <<0x02, 0x13>>, format: @format_int16u, name: "YcbcrPositioning"},
+    quality: %{type: :quality, magic: <<0x10, 0x00>>, format: @format_string, name: "Quality"},
+    sharpness: %{type: :sharpness, magic: <<0x10, 0x01>>, format: @format_int16u, name: "Sharpness"},
+    fuji_white_balance: %{type: :fuji_white_balance, magic: <<0x10, 0x02>>, format: @format_int16u, name: "FUJI WhiteBalance"},
+    fuji_flash_mode: %{type: :fuji_flash_mode, magic: <<0x10, 0x10>>, format: @format_int16u, name: "FujiFlashMode"},
+    flash_exposure_comp: %{type: :flash_exposure_comp, magic: <<0x10, 0x11>>, format: @format_rational_64u, name: "FlashExposureComp"},
+    macro: %{type: :macro, magic: <<0x10, 0x20>>, format: @format_int16u, name: "Macro"},
+    focus_mode: %{type: :focus_mode, magic: <<0x10, 0x21>>, format: @format_int16u, name: "FocusMode"},
+    slow_sync: %{type: :slow_sync, magic: <<0x10, 0x30>>, format: @format_int16u, name: "SlowSync"},
+    picture_mode: %{type: :picture_mode, magic: <<0x10, 0x31>>, format: @format_int16u, name: "PictureMode"},
+    auto_bracketing: %{type: :auto_bracketing, magic: <<0x11, 0x00>>, format: @format_int16u, name: "AutoBracketing"},
+    tag_0x1200: %{type: :tag_0x1200, magic: <<0x12, 0x00>>, format: @format_int16u, name: "Tag0x1200"},
+    blur_warning: %{type: :blur_warning, magic: <<0x13, 0x00>>, format: @format_int16u, name: "BlurWarning"},
+    focus_warning: %{type: :focus_warning, magic: <<0x13, 0x01>>, format: @format_int16u, name: "FocusWarning"},
+    exposure_warning: %{type: :exposure_warning, magic: <<0x13, 0x02>>, format: @format_int16u, name: "ExposureWarning"},
+    exif_offset: %{type: :exif_offset, magic: <<0x87, 0x69>>, format: @format_int32u, name: "ExifOffset"},
+    gps_info: %{type: :gps_info, magic: <<0x88, 0x25>>, format: @format_int32u, name: "GPSInfo"},
+    copyright: %{type: :copyright, magic: <<0x82, 0x98>>, format: @format_string, name: "Copyright"},
+    exposure_time: %{type: :exposure_time, magic: <<0x82, 0x9a>>, format: @format_rational_64u, name: "ExposureTime"},
+    f_number: %{type: :f_number, magic: <<0x82, 0x9d>>, format: @format_rational_64u, name: "FNumber"},
+    exposure_program: %{type: :exposure_program, magic: <<0x88, 0x22>>, format: @format_int16u, name: "ExposureProgram"},
+    iso: %{type: :iso, magic: <<0x88, 0x27>>, format: @format_int16u, name: "Iso"},
+    exif_version: %{type: :exif_version, magic: <<0x90, 0x00>>, format: @format_inline_string, name: "ExifVersion"},
+    date_time_original: %{type: :date_time_original, magic: <<0x90, 0x03>>, format: @format_string, name: "DateTimeOriginal"},
+    create_date: %{type: :create_date, magic: <<0x90, 0x04>>, format: @format_string, name: "CreateDate"},
+    offset_time: %{type: :offset_time, magic: <<0x90, 0x10>>, format: @format_string, name: "OffsetTime"},
+    offset_time_original: %{type: :offset_time_original, magic: <<0x90, 0x11>>, format: @format_string, name: "OffsetTimeOriginal"},
+    components_configuration: %{type: :components_configuration, magic: <<0x91, 0x01>>, format: @format_inline_string, name: "ComponentsConfiguration"},
+    compressed_bits_per_pixel: %{type: :compressed_bits_per_pixel, magic: <<0x91, 0x02>>, format: @format_rational_64u, name: "CompressedBitsPerPixel"},
+    shutter_speed_value: %{type: :shutter_speed_value, magic: <<0x92, 0x01>>, format: @format_rational_64u, name: "ShutterSpeedValue"},
+    aperture_value: %{type: :aperture_value, magic: <<0x92, 0x02>>, format: @format_rational_64u, name: "ApertureValue"},
+    brightness_value: %{type: :brightness_value, magic: <<0x92, 0x03>>, format: @format_rational_64s, name: "BrightnessValue"},
+    exposure_compensation: %{type: :exposure_compensation, magic: <<0x92, 0x04>>, format: @format_rational_64s, name: "ExposureCompensation"},
+    max_aperture_value: %{type: :max_aperture_value, magic: <<0x92, 0x05>>, format: @format_rational_64u, name: "MaxApertureValue"},
+    metering_mode: %{type: :metering_mode, magic: <<0x92, 0x07>>, format: @format_int16u, name: "MeteringMode"},
+    flash: %{type: :flash, magic: <<0x92, 0x09>>, format: @format_int16u, name: "Flash"},
+    focal_length: %{type: :focal_length, magic: <<0x92, 0x0a>>, format: @format_rational_64u, name: "FocalLength"},
+    maker_notes: %{type: :maker_notes, magic: <<0x92, 0x7c>>, format: @format_inline_string, name: "MakerNotes"},
+    flashpix_version: %{type: :flashpix_version, magic: <<0xa0, 0x00>>, format: @format_inline_string, name: "FlashpixVersion"},
+    color_space: %{type: :color_space, magic: <<0xa0, 0x01>>, format: @format_int16u, name: "ColorSpace"},
+    exif_image_width: %{type: :exif_image_width, magic: <<0xa0, 0x02>>, format: @format_int32u, name: "ExifImageWidth"},
+    exif_image_height: %{type: :exif_image_height, magic: <<0xa0, 0x03>>, format: @format_int32u, name: "ExifImageHeight"},
+    interop_offset: %{type: :interop_offset, magic: <<0xa0, 0x05>>, format: @format_int32u, name: "InteropOffset"},
+    focal_plane_x_resolution: %{type: :focal_plane_x_resolution, magic: <<0xa2, 0x0e>>, format: @format_rational_64u, name: "FocalPlaneXResolution"},
+    focal_plane_y_resolution: %{type: :focal_plane_y_resolution, magic: <<0xa2, 0x0f>>, format: @format_rational_64u, name: "FocalPlaneYResolution"},
+    focal_plane_resolution_unit: %{type: :focal_plane_resolution_unit, magic: <<0xa2, 0x10>>, format: @format_int16u, name: "FocalPlaneResolutionUnit"},
+    sensing_method: %{type: :sensing_method, magic: <<0xa2, 0x17>>, format: @format_int16u, name: "SensingMethod"},
+    file_source: %{type: :file_source, magic: <<0xa3, 0x00>>, format: @format_inline_string, name: "FileSource"},
+    scene_type: %{type: :scene_type, magic: <<0xa3, 0x01>>, format: @format_inline_string, name: "SceneType"},
+    exposure_mode: %{type: :exposure_mode, magic: <<0xa4, 0x02>>, format: @format_int16u, name: "ExposureMode"},
+    exif_white_balance: %{type: :exif_white_balance, magic: <<0xa4, 0x03>>, format: @format_int16u, name: "EXIF WhiteBalance"},
+    digital_zoom_ratio: %{type: :digital_zoom_ratio, magic: <<0xa4, 0x04>>, format: @format_rational_64u, name: "DigitalZoomRatio"},
+    focal_length_in_35mm_format: %{type: :focal_length_in_35mm_format, magic: <<0xa4, 0x05>>, format: @format_int16u, name: "FocalLengthIn35mmFormat"},
+    scene_capture_type: %{type: :scene_capture_type, magic: <<0xa4, 0x06>>, format: @format_int16u, name: "SceneCaptureType"},
+    image_unique_id: %{type: :image_unique_id, magic: <<0xa4, 0x20>>, format: @format_string, name: "ImageUniqueId"}
   }
+
+  # Map magic numbers to entry types
+  @entry_type Enum.into(@entry, %{}, fn {type, %{magic: magic}} -> {magic, type} end)
 
   def new(%OffsetBuffer{} = buffer) do
-    {tag, buffer} = OffsetBuffer.consume(buffer, 2)
-    big_endian_tag = Binary.big_endian(tag)
-    entry = @entry[big_endian_tag]
-    if !entry do
+    {magic, buffer} = OffsetBuffer.consume(buffer, 2)
+    big_endian_magic = Binary.big_endian(magic)
+    entry_type = @entry_type[big_endian_magic]
+    if !entry_type do
       position = OffsetBuffer.tell(buffer) - 2
       offset = buffer.offset
-      raise "Unknown tag #{inspect(tag, [base: :hex])} found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+      raise "Unknown magic #{inspect(magic, [base: :hex])} found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
     end
-    entry_type = entry.type
-    {format, buffer} = OffsetBuffer.consume(buffer, 2)
-    big_endian_format = Binary.big_endian(format)
-    format_type = @format[big_endian_format].type
-    value = value(entry_type, big_endian_format, buffer)
+    info = @entry[entry_type]
+    {format_magic, buffer} = OffsetBuffer.consume(buffer, 2)
+    big_endian_format_magic = Binary.big_endian(format_magic)
+    format_type = @format_type[big_endian_format_magic]
+    if info.format != big_endian_format_magic do
+      position = OffsetBuffer.tell(buffer) - 4
+      offset = buffer.offset
+      expected = @format_type[info.format]
+      raise "#{info.name} Entry format #{format_type} differs from expected #{expected} found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+    end
+    value = value(entry_type, big_endian_format_magic, buffer)
     buffer = OffsetBuffer.skip(buffer, 8)
-    {%__MODULE__{type: entry_type, format: format_type, value: value}, buffer}
+    {%__MODULE__{type: entry_type, value: value}, buffer}
   end
 
-  def format_name(%__MODULE__{format: format}) do
-    @format_name[format]
+  def format_name(%__MODULE__{type: type}) do
+    format = @entry[type].format
+    @format_type[format]
+  end
+
+  @doc """
+  Returns a two-ple {ifd_entry, ifd_extra_data},
+  where ifd_extra_data is `<<>>` if there is none to be added.
+  """
+  def binary(%__MODULE__{type: type} = entry, end_of_block) when type in [:exif_offset, :gps_info] do
+    info = @entry[entry.type]
+    magic_binary = Binary.big_endian_to_current(info.magic)
+    format_binary = Binary.big_endian_to_current(info.format)
+    size_binary = Binary.int32u_to_current(1)
+    value = Binary.int32u_to_current(end_of_block)
+    header = <<magic_binary::binary, format_binary::binary, size_binary::binary, value::binary>>
+    extra = IFD.binary(entry.value, end_of_block)
+    {header, extra}
+  end
+
+  def binary(%__MODULE__{} = entry, end_of_block) do
+    info = @entry[entry.type]
+    magic_binary = Binary.big_endian_to_current(info.magic)
+    format_binary = Binary.big_endian_to_current(info.format)
+    {size, value, extra} = data(entry, info.format, end_of_block)
+    size_binary = Binary.int32u_to_current(size)
+    header = <<magic_binary::binary, format_binary::binary, size_binary::binary, value::binary>>
+    {header, extra}
+  end
+
+  defp data(%__MODULE__{type: :maker_notes} = _entry, _format, end_of_block) do
+    # TODO
+    value = Binary.int32u_to_current(end_of_block)
+    {0, value, <<>>}
+  end
+
+  defp data(%__MODULE__{type: :thumbnail_offset} = entry, _format, end_of_block) do
+    value = Binary.int32u_to_current(end_of_block)
+    extra = entry.value
+    {1, value, extra}
+  end
+
+  defp data(%__MODULE__{} = entry, @format_int16u, _end_of_block) do
+    value = <<Binary.int16u_to_current(entry.value)::binary, 0x00, 0x00>>
+    {1, value, <<>>}
+  end
+
+  defp data(%__MODULE__{} = entry, @format_int32u, _end_of_block) do
+    value = Binary.int32u_to_current(entry.value)
+    {1, value, <<>>}
+  end
+
+  defp data(%__MODULE__{} = entry, format, end_of_block) when format in [@format_string, @format_inline_string] do
+    size = byte_size(entry.value)
+    if size <= 4 do
+      pad_count = 4 - size
+      <<padding::binary-size(pad_count), _rest::binary>> = <<0, 0, 0, 0>>
+      {size, <<entry.value::binary, padding::binary>>, <<>>}
+    else
+      # Always add a final NULL after strings added after the block
+      size = size + 1
+      value = <<entry.value::binary, 0x00>>
+      extra = if rem(size, 2) == 1 do
+        # pad to make byte count even
+        <<value::binary, 0x00>>
+      else
+        value
+      end
+      {size, Binary.int32u_to_current(end_of_block), extra}
+    end
+  end
+
+  defp data(%__MODULE__{} = entry, @format_rational_64u, end_of_block) do
+    value = Binary.int32u_to_current(end_of_block)
+    extra = Binary.rational_to_current(entry.value)
+    size = div(byte_size(extra), 8)
+    {size, value, extra}
+  end
+
+  defp data(%__MODULE__{} = entry, @format_rational_64s, end_of_block) do
+    extra = Binary.signed_rational_to_current(entry.value)
+    size = div(byte_size(extra), 8)
+    value = Binary.int32u_to_current(end_of_block)
+    {size, value, extra}
+  end
+
+  defp read_ifd(%OffsetBuffer{} = buffer, offset) do
+    position = OffsetBuffer.tell(buffer)
+    buffer = OffsetBuffer.seek(buffer, offset)
+    {ifd, buffer} = IFD.read(buffer)
+    _buffer = OffsetBuffer.seek(buffer, position)
+    ifd
+  end
+
+  defp value(:exif_offset, @format_int32u, %OffsetBuffer{} = buffer) do
+    <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
+    offset = Binary.to_integer(offset_binary)
+    read_ifd(buffer, offset)
+  end
+
+  defp value(:gps_info, @format_int32u, %OffsetBuffer{} = buffer) do
+    <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
+    offset = Binary.to_integer(offset_binary)
+    read_ifd(buffer, offset)
   end
 
   defp value(
-    _type,
-    @format_string,
+    :maker_notes,
+    @format_inline_string,
     %OffsetBuffer{
       buffer: %Buffer{
-        data: <<length_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>>
+        data: <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>>
       }
     } = buffer
   ) do
+    ifd_offset = Binary.to_integer(offset_binary)
+    Logger.info "maker_notes, ifd_offset: #{inspect(ifd_offset, [base: :hex, pretty: true, width: 0])}"
+    position = OffsetBuffer.tell(buffer)
+    buffer = OffsetBuffer.seek(buffer, ifd_offset)
+    {header, buffer} = OffsetBuffer.consume(buffer, 12)
+    # Temporarily set process-local byte order
+    file_byte_order = Binary.byte_order()
+    Binary.set_byte_order(:little)
+    {ifd, buffer} = IFD.read(buffer)
+    Binary.set_byte_order(file_byte_order)
+    _buffer = OffsetBuffer.seek(buffer, position)
+    %MakerNotes{header: header, ifd: ifd}
+  end
+
+  defp value(_type, format, %OffsetBuffer{} = buffer) when format in [@format_string, @format_inline_string] do
+    <<length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     string_length = Binary.to_integer(length_binary)
-    string_offset = Binary.to_integer(offset_binary)
-    OffsetBuffer.random(buffer, string_offset, string_length - 1)
+    if string_length <= 4 do
+      <<value::binary-size(string_length), _rest::binary>> = value_binary
+      value
+    else
+      string_offset = Binary.to_integer(value_binary)
+      OffsetBuffer.random(buffer, string_offset, string_length - 1)
+    end
   end
 
   defp value(
@@ -198,47 +344,5 @@ defmodule Exiffer.Entry do
     value_offset = Binary.to_integer(offset_binary)
     OffsetBuffer.random(buffer, value_offset, 8)
     |> Binary.to_signed_rational()
-  end
-
-  defp value(
-    :maker_notes,
-    @format_inline_string,
-    %OffsetBuffer{
-      buffer: %Buffer{
-        data: <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>>
-      }
-    } = buffer
-  ) do
-    ifd_offset = Binary.to_integer(offset_binary)
-    Logger.info "maker_notes, ifd_offset: #{inspect(ifd_offset, [base: :hex, pretty: true, width: 0])}"
-    position = OffsetBuffer.tell(buffer)
-    buffer = OffsetBuffer.seek(buffer, ifd_offset)
-    {header, buffer} = OffsetBuffer.consume(buffer, 12)
-    # Temporarily set process-local byte order
-    file_byte_order = Binary.byte_order()
-    Binary.set_byte_order(:little)
-    {ifd, buffer} = IFD.read(buffer)
-    Binary.set_byte_order(file_byte_order)
-    _buffer = OffsetBuffer.seek(buffer, position)
-    %MakerNotes{header: header, ifd: ifd}
-  end
-
-  defp value(
-    _type,
-    @format_inline_string,
-    %OffsetBuffer{
-      buffer: %Buffer{
-        data: <<size_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>>
-      }
-    } = buffer
-  ) do
-    size = Binary.to_integer(size_binary)
-    if size <= 4 do
-      <<value::binary-size(size), _rest::binary>> = value_binary
-      value
-    else
-      offset = Binary.to_integer(value_binary)
-      OffsetBuffer.random(buffer, offset, size - 1)
-    end
   end
 end
