@@ -10,14 +10,22 @@ defmodule Exiffer.Buffer do
 
   require Logger
 
+  @enforce_keys ~w(io_device)a
   defstruct [:io_device, data: <<>>, position: 0, remaining: 0, read_ahead: 1000]
 
   def new(filename, opts \\ []) do
     read_ahead = Keyword.get(opts, :read_ahead, 1000)
-    {:ok, io_device} = File.open(filename)
+    direction = Keyword.get(opts, :direction, :read)
+    open_opts = [:binary, direction]
+    {:ok, io_device} = File.open(filename, open_opts)
 
-    %__MODULE__{io_device: io_device, read_ahead: read_ahead}
-    |> ensure(read_ahead)
+    buffer = %__MODULE__{io_device: io_device, read_ahead: read_ahead}
+
+    if direction == :read do
+      ensure(buffer, read_ahead)
+    else
+      buffer
+    end
   end
 
   def seek(%__MODULE__{io_device: io_device} = buffer, position) do
@@ -76,6 +84,21 @@ defmodule Exiffer.Buffer do
     end
     {:ok, _position} = :file.position(io_device, position + remaining)
     result
+  end
+
+  def copy(%__MODULE__{} = input, %__MODULE__{} = output) do
+    case consume(input, 1_000_000) do
+      {<<chunk::binary-size(1_000_000)>>, input} ->
+        :ok = write(output, chunk)
+        copy(input, output)
+      {chunk, _input} ->
+        :ok = write(output, chunk)
+        nil
+    end
+  end
+
+  def write(%__MODULE__{io_device: io_device}, binary) do
+    :ok = IO.binwrite(io_device, binary)
   end
 
   def close(%__MODULE__{io_device: io_device}) do
