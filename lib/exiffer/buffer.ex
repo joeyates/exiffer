@@ -93,7 +93,7 @@ defmodule Exiffer.Buffer do
   defp read(%__MODULE__{io_device: io_device, data: data, remaining: remaining} = buffer, amount) do
     case IO.binread(io_device, amount) do
       :eof ->
-        Logger.error "Buffer.read failed, EOF!"
+        Logger.debug "Buffer.read EOF"
         buffer
       chunk ->
         size = byte_size(chunk)
