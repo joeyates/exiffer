@@ -25,6 +25,25 @@ defmodule Exiffer do
     {:ok}
   end
 
+  @jpeg_magic <<0xff, 0xd8>>
+
+  def rewrite(source, destination) do
+    input = Buffer.new(source)
+    output = Buffer.new(destination, direction: :write)
+
+    {headers, input} = parse(input)
+
+    Buffer.write(output, @jpeg_magic)
+    :ok = Exiffer.Serialize.write(headers, output.io_device)
+
+    Buffer.copy(input, output)
+
+    :ok = Buffer.close(input)
+    :ok = Buffer.close(output)
+
+    {:ok}
+  end
+
   defp parse(filename) when is_binary(filename) do
     buffer = Buffer.new(filename)
     {headers, _buffer} = parse(buffer)
@@ -33,9 +52,10 @@ defmodule Exiffer do
     headers
   end
 
-  defp parse(%Buffer{data: <<0xff, 0xd8, _rest::binary>>} = buffer) do
+  defp parse(%Buffer{data: <<@jpeg_magic, _rest::binary>>} = buffer) do
+    # TODO: Move this into JPEG.new
     buffer = Buffer.skip(buffer, 2)
-    {_buffer, headers} = JPEG.headers(buffer, [])
+    {buffer, headers} = JPEG.headers(buffer, [])
     headers = Enum.reverse(headers)
     {headers, buffer}
   end
