@@ -8,7 +8,8 @@ defmodule Exiffer.OffsetBuffer do
   alias Exiffer.Buffer
   require Logger
 
-  defstruct [:buffer, :offset]
+  @enforce_keys ~w(buffer offset)a
+  defstruct ~w(buffer offset)a
 
   def new(%Buffer{} = buffer, offset \\ 0) do
     %__MODULE__{buffer: buffer, offset: offset}
