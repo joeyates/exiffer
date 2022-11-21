@@ -3,6 +3,7 @@ defmodule Exiffer.Binary do
   Documentation for `Exiffer.Binary`.
   """
 
+  import Bitwise
   require Logger
 
   @table :exiffer
@@ -48,16 +49,6 @@ defmodule Exiffer.Binary do
   end
 
   @doc """
-  Reverse the given binary bytes
-  """
-  def reverse(binary) do
-    binary
-    |> :binary.bin_to_list()
-    |> Enum.reverse()
-    |> :binary.list_to_bin()
-  end
-
-  @doc """
   Convert big endian to the currently selected byte order
   """
   def big_endian_to_current(binary) do
@@ -70,7 +61,41 @@ defmodule Exiffer.Binary do
   end
 
   @doc """
-  Convert binary bytes to decimal.
+  Convert a 16-bit integer to binary bytes in current byte order.
+  """
+  def int16u_to_current(integer) do
+    case byte_order() do
+      :little ->
+        int16u_to_little_endian(integer)
+      :big ->
+        int16u_to_big_endian(integer)
+    end
+  end
+
+  @doc """
+  Convert a 32-bit integer to binary bytes in current byte order.
+  """
+  def int32u_to_current(integer) do
+    case byte_order() do
+      :little ->
+        int32u_to_little_endian(integer)
+      :big ->
+        int32u_to_big_endian(integer)
+    end
+  end
+
+  @doc """
+  Reverse the given binary bytes
+  """
+  def reverse(binary) do
+    binary
+    |> :binary.bin_to_list()
+    |> Enum.reverse()
+    |> :binary.list_to_bin()
+  end
+
+  @doc """
+  Convert big-endian binary bytes to an integer.
   """
   def big_endian_to_integer(<<hi, lo>>) do
     256 * hi + lo
@@ -81,7 +106,7 @@ defmodule Exiffer.Binary do
   end
 
   @doc """
-  Convert binary bytes to decimal.
+  Convert little-endian binary bytes to integer.
   """
   def little_endian_to_integer(<<lo, hi>>) do
     lo + 256 * hi
@@ -89,6 +114,71 @@ defmodule Exiffer.Binary do
 
   def little_endian_to_integer(<<b0, b1, b2, b3>>) do
     b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
+  end
+
+  @doc """
+  Convert a 16-bit integer to big-endian binary bytes.
+  """
+  def int16u_to_big_endian(integer) do
+    <<
+    (integer &&& 0xff00) >>> 8,
+    (integer &&& 0x00ff)
+    >>
+  end
+
+  @doc """
+  Convert a 16-bit integer to little-endian binary bytes.
+  """
+  def int16u_to_little_endian(integer) do
+    <<
+    (integer &&& 0x00ff),
+    (integer &&& 0xff00) >>> 8
+    >>
+  end
+
+  @doc """
+  Convert a 32-bit integer to big-endian binary bytes.
+  """
+  def int32u_to_big_endian(integer) do
+    <<
+    (integer &&& 0xff000000) >>> 24,
+    (integer &&& 0x00ff0000) >>> 16,
+    (integer &&& 0x0000ff00) >>> 8,
+    (integer &&& 0x000000ff)
+    >>
+  end
+
+  @doc """
+  Convert a 32-bit integer to little-endian binary bytes.
+  """
+  def int32u_to_little_endian(integer) do
+    <<
+    (integer &&& 0x000000ff),
+    (integer &&& 0x0000ff00) >>> 8,
+    (integer &&& 0x00ff0000) >>> 16,
+    (integer &&& 0xff000000) >>> 24
+    >>
+  end
+
+  def rational_to_current(rationals) when is_list(rationals) do
+    rationals
+    |> Enum.map(&rational_to_current/1)
+    |> Enum.join()
+  end
+
+  def rational_to_current({numerator, denominator}) do
+    <<int32u_to_current(numerator)::binary, int32u_to_current(denominator)::binary>>
+  end
+
+  def signed_rational_to_current(rationals) when is_list(rationals) do
+    rationals
+    |> Enum.map(&signed_rational_to_current/1)
+    |> Enum.join()
+  end
+
+  def signed_rational_to_current({numerator, denominator}) do
+    # TODO: handle signed values
+    <<int32u_to_current(numerator)::binary, int32u_to_current(denominator)::binary>>
   end
 
   # TODO: handle negatives
