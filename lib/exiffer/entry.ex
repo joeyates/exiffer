@@ -4,7 +4,6 @@ defmodule Exiffer.Entry do
   """
 
   alias Exiffer.Binary
-  alias Exiffer.Buffer
   alias Exiffer.Entry.MakerNotes
   alias Exiffer.IFD
   alias Exiffer.OffsetBuffer
