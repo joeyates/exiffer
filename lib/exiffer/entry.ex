@@ -286,15 +286,8 @@ defmodule Exiffer.Entry do
     end
   end
 
-  defp value(
-    _type,
-    @format_int16u,
-    %OffsetBuffer{
-      buffer: %Buffer{
-        data: <<_size::binary-size(4), value_binary::binary-size(4), _rest::binary>>
-      }
-    }
-  ) do
+  defp value(_type, @format_int16u, %OffsetBuffer{} = buffer) do
+    <<_length_binary::binary-size(4), value_binary::binary-size(2), _rest::binary>> = buffer.buffer.data
     Binary.to_integer(value_binary)
   end
 
