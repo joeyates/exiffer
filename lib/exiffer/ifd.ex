@@ -11,11 +11,11 @@ defmodule Exiffer.IFD do
   @enforce_keys ~w(entries)a
   defstruct ~w(entries)a
 
-  def read(%OffsetBuffer{} = buffer) do
-    {<<entry_count_bytes::binary-size(2)>>, buffer} = OffsetBuffer.consume(buffer, 2)
+  def read(%OffsetBuffer{} = buffer, opts \\ []) do
+    {entry_count_bytes, buffer} = OffsetBuffer.consume(buffer, 2)
     entry_count = Binary.to_integer(entry_count_bytes)
     Logger.debug "IFD reading #{entry_count} entries"
-    {entries, buffer} = read_entry(buffer, entry_count, [])
+    {entries, buffer} = read_entry(buffer, entry_count, [], opts)
     ifd = %__MODULE__{entries: Enum.reverse(entries)}
     {ifd, buffer}
   end
@@ -29,13 +29,15 @@ defmodule Exiffer.IFD do
   """
   def binary(%__MODULE__{entries: entries}, offset, opts \\ []) do
     is_last = Keyword.get(opts, :is_last, true)
+    override = Keyword.get(opts, :override)
+    entry_opts = if override, do: [override: override]
     count = length(entries)
     next_ifd_pointer_offset = offset + 2 + count * 12
     {end_of_block, headers, extras} = Enum.reduce(
       entries,
       {next_ifd_pointer_offset + 4, [], []},
       fn entry, {end_of_block, headers, extras} ->
-        {header, extra} = Entry.binary(entry, end_of_block)
+        {header, extra} = Entry.binary(entry, end_of_block, entry_opts)
         {
           end_of_block + byte_size(extra),
           [header | headers],
@@ -51,18 +53,19 @@ defmodule Exiffer.IFD do
     <<count_binary::binary, headers_binary::binary, next_ifd_binary::binary, extras_binary::binary>>
   end
 
-  defp read_entry(buffer, 0, entries) do
+  defp read_entry(buffer, 0, entries, _opts) do
     load_thumbnail(buffer, entries)
   end
 
-  defp read_entry(%OffsetBuffer{} = buffer, count, entries) do
+  defp read_entry(%OffsetBuffer{} = buffer, count, entries, opts) do
     position = OffsetBuffer.tell(buffer)
     offset = buffer.offset
-    {entry, buffer} = Entry.new(buffer)
-    format = Entry.format_name(entry)
+    {entry, buffer} = Entry.new(buffer, opts)
+    override = Keyword.get(opts, :override)
+    format = Entry.format_name(entry, override: override)
     Logger.debug "Entry #{count}, '#{entry.type}' (#{format}) at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
 
-    read_entry(buffer, count - 1, [entry | entries])
+    read_entry(buffer, count - 1, [entry | entries], opts)
   end
 
   defp load_thumbnail(%OffsetBuffer{} = buffer, entries) do

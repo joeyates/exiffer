@@ -46,7 +46,7 @@ defmodule Exiffer.Entry do
 
   # Map entry type to entry info
   # TODO: sort by type
-  @entry %{
+  @entry_info %{
     version: %{type: :version, magic: <<0x00, 0x00>>, format: @format_raw_bytes, name: "Version"},
     gps_latitude_ref: %{type: :gps_latitude_ref, magic: <<0x00, 0x01>>, format: @format_string, name: "GPSLatitudeRef"},
     gps_latitude: %{type: :gps_latitude, magic: <<0x00, 0x02>>, format: @format_rational_64u, name: "GPSLatitude"},
@@ -124,19 +124,39 @@ defmodule Exiffer.Entry do
     image_unique_id: %{type: :image_unique_id, magic: <<0xa4, 0x20>>, format: @format_string, name: "ImageUniqueId"}
   }
 
-  # Map magic numbers to entry types
-  @entry_type Enum.into(@entry, %{}, fn {type, %{magic: magic}} -> {magic, type} end)
+  # Interop IFD entries reuse generic entry magic numbers, so we use a specific table for them
+  @interop_entry_info %{
+    interop_index: %{type: :interop_index, magic: <<0x00, 0x01>>, format: @format_string, name: "InteropIndex"},
+    interop_version: %{type: :interop_version, magic: <<0x00, 0x02>>, format: @format_raw_bytes, name: "InteropVersion"}
+  }
 
-  def new(%OffsetBuffer{} = buffer) do
+  @entry_info_map %{
+    nil: @entry_info,
+    interop: @interop_entry_info
+  }
+
+  # Map magic numbers to entry types
+  @entry_type Enum.into(@entry_info, %{}, fn {type, %{magic: magic}} -> {magic, type} end)
+  @interop_entry_type Enum.into(@interop_entry_info, %{}, fn {type, %{magic: magic}} -> {magic, type} end)
+
+  @entry_type_map %{
+    nil: @entry_type,
+    interop: @interop_entry_type
+  }
+
+  def new(%OffsetBuffer{} = buffer, opts \\ []) do
+    override = Keyword.get(opts, :override)
+    entry_type_map = @entry_type_map[override]
     {magic, buffer} = OffsetBuffer.consume(buffer, 2)
     big_endian_magic = Binary.big_endian(magic)
-    entry_type = @entry_type[big_endian_magic]
+    entry_type = entry_type_map[big_endian_magic]
     if !entry_type do
       position = OffsetBuffer.tell(buffer) - 2
       offset = buffer.offset
       raise "Unknown magic #{inspect(magic, [base: :hex])} found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
     end
-    info = @entry[entry_type]
+    entry_table = @entry_info_map[override]
+    info = entry_table[entry_type]
     {format_magic, buffer} = OffsetBuffer.consume(buffer, 2)
     big_endian_format_magic = Binary.big_endian(format_magic)
     format_type = @format_type[big_endian_format_magic]
@@ -151,8 +171,10 @@ defmodule Exiffer.Entry do
     {%__MODULE__{type: entry_type, value: value}, buffer}
   end
 
-  def format_name(%__MODULE__{type: type}) do
-    format = @entry[type].format
+  def format_name(%__MODULE__{type: type}, opts \\ []) do
+    override = Keyword.get(opts, :override)
+    entry_table = @entry_info_map[override]
+    format = entry_table[type].format
     @format_type[format]
   end
 
@@ -160,19 +182,26 @@ defmodule Exiffer.Entry do
   Returns a two-ple {ifd_entry, ifd_extra_data},
   where ifd_extra_data is `<<>>` if there is none to be added.
   """
-  def binary(%__MODULE__{type: type} = entry, end_of_block) when type in [:exif_offset, :gps_info] do
-    info = @entry[entry.type]
+  def binary(entry, end_of_block, opts \\ [])
+
+  def binary(%__MODULE__{type: type} = entry, end_of_block, _opts) when type in [:exif_offset, :gps_info, :interop_offset] do
+    entry_table = @entry_info_map[nil]
+    info = entry_table[entry.type]
     magic_binary = Binary.big_endian_to_current(info.magic)
     format_binary = Binary.big_endian_to_current(info.format)
     size_binary = Binary.int32u_to_current(1)
     value = Binary.int32u_to_current(end_of_block)
     header = <<magic_binary::binary, format_binary::binary, size_binary::binary, value::binary>>
-    extra = IFD.binary(entry.value, end_of_block)
+    opts = if type == :interop_offset, do: [override: :interop], else: []
+    extra = IFD.binary(entry.value, end_of_block, opts)
     {header, extra}
   end
 
-  def binary(%__MODULE__{} = entry, end_of_block) do
-    info = @entry[entry.type]
+  def binary(%__MODULE__{} = entry, end_of_block, opts) do
+    opts = opts || []
+    override = Keyword.get(opts, :override)
+    entry_table = @entry_info_map[override]
+    info = entry_table[entry.type]
     magic_binary = Binary.big_endian_to_current(info.magic)
     format_binary = Binary.big_endian_to_current(info.format)
     {size, value, extra} = data(entry, info.format, end_of_block)
@@ -243,15 +272,21 @@ defmodule Exiffer.Entry do
     {size, value, extra}
   end
 
-  defp read_ifd(%OffsetBuffer{} = buffer, offset) do
+  defp read_ifd(%OffsetBuffer{} = buffer, offset, opts \\ []) do
     position = OffsetBuffer.tell(buffer)
     buffer = OffsetBuffer.seek(buffer, offset)
-    {ifd, buffer} = IFD.read(buffer)
+    {ifd, buffer} = IFD.read(buffer, opts)
     _buffer = OffsetBuffer.seek(buffer, position)
     ifd
   end
 
-  defp value(type, @format_int32u, %OffsetBuffer{} = buffer) when type in @ifd_entries do
+  defp value(type, @format_int32u, %OffsetBuffer{} = buffer) when type == :interop_offset do
+    <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
+    offset = Binary.to_integer(offset_binary)
+    read_ifd(buffer, offset, override: :interop)
+  end
+
+  defp value(type, @format_int32u, %OffsetBuffer{} = buffer) when type in [:exif_offset, :gps_info] do
     <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     offset = Binary.to_integer(offset_binary)
     read_ifd(buffer, offset)
