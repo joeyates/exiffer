@@ -61,8 +61,7 @@ defmodule Exiffer.IFD do
     position = OffsetBuffer.tell(buffer)
     offset = buffer.offset
     {entry, buffer} = Entry.new(buffer, opts)
-    override = Keyword.get(opts, :override)
-    format = Entry.format_name(entry, override: override)
+    format = Entry.format_name(entry)
     Logger.debug "Entry #{count}, '#{entry.type}' (#{format}) at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
 
     read_entry(buffer, count - 1, [entry | entries], opts)
