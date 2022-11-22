@@ -258,16 +258,19 @@ defmodule Exiffer.Entry do
   end
 
   defp value(:maker_notes, @format_raw_bytes, %OffsetBuffer{} = buffer) do
+    position = OffsetBuffer.tell(buffer)
     <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     ifd_offset = Binary.to_integer(offset_binary)
-    Logger.info "maker_notes, ifd_offset: #{inspect(ifd_offset, [base: :hex, pretty: true, width: 0])}"
-    position = OffsetBuffer.tell(buffer)
-    buffer = OffsetBuffer.seek(buffer, ifd_offset)
-    {header, buffer} = OffsetBuffer.consume(buffer, 12)
+    # Maker notes have their own offset into the file
+    notes_offset = buffer.offset + ifd_offset
+    notes_buffer =
+      OffsetBuffer.new(buffer.buffer, notes_offset)
+      |> OffsetBuffer.seek(0)
+    {header, notes_buffer} = OffsetBuffer.consume(notes_buffer, 12)
     # Temporarily set process-local byte order
     file_byte_order = Binary.byte_order()
     Binary.set_byte_order(:little)
-    {ifd, buffer} = IFD.read(buffer)
+    {ifd, buffer} = IFD.read(notes_buffer)
     Binary.set_byte_order(file_byte_order)
     _buffer = OffsetBuffer.seek(buffer, position)
     %MakerNotes{header: header, ifd: ifd}
