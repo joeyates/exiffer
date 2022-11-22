@@ -328,42 +328,21 @@ defmodule Exiffer.Entry do
     Binary.to_integer(value_binary)
   end
 
-  defp value(
-    _type,
-    @format_int32u,
-    %OffsetBuffer{
-      buffer: %Buffer{
-        data: <<_size::binary-size(4), value_binary::binary-size(4), _rest::binary>>
-      }
-    }
-  ) do
+  defp value(_type, @format_int32u, %OffsetBuffer{} = buffer) do
+    <<_length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     Binary.to_integer(value_binary)
   end
 
-  defp value(
-    _type,
-    @format_rational_64u,
-    %OffsetBuffer{
-      buffer: %Buffer{
-        data: <<count_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>>
-      }
-    } = buffer
-  ) do
+  defp value(_type, @format_rational_64u, %OffsetBuffer{} = buffer) do
+    <<count_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     rational_count = Binary.to_integer(count_binary)
     value_offset = Binary.to_integer(offset_binary)
     OffsetBuffer.random(buffer, value_offset, rational_count * 8)
     |> Binary.to_rational()
   end
 
-  defp value(
-    _type,
-    @format_rational_64s,
-    %OffsetBuffer{
-      buffer: %Buffer{
-        data: <<_size::binary-size(4), offset_binary::binary-size(4), _rest::binary>>
-      }
-    } = buffer
-  ) do
+  defp value(_type, @format_rational_64s, %OffsetBuffer{} = buffer) do
+    <<_count_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     value_offset = Binary.to_integer(offset_binary)
     OffsetBuffer.random(buffer, value_offset, 8)
     |> Binary.to_signed_rational()
