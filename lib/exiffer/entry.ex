@@ -182,10 +182,16 @@ defmodule Exiffer.Entry do
     {header, extra}
   end
 
-  defp data(%__MODULE__{type: :maker_notes} = _entry, _format, end_of_block) do
-    # TODO
+  defp data(%__MODULE__{type: :maker_notes, value: value}, _format, end_of_block) do
+    file_byte_order = Binary.byte_order()
+    Binary.set_byte_order(:little)
+    ifd_end = byte_size(value.header)
+    binary = IFD.binary(value.ifd, ifd_end)
+    Binary.set_byte_order(file_byte_order)
+    extra = <<value.header::binary, binary::binary>>
+    size = byte_size(extra)
     value = Binary.int32u_to_current(end_of_block)
-    {0, value, <<>>}
+    {size, value, extra}
   end
 
   defp data(%__MODULE__{type: :thumbnail_offset} = entry, _format, end_of_block) do
@@ -246,27 +252,14 @@ defmodule Exiffer.Entry do
     ifd
   end
 
-  defp value(:exif_offset, @format_int32u, %OffsetBuffer{} = buffer) do
+  defp value(type, @format_int32u, %OffsetBuffer{} = buffer) when type in @ifd_entries do
     <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     offset = Binary.to_integer(offset_binary)
     read_ifd(buffer, offset)
   end
 
-  defp value(:gps_info, @format_int32u, %OffsetBuffer{} = buffer) do
+  defp value(:maker_notes, @format_raw_bytes, %OffsetBuffer{} = buffer) do
     <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
-    offset = Binary.to_integer(offset_binary)
-    read_ifd(buffer, offset)
-  end
-
-  defp value(
-    :maker_notes,
-    @format_inline_string,
-    %OffsetBuffer{
-      buffer: %Buffer{
-        data: <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>>
-      }
-    } = buffer
-  ) do
     ifd_offset = Binary.to_integer(offset_binary)
     Logger.info "maker_notes, ifd_offset: #{inspect(ifd_offset, [base: :hex, pretty: true, width: 0])}"
     position = OffsetBuffer.tell(buffer)
