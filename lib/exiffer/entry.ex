@@ -19,7 +19,7 @@ defmodule Exiffer.Entry do
   @format_int16u <<0x00, 0x03>>
   @format_int32u <<0x00, 0x04>>
   @format_rational_64u <<0x00, 0x05>>
-  @format_inline_string <<0x00, 0x07>> # TODO: this is actually raw data
+  @format_raw_bytes <<0x00, 0x07>>
   @format_rational_64s <<0x00, 0x0a>>
 
   @format_type %{
@@ -27,7 +27,7 @@ defmodule Exiffer.Entry do
     @format_int16u => :int16u,
     @format_int32u => :int32u,
     @format_rational_64u => :rational_64u,
-    @format_inline_string => :inline_string,
+    @format_raw_bytes => :raw_bytes,
     @format_rational_64s => :rational_64s
   }
 
@@ -36,7 +36,7 @@ defmodule Exiffer.Entry do
     int16u: %{magic: @format_int16u, type: :int16u, name: "16-bit integer"},
     int32u: %{magic: @format_int32u, type: :int32u, name: "32-bit integer"},
     rational_64u: %{magic: @format_rational_64u, type: :rational_64u, name: "64-bit rational"},
-    inline_string: %{magic: @format_inline_string, type: :inline_string, name: "Inline String"},
+    raw_bytes: %{magic: @format_raw_bytes, type: :raw_bytes, name: "Inline String"},
     rational_64s: %{magic: @format_rational_64s, type: :rational_64s, name: "64-bit signed rational"}
   }
 
@@ -48,7 +48,7 @@ defmodule Exiffer.Entry do
   # Map entry type to entry info
   # TODO: sort by type
   @entry %{
-    version: %{type: :version, magic: <<0x00, 0x00>>, format: @format_inline_string, name: "Version"},
+    version: %{type: :version, magic: <<0x00, 0x00>>, format: @format_raw_bytes, name: "Version"},
     gps_latitude_ref: %{type: :gps_latitude_ref, magic: <<0x00, 0x01>>, format: @format_string, name: "GPSLatitudeRef"},
     gps_latitude: %{type: :gps_latitude, magic: <<0x00, 0x02>>, format: @format_rational_64u, name: "GPSLatitude"},
     gps_longitude_ref: %{type: :gps_longitude_ref, magic: <<0x00, 0x03>>, format: @format_string, name: "GPSLongitudeRef"},
@@ -90,12 +90,12 @@ defmodule Exiffer.Entry do
     f_number: %{type: :f_number, magic: <<0x82, 0x9d>>, format: @format_rational_64u, name: "FNumber"},
     exposure_program: %{type: :exposure_program, magic: <<0x88, 0x22>>, format: @format_int16u, name: "ExposureProgram"},
     iso: %{type: :iso, magic: <<0x88, 0x27>>, format: @format_int16u, name: "Iso"},
-    exif_version: %{type: :exif_version, magic: <<0x90, 0x00>>, format: @format_inline_string, name: "ExifVersion"},
+    exif_version: %{type: :exif_version, magic: <<0x90, 0x00>>, format: @format_raw_bytes, name: "ExifVersion"},
     date_time_original: %{type: :date_time_original, magic: <<0x90, 0x03>>, format: @format_string, name: "DateTimeOriginal"},
     create_date: %{type: :create_date, magic: <<0x90, 0x04>>, format: @format_string, name: "CreateDate"},
     offset_time: %{type: :offset_time, magic: <<0x90, 0x10>>, format: @format_string, name: "OffsetTime"},
     offset_time_original: %{type: :offset_time_original, magic: <<0x90, 0x11>>, format: @format_string, name: "OffsetTimeOriginal"},
-    components_configuration: %{type: :components_configuration, magic: <<0x91, 0x01>>, format: @format_inline_string, name: "ComponentsConfiguration"},
+    components_configuration: %{type: :components_configuration, magic: <<0x91, 0x01>>, format: @format_raw_bytes, name: "ComponentsConfiguration"},
     compressed_bits_per_pixel: %{type: :compressed_bits_per_pixel, magic: <<0x91, 0x02>>, format: @format_rational_64u, name: "CompressedBitsPerPixel"},
     shutter_speed_value: %{type: :shutter_speed_value, magic: <<0x92, 0x01>>, format: @format_rational_64u, name: "ShutterSpeedValue"},
     aperture_value: %{type: :aperture_value, magic: <<0x92, 0x02>>, format: @format_rational_64u, name: "ApertureValue"},
@@ -105,8 +105,8 @@ defmodule Exiffer.Entry do
     metering_mode: %{type: :metering_mode, magic: <<0x92, 0x07>>, format: @format_int16u, name: "MeteringMode"},
     flash: %{type: :flash, magic: <<0x92, 0x09>>, format: @format_int16u, name: "Flash"},
     focal_length: %{type: :focal_length, magic: <<0x92, 0x0a>>, format: @format_rational_64u, name: "FocalLength"},
-    maker_notes: %{type: :maker_notes, magic: <<0x92, 0x7c>>, format: @format_inline_string, name: "MakerNotes"},
-    flashpix_version: %{type: :flashpix_version, magic: <<0xa0, 0x00>>, format: @format_inline_string, name: "FlashpixVersion"},
+    maker_notes: %{type: :maker_notes, magic: <<0x92, 0x7c>>, format: @format_raw_bytes, name: "MakerNotes"},
+    flashpix_version: %{type: :flashpix_version, magic: <<0xa0, 0x00>>, format: @format_raw_bytes, name: "FlashpixVersion"},
     color_space: %{type: :color_space, magic: <<0xa0, 0x01>>, format: @format_int16u, name: "ColorSpace"},
     exif_image_width: %{type: :exif_image_width, magic: <<0xa0, 0x02>>, format: @format_int32u, name: "ExifImageWidth"},
     exif_image_height: %{type: :exif_image_height, magic: <<0xa0, 0x03>>, format: @format_int32u, name: "ExifImageHeight"},
@@ -115,8 +115,8 @@ defmodule Exiffer.Entry do
     focal_plane_y_resolution: %{type: :focal_plane_y_resolution, magic: <<0xa2, 0x0f>>, format: @format_rational_64u, name: "FocalPlaneYResolution"},
     focal_plane_resolution_unit: %{type: :focal_plane_resolution_unit, magic: <<0xa2, 0x10>>, format: @format_int16u, name: "FocalPlaneResolutionUnit"},
     sensing_method: %{type: :sensing_method, magic: <<0xa2, 0x17>>, format: @format_int16u, name: "SensingMethod"},
-    file_source: %{type: :file_source, magic: <<0xa3, 0x00>>, format: @format_inline_string, name: "FileSource"},
-    scene_type: %{type: :scene_type, magic: <<0xa3, 0x01>>, format: @format_inline_string, name: "SceneType"},
+    file_source: %{type: :file_source, magic: <<0xa3, 0x00>>, format: @format_raw_bytes, name: "FileSource"},
+    scene_type: %{type: :scene_type, magic: <<0xa3, 0x01>>, format: @format_raw_bytes, name: "SceneType"},
     exposure_mode: %{type: :exposure_mode, magic: <<0xa4, 0x02>>, format: @format_int16u, name: "ExposureMode"},
     exif_white_balance: %{type: :exif_white_balance, magic: <<0xa4, 0x03>>, format: @format_int16u, name: "EXIF WhiteBalance"},
     digital_zoom_ratio: %{type: :digital_zoom_ratio, magic: <<0xa4, 0x04>>, format: @format_rational_64u, name: "DigitalZoomRatio"},
@@ -204,7 +204,7 @@ defmodule Exiffer.Entry do
     {1, value, <<>>}
   end
 
-  defp data(%__MODULE__{} = entry, format, end_of_block) when format in [@format_string, @format_inline_string] do
+  defp data(%__MODULE__{} = entry, format, end_of_block) when format in [@format_string, @format_raw_bytes] do
     size = byte_size(entry.value)
     if size <= 4 do
       pad_count = 4 - size
@@ -281,7 +281,7 @@ defmodule Exiffer.Entry do
     %MakerNotes{header: header, ifd: ifd}
   end
 
-  defp value(_type, format, %OffsetBuffer{} = buffer) when format in [@format_string, @format_inline_string] do
+  defp value(_type, format, %OffsetBuffer{} = buffer) when format in [@format_string, @format_raw_bytes] do
     <<length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     string_length = Binary.to_integer(length_binary)
     if string_length <= 4 do
