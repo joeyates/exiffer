@@ -17,10 +17,14 @@ defmodule Exiffer.MixProject do
 
   # Run "mix help compile.app" to learn about applications.
   def application do
-    [
-      extra_applications: [:logger],
-      mod: {Exiffer.CLI, []}
+    application = [
+      extra_applications: [:logger]
     ]
+    if Mix.env() == :prod do
+      [{:mod, {Exiffer.CLI, []}} | application]
+    else
+      application
+    end
   end
 
   defp deps do
