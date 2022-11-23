@@ -18,8 +18,8 @@ defmodule Exiffer.CLI do
     0
   end
 
-  def main(["rewrite", input, output]) do
-    Exiffer.CLI.Rewrite.run(input, output)
+  def main(["rewrite" | args]) do
+    Exiffer.CLI.Rewrite.run(args)
     0
   end
 

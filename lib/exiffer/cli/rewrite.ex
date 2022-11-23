@@ -4,6 +4,10 @@ defmodule Exiffer.CLI.Rewrite do
   """
 
   alias Exiffer.Buffer
+  alias Exiffer.Entry
+  alias Exiffer.Header.APP1
+  alias Exiffer.IFD
+  alias Exiffer.IFDBlock
   require Logger
 
   @jpeg_magic <<0xff, 0xd8>>
@@ -11,11 +15,15 @@ defmodule Exiffer.CLI.Rewrite do
   @doc """
   Rewrite an image's metadata.
   """
-  def run(source, destination) do
+  def run([source, destination, gps]) do
     input = Buffer.new(source)
     output = Buffer.new(destination, direction: :write)
 
     {metadata, input} = Exiffer.parse(input)
+
+    entry = build_entry(gps)
+
+    {:ok, headers} = apply_gps(headers, entry)
 
     Buffer.write(output, @jpeg_magic)
     :ok = Exiffer.Serialize.write(metadata, output.io_device)
@@ -26,5 +34,145 @@ defmodule Exiffer.CLI.Rewrite do
     :ok = Buffer.close(output)
 
     {:ok}
+  end
+
+  def build_entry(gps) do
+    {latitude, longitude, altitude} = parse_gps(gps)
+    latitude_ref = if latitude >= 0, do: "N", else: "S"
+    longitude_ref = if longitude >= 0, do: "W", else: "E"
+    latitude = latitude |> float_to_dms() |> dms_to_rational()
+    longitude = longitude |> float_to_dms() |> dms_to_rational()
+    altitude = floor(altitude)
+
+    %Exiffer.Entry{
+      type: :gps_info,
+      format: :int32u,
+      value: %Exiffer.IFD{
+        entries: [
+          %Exiffer.Entry{
+            type: :gps_latitude_ref,
+            format: :string,
+            value: latitude_ref
+          },
+          %Exiffer.Entry{
+            type: :gps_latitude,
+            format: :rational_64u,
+            value: latitude
+          },
+          %Exiffer.Entry{
+            type: :gps_longitude_ref,
+            format: :string,
+            value: longitude_ref
+          },
+          %Exiffer.Entry{
+            type: :gps_longitude,
+            format: :rational_64u,
+            value: longitude
+          },
+          %Exiffer.Entry{
+            type: :gps_altitude_ref,
+            format: :int16u,
+            value: 0
+          },
+          %Exiffer.Entry{
+            type: :gps_altitude,
+            format: :rational_64u,
+            value: {altitude, 1}
+          }
+        ]
+      }
+    }
+  end
+
+  defp parse_gps(gps) do
+    case Regex.named_captures(
+      ~r/(?<latitude>\d{1,3}[.,]\d+),(?<longitude>\d{1,3}[.,]\d+),(?<altitude>\d+)/,
+      gps
+    ) do
+      %{"latitude" => latitude, "longitude" => longitude, "altitude" => altitude} ->
+        {to_f(latitude), to_f(longitude), to_f(altitude)}
+      _ ->
+        nil
+    end
+  end
+
+  defp to_f(s) do
+    s
+    |> Float.parse()
+    |> elem(0)
+  end
+
+  defp float_to_dms(f) do
+    abs = abs(f)
+    degrees = floor(abs)
+    degrees_remainder = abs - degrees
+    minutes = floor(60 * degrees_remainder)
+    minutes_remainder = degrees_remainder - minutes / 60
+    seconds = 3600 * minutes_remainder
+    {degrees, minutes, seconds}
+  end
+
+  defp dms_to_rational({d, m, s}) do
+    mus = floor(s * 1_000_000)
+    [{d, 1}, {m, 1}, {mus, 1_000_000}]
+  end
+
+  defp apply_gps(headers, entry) do
+    {:ok, headers} = remove_gps(headers)
+    {:ok, _headers} = add_gps(headers, entry)
+  end
+
+  defp add_gps(headers, entry) when is_list(headers) do
+    headers = Enum.map(headers, &(add_gps(&1, entry)))
+    {:ok, headers}
+  end
+
+  defp add_gps(%APP1{} = app1, entry) do
+    ifd_block = add_gps(app1.ifd_block, entry)
+    struct!(app1, ifd_block: ifd_block)
+  end
+
+  defp add_gps(%IFDBlock{} = ifd_block, entry) do
+    [ifd | others] = ifd_block.ifds
+    ifd = add_gps(ifd, entry)
+    struct!(ifd_block, ifds: [ifd | others])
+  end
+
+  defp add_gps(%IFD{} = ifd, entry) do
+    entries = Enum.reverse([entry | Enum.reverse(ifd.entries)])
+    struct!(ifd, entries: entries)
+  end
+
+  defp add_gps(item, _entry), do: item
+
+  defp remove_gps(headers) when is_list(headers) do
+    headers = Enum.map(headers, &(remove_gps(&1)))
+    {:ok, headers}
+  end
+
+  defp remove_gps(%APP1{} = app1) do
+    ifd_block = remove_gps(app1.ifd_block)
+    struct!(app1, ifd_block: ifd_block)
+  end
+
+  defp remove_gps(%IFDBlock{} = ifd_block) do
+    ifds = Enum.map(ifd_block.ifds, &(remove_gps(&1)))
+    struct!(ifd_block, ifds: ifds)
+  end
+
+  defp remove_gps(%IFD{} = ifd) do
+    entries =
+      ifd.entries
+      |> Enum.map(&(remove_gps(&1)))
+      |> Enum.filter(&(&1))
+    struct!(ifd, entries: entries)
+  end
+
+  defp remove_gps(%Entry{type: :gps_info}) do
+    nil
+  end
+
+  defp remove_gps(item) do
+    item
   end
 end
