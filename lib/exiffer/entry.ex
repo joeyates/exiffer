@@ -315,13 +315,14 @@ defmodule Exiffer.Entry do
 
   defp value(_type, format, %OffsetBuffer{} = buffer) when format in [:string, :raw_bytes] do
     <<length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
-    string_length = Binary.to_integer(length_binary)
-    if string_length <= 4 do
-      <<value::binary-size(string_length), _rest::binary>> = value_binary
+    length = Binary.to_integer(length_binary)
+    length = if format == :string, do: length - 1, else: length
+    if length <= 4 do
+      <<value::binary-size(length), _rest::binary>> = value_binary
       value
     else
-      string_offset = Binary.to_integer(value_binary)
-      OffsetBuffer.random(buffer, string_offset, string_length - 1)
+      offset = Binary.to_integer(value_binary)
+      OffsetBuffer.random(buffer, offset, length)
     end
   end
 
