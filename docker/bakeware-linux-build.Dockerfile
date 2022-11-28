@@ -13,15 +13,19 @@ RUN apt install -y curl
 
 # Install Erlang
 RUN apt install -y libncurses5 procps
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-base_24.2-1~debian~buster_amd64.deb
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-ssl_24.2-1~debian~buster_amd64.deb
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-crypto_24.2-1~debian~buster_amd64.deb
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-public-key_24.2-1~debian~buster_amd64.deb
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-asn1_24.2-1~debian~buster_amd64.deb
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-syntax-tools_24.2-1~debian~buster_amd64.deb
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-inets_24.2-1~debian~buster_amd64.deb
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-mnesia_24.2-1~debian~buster_amd64.deb
-RUN curl -O https://packages.erlang-solutions.com/erlang/debian/pool/erlang-runtime-tools_24.2-1~debian~buster_amd64.deb
+ENV ERLANG_URL=https://packages.erlang-solutions.com/erlang/debian/pool
+ENV ERTS_RELEASE=24.3.3-1
+ENV ERTS_PLATFORM=debian~buster_amd64
+ENV PACKAGE=$ERTS_RELEASE~$ERTS_PLATFORM.deb
+RUN curl -O $ERLANG_URL/erlang-base_$PACKAGE
+RUN curl -O $ERLANG_URL/erlang-ssl_$PACKAGE
+RUN curl -O $ERLANG_URL/erlang-crypto_$PACKAGE
+RUN curl -O $ERLANG_URL/erlang-public-key_$PACKAGE
+RUN curl -O $ERLANG_URL/erlang-asn1_$PACKAGE
+RUN curl -O $ERLANG_URL/erlang-syntax-tools_$PACKAGE
+RUN curl -O $ERLANG_URL/erlang-inets_$PACKAGE
+RUN curl -O $ERLANG_URL/erlang-mnesia_$PACKAGE
+RUN curl -O $ERLANG_URL/erlang-runtime-tools_$PACKAGE
 RUN dpkg -i *.deb
 
 # Install Elixir
