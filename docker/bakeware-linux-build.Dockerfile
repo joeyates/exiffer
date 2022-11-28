@@ -36,7 +36,7 @@ ENV LC_ALL=en_US.UTF-8
 RUN mix local.hex --force
 
 # Prepare build
-RUN apt install -y build-essential
+RUN apt install -y build-essential zstd
 
 # Copy code
 COPY ../mix.* /app/
