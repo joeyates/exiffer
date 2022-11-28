@@ -2,33 +2,18 @@
 
 Conveniences for image manipulation.
 
-# Status
+# Build
 
-Project abandoned as [Vix](https://github.com/akash-akya/vix) wrapper
-for libvips covers my needs.
+Create a (reasonable) portable Linux build:
 
-The program now reads almost all image metadata for JPEGs.
+```sh
+podman build --file docker/bakeware-linux-build.Dockerfile --tag exiffer:latest .
+podman run -v `pwd`:/app/_build/prod/rel/bakeware -e MIX_ENV=prod -ti exiffer:latest mix release
+```
 
-In order to modify images, the metadata needs to be written out again,
-followed by the image data.
+The `exiffer` executable will be built in the project root.
 
 # Debugging
 
 Use `exiftool -htmlDump FILE` to produce an HTML file
 with indications of the binary layout.
-
-# Installation
-
-The package can be installed by adding `exiffer` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:exiffer, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/exiffer>.
