@@ -35,9 +35,12 @@ ENV PATH="${PATH}:/app/elixir/bin"
 ENV LC_ALL=en_US.UTF-8
 RUN mix local.hex --force
 
-COPY ../lib /app/
-COPY ../mix.* /app/
-
+# Prepare build
 RUN apt install -y build-essential
+
+# Copy code
+COPY ../mix.* /app/
+COPY ../lib /app/
+
+# Prepare build
 RUN mix deps.get
-RUN mix release
