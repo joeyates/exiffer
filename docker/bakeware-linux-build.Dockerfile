@@ -44,7 +44,7 @@ RUN apt install -y build-essential zstd
 
 # Copy code
 COPY ../mix.* /app/
-COPY ../lib /app/
+COPY ../lib /app/lib/
 
 # Prepare build
 RUN mix deps.get
