@@ -274,9 +274,7 @@ defmodule Exiffer.Entry do
     override = Keyword.get(opts, :override)
     entry_table = @entry_info_map[override]
     info = entry_table[entry.type]
-    {numerator, denominator} = entry.value
-    value = numerator / denominator
-    [{info.label, Float.to_string(value)}]
+    [{info.label, rational64u_to_string(entry.value)}]
   end
 
   def text(%__MODULE__{format: :raw_bytes} = entry, opts) do
@@ -356,6 +354,20 @@ defmodule Exiffer.Entry do
     size = div(byte_size(extra), 8)
     value = Binary.int32u_to_current(end_of_block)
     {size, value, extra}
+  end
+
+  defp rational64u_to_string(value)
+
+  defp rational64u_to_string(values) when is_list(values) do
+    values
+    |> Enum.map(&rational64u_to_string/1)
+    |> Enum.join(", ")
+  end
+
+  defp rational64u_to_string(value) do
+    {numerator, denominator} = value
+    value = numerator / denominator
+    Float.to_string(value)
   end
 
   defp read_ifd(%OffsetBuffer{} = buffer, offset, opts \\ []) do
