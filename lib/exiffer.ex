@@ -10,18 +10,14 @@ defmodule Exiffer do
 
   def parse(filename) when is_binary(filename) do
     buffer = Buffer.new(filename)
-    {headers, _buffer} = parse(buffer)
+    {metadata, _buffer} = parse(buffer)
     :ok = Buffer.close(buffer)
 
-    headers
+    metadata
   end
 
   def parse(%Buffer{data: <<@jpeg_magic, _rest::binary>>} = buffer) do
-    # TODO: Move this into JPEG.new
-    buffer = Buffer.skip(buffer, 2)
-    {buffer, headers} = JPEG.headers(buffer, [])
-    headers = Enum.reverse(headers)
-    {headers, buffer}
+    {%JPEG{}, %Buffer{}} = JPEG.new(buffer)
   end
 
   def parse(%Buffer{}) do

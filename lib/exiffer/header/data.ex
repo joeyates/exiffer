@@ -62,5 +62,9 @@ defmodule Exiffer.Header.Data do
     def binary(data) do
       Exiffer.Header.Data.binary(data)
     end
+
+    def puts(_data) do
+      :ok
+    end
   end
 end
