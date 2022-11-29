@@ -217,18 +217,39 @@ defmodule Exiffer.Entry do
   """
   def text(entry, opts \\ [])
 
+  def text(%__MODULE__{type: :interop_offset} = entry, _opts) do
+    opts = [override: :interop]
+    texts =
+      entry.value.entries
+      |> Enum.flat_map(&(text(&1, opts)))
+
+    [{"Interop", nil} | texts]
+  end
+
+  def text(%__MODULE__{type: :exif_offset} = entry, _opts) do
+    texts =
+      entry.value.entries
+      |> Enum.flat_map(&(text(&1)))
+
+    [{"EXIF", nil} | texts]
+  end
+
+  def text(%__MODULE__{type: :thumbnail_offset} = _entry, _opts) do
+    []
+  end
+
   def text(%__MODULE__{format: :string} = entry, opts) do
     override = Keyword.get(opts, :override)
     entry_table = @entry_info_map[override]
     info = entry_table[entry.type]
-    {info.label, entry.value}
+    [{info.label, entry.value}]
   end
 
   def text(%__MODULE__{format: format} = entry, opts) when format in [:int16u, :int32u] do
     override = Keyword.get(opts, :override)
     entry_table = @entry_info_map[override]
     info = entry_table[entry.type]
-    {info.label, Integer.to_string(entry.value)}
+    [{info.label, Integer.to_string(entry.value)}]
   end
 
   def text(%__MODULE__{format: :rational_64u} = entry, opts) do
@@ -237,14 +258,14 @@ defmodule Exiffer.Entry do
     info = entry_table[entry.type]
     {numerator, denominator} = entry.value
     value = numerator / denominator
-    {info.label, Float.to_string(value)}
+    [{info.label, Float.to_string(value)}]
   end
 
   def text(%__MODULE__{format: :raw_bytes} = entry, opts) do
     override = Keyword.get(opts, :override)
     entry_table = @entry_info_map[override]
     info = entry_table[entry.type]
-    {info.label, "RAW"} # TODO
+    [{info.label, "RAW"}] # TODO
   end
 
   # TODO: handle negatives
@@ -254,7 +275,7 @@ defmodule Exiffer.Entry do
     info = entry_table[entry.type]
     {numerator, denominator} = entry.value
     value = numerator / denominator
-    {info.label, Float.to_string(value)}
+    [{info.label, Float.to_string(value)}]
   end
 
   defp data(%__MODULE__{type: :maker_notes, value: value}, end_of_block) do

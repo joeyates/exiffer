@@ -27,6 +27,10 @@ defmodule Exiffer.Header.SOS do
       Exiffer.Header.SOS.binary(data)
     end
 
+    def puts(_data) do
+      :ok
+    end
+
     def write(data, io_device) do
       Exiffer.Header.SOS.write(data, io_device)
     end

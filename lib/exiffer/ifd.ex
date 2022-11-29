@@ -53,6 +53,31 @@ defmodule Exiffer.IFD do
     <<count_binary::binary, headers_binary::binary, next_ifd_binary::binary, extras_binary::binary>>
   end
 
+  def puts(%__MODULE__{} = ifd) do
+    texts =
+      ifd.entries
+      |> Enum.flat_map(&(Entry.text(&1)))
+
+    longest_label =
+      texts
+      |> Enum.map(fn {key, _value} -> String.length(key) end)
+      |> Enum.max()
+
+    texts
+    |> Enum.each(fn {label, value} ->
+      if value do
+        IO.write String.pad_trailing("#{label}:", longest_label + 2)
+        IO.puts value
+      else
+        # If there's no label, it's a subtitle
+        IO.puts label
+        IO.puts String.duplicate("-", String.length(label))
+      end
+    end)
+
+    :ok
+  end
+
   defp read_entry(buffer, 0, entries, _opts) do
     load_thumbnail(buffer, entries)
   end

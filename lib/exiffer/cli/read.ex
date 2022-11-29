@@ -9,9 +9,12 @@ defmodule Exiffer.CLI.Read do
   Dump image file metadata.
   """
   def run(filename) do
+    level = Logger.level()
+    Logger.configure(level: :error)
     metadata = Exiffer.parse(filename)
 
-    IO.puts "metadata: #{inspect(metadata.headers, [pretty: true, width: 0])}"
+    :ok = Exiffer.Serialize.puts(metadata)
+    Logger.configure(level: level)
 
     {:ok}
   end

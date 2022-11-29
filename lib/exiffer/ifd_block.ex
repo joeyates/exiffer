@@ -40,6 +40,20 @@ defmodule Exiffer.IFDBlock do
     binary
   end
 
+  def puts(%__MODULE__{} = ifd_block) do
+    ifd_block.ifds
+    |> Enum.with_index()
+    |> Enum.each(fn {ifd, i} ->
+      if i == 1 do
+        IO.puts "Thumbnail"
+        IO.puts "---------"
+      end
+      IFD.puts(ifd)
+    end)
+
+    :ok
+  end
+
   defp read(%OffsetBuffer{} = buffer, ifds) do
     position = OffsetBuffer.tell(buffer) - 2
     offset = buffer.offset

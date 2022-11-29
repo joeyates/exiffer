@@ -35,6 +35,17 @@ defmodule Exiffer.Header.APP1 do
     {app1, buffer}
   end
 
+  def puts(%__MODULE__{} = app1) do
+    IO.puts "File"
+    IO.puts "----"
+    byte_order = if app1.byte_order == :big, do: "Big endian", else: "Little endian"
+    IO.puts "Byte order: #{byte_order}"
+    IO.puts "General"
+    IO.puts "-------"
+    IFDBlock.puts(app1.ifd_block)
+    :ok
+  end
+
   def write(%__MODULE__{} = app1, io_device) do
     tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
     ifd_block = IFDBlock.binary(app1.ifd_block)
@@ -61,6 +72,10 @@ defmodule Exiffer.Header.APP1 do
 
     def binary(_app1) do
       <<>>
+    end
+
+    def puts(app1) do
+      Exiffer.Header.APP1.puts(app1)
     end
   end
 end

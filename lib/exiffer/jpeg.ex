@@ -21,6 +21,10 @@ defmodule Exiffer.JPEG do
     {%__MODULE__{headers: headers}, buffer}
   end
 
+  def puts(%__MODULE__{} = jpeg) do
+    :ok = Exiffer.Serialize.puts(jpeg.headers)
+  end
+
   def write(%__MODULE__{} = jpeg, io_device) do
     :ok = Exiffer.Serialize.write(jpeg.headers, io_device)
   end
@@ -99,12 +103,16 @@ defmodule Exiffer.JPEG do
   end
 
   defimpl Exiffer.Serialize do
-    def write(jpeg, io_device) do
-      Exiffer.JPEG.write(%Exiffer.JPEG{} = jpeg, io_device)
+    def write(%Exiffer.JPEG{} = jpeg, io_device) do
+      Exiffer.JPEG.write(jpeg, io_device)
     end
 
     def binary(_jpeg) do
       <<>>
+    end
+
+    def puts(%Exiffer.JPEG{} = jpeg) do
+      Exiffer.JPEG.puts(jpeg)
     end
   end
 end
