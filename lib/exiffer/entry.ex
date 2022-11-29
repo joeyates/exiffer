@@ -275,7 +275,7 @@ defmodule Exiffer.Entry do
     override = Keyword.get(opts, :override)
     entry_table = @entry_info_map[override]
     info = entry_table[entry.type]
-    [{info.label, "RAW"}] # TODO
+    [{info.label, entry.value}] # TODO
   end
 
   # TODO: handle negatives
