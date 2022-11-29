@@ -9,9 +9,9 @@ defmodule Exiffer.CLI.Read do
   Dump image file metadata.
   """
   def run(filename) do
-    headers = Exiffer.parse(filename)
+    metadata = Exiffer.parse(filename)
 
-    IO.puts "headers: #{inspect(headers, [pretty: true, width: 0])}"
+    IO.puts "metadata: #{inspect(metadata.headers, [pretty: true, width: 0])}"
 
     {:ok}
   end

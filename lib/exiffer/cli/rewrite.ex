@@ -15,10 +15,10 @@ defmodule Exiffer.CLI.Rewrite do
     input = Buffer.new(source)
     output = Buffer.new(destination, direction: :write)
 
-    {headers, input} = Exiffer.parse(input)
+    {metadata, input} = Exiffer.parse(input)
 
     Buffer.write(output, @jpeg_magic)
-    :ok = Exiffer.Serialize.write(headers, output.io_device)
+    :ok = Exiffer.Serialize.write(metadata, output.io_device)
 
     Buffer.copy(input, output)
 
