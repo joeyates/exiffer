@@ -217,6 +217,14 @@ defmodule Exiffer.Entry do
   """
   def text(entry, opts \\ [])
 
+  def text(%__MODULE__{type: :gps_info} = entry, _opts) do
+    texts =
+      entry.value.entries
+      |> Enum.flat_map(&(text(&1)))
+
+    [{"Interop", nil} | texts]
+  end
+
   def text(%__MODULE__{type: :interop_offset} = entry, _opts) do
     opts = [override: :interop]
     texts =
