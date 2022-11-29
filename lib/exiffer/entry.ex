@@ -240,6 +240,14 @@ defmodule Exiffer.Entry do
     []
   end
 
+  def text(%__MODULE__{type: :maker_notes} = entry, _opts) do
+    texts =
+      entry.value.ifd.entries
+      |> Enum.flat_map(&(text(&1)))
+
+    [{"Maker Notes", nil} | texts]
+  end
+
   def text(%__MODULE__{format: :string} = entry, opts) do
     override = Keyword.get(opts, :override)
     entry_table = @entry_info_map[override]
