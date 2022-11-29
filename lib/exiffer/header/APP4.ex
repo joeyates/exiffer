@@ -40,8 +40,8 @@ defmodule Exiffer.Header.APP4 do
       Exiffer.Header.APP4.write(data, io_device)
     end
 
-    def puts(data) do
-      Exiffer.Header.APP4.puts(data)
+    def puts(_data) do
+      :ok
     end
   end
 end
