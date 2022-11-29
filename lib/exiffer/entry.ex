@@ -108,7 +108,7 @@ defmodule Exiffer.Entry do
     maker_notes: %{type: :maker_notes, magic: <<0x92, 0x7c>>, formats: [:raw_bytes], name: "MakerNotes", label: "Maker Notes"},
     flashpix_version: %{type: :flashpix_version, magic: <<0xa0, 0x00>>, formats: [:raw_bytes], name: "FlashpixVersion", label: "Flashpix Version"},
     color_space: %{type: :color_space, magic: <<0xa0, 0x01>>, formats: [:int16u], name: "ColorSpace", label: "Color Space"},
-    exif_image_width: %{type: :exif_image_width, magic: <<0xa0, 0x02>>, formats: [:int32u], name: "ExifImageWidth", label: "Exif Imagei Width"},
+    exif_image_width: %{type: :exif_image_width, magic: <<0xa0, 0x02>>, formats: [:int32u], name: "ExifImageWidth", label: "Exif Image Width"},
     exif_image_height: %{type: :exif_image_height, magic: <<0xa0, 0x03>>, formats: [:int32u], name: "ExifImageHeight", label: "Exif Image Height"},
     interop_offset: %{type: :interop_offset, magic: <<0xa0, 0x05>>, formats: [:int32u], name: "InteropOffset", label: "Interop Offset"},
     focal_plane_x_resolution: %{type: :focal_plane_x_resolution, magic: <<0xa2, 0x0e>>, formats: [:rational_64u], name: "FocalPlaneXResolution", label: "Focal Plane X Resolution"},
