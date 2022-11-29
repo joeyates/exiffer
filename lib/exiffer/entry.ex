@@ -229,7 +229,9 @@ defmodule Exiffer.Entry do
   def text(%__MODULE__{type: :exif_offset} = entry, _opts) do
     texts =
       entry.value.entries
-      |> Enum.flat_map(&(text(&1)))
+      |> Enum.map(&(text(&1)))
+      |> Enum.sort_by(&(length(&1)))
+      |> List.flatten()
 
     [{"EXIF", nil} | texts]
   end
