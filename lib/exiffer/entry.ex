@@ -70,7 +70,7 @@ defmodule Exiffer.Entry do
     ycbcr_positioning: %{type: :ycbcr_positioning, magic: <<0x02, 0x13>>, formats: [:int16u], name: "YcbcrPositioning", label: "Ycbcr Positioning"},
     quality: %{type: :quality, magic: <<0x10, 0x00>>, formats: [:string], name: "Quality", label: "Quality"},
     sharpness: %{type: :sharpness, magic: <<0x10, 0x01>>, formats: [:int16u], name: "Sharpness", label: "Sharpness"},
-    fuji_white_balance: %{type: :fuji_white_balance, magic: <<0x10, 0x02>>, formats: [:int16u], name: "FUJI WhiteBalance", label: "FUJI  White Balance"},
+    fuji_white_balance: %{type: :fuji_white_balance, magic: <<0x10, 0x02>>, formats: [:int16u], name: "FUJI WhiteBalance", label: "FUJI White Balance"},
     fuji_flash_mode: %{type: :fuji_flash_mode, magic: <<0x10, 0x10>>, formats: [:int16u], name: "FujiFlashMode", label: "Fuji Flash Mode"},
     # FlashExposureComp seems to be flash strength
     flash_exposure_comp: %{type: :flash_exposure_comp, magic: <<0x10, 0x11>>, formats: [:rational_64s], name: "FlashExposureComp", label: "Flash Exposure Comp"},
