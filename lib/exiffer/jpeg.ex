@@ -60,9 +60,15 @@ defmodule Exiffer.JPEG do
     Logger.debug ~s(Header "COM" at #{Integer.to_string(buffer.position, 16)})
     buffer = Buffer.skip(buffer, 4)
     length = Binary.big_endian_to_integer(length_bytes)
-    {comment, buffer} = Buffer.consume(buffer, length - 2)
-    # TODO: only do this if length is odd
-    buffer = Buffer.skip(buffer, 1)
+    # Remove 2 bytes for length and 1 for the final NULL
+    text_length = length - 2 - 1
+    {comment, buffer} = Buffer.consume(buffer, text_length)
+    buffer = if rem(length, 2) == 1 do
+      # Skip byte added for 2-byte alignment
+      Buffer.skip(buffer, 1)
+    else
+      buffer
+    end
     header = %Data{type: "JPEG COM Comment", data: comment}
     headers(buffer, [header | headers])
   end
