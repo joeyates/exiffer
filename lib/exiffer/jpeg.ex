@@ -17,6 +17,7 @@ defmodule Exiffer.JPEG do
 
   def new(%Buffer{data: <<0xff, 0xd8, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
+    Binary.set_byte_order(:big)
     {%Buffer{} = buffer, headers} = headers(buffer, [])
     {%__MODULE__{headers: headers}, buffer}
   end
