@@ -37,40 +37,10 @@ defmodule Exiffer.JPEG do
     {buffer, headers}
   end
 
-  defp headers(
-    %Buffer{
-      data: <<
-        0xff,
-        0xe0,
-        _length_binary::binary-size(2),
-        "JFIF",
-        version::binary-size(2),
-        density_units,
-        x_density::binary-size(2),
-        y_density::binary-size(2),
-        x_thumbnail,
-        y_thumbnail,
-        0x00,
-        _rest::binary
-      >>
-    } = buffer,
-    headers
-  ) do
+  defp headers(%Buffer{data: <<0xff, 0xe0, _rest::binary>>} = buffer, headers) do
     Logger.debug ~s(Header "JFIF" at #{Integer.to_string(buffer.position, 16)})
-    buffer = Buffer.skip(buffer, 18)
-    thumbnail_bytes = 3 * x_thumbnail * y_thumbnail
-    {thumbnail, buffer} = Buffer.consume(buffer, thumbnail_bytes)
-    header = %JFIF{
-      type: "JFIF APP0",
-      version: version,
-      density_units: density_units,
-      x_density: Binary.to_integer(x_density),
-      y_density: Binary.to_integer(y_density),
-      x_thumbnail: x_thumbnail,
-      y_thumbnail: y_thumbnail,
-      thumbnail: thumbnail
-    }
-    headers(buffer, [header | headers])
+    {jfif, buffer} = JFIF.new(buffer)
+    headers(buffer, [jfif | headers])
   end
 
   defp headers(%Buffer{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
