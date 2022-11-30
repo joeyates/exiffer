@@ -10,6 +10,7 @@ defmodule Exiffer.JPEG do
   alias Exiffer.Header.COM
   alias Exiffer.Header.Data
   alias Exiffer.Header.JFIF
+  alias Exiffer.Header.SOF0
   alias Exiffer.Header.SOS
   require Logger
 
@@ -32,6 +33,12 @@ defmodule Exiffer.JPEG do
   end
 
   defp headers(buffer, headers)
+
+  defp headers(%Buffer{data: <<0xff, 0xc0, _rest::binary>>} = buffer, headers) do
+    {sof0, buffer} = SOF0.new(buffer)
+    headers = Enum.reverse([sof0 | headers])
+    {buffer, headers}
+  end
 
   defp headers(%Buffer{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
     {sos, buffer} = SOS.new(buffer)
