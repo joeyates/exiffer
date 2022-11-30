@@ -7,6 +7,7 @@ defmodule Exiffer.JPEG do
   alias Exiffer.Buffer
   alias Exiffer.Header.APP1
   alias Exiffer.Header.APP4
+  alias Exiffer.Header.COM
   alias Exiffer.Header.Data
   alias Exiffer.Header.JFIF
   alias Exiffer.Header.SOS
@@ -56,21 +57,10 @@ defmodule Exiffer.JPEG do
     headers(buffer, [app4 | headers])
   end
 
-  defp headers(%Buffer{data: <<0xff, 0xfe, length_bytes::binary-size(2), _rest::binary>>} = buffer, headers) do
+  defp headers(%Buffer{data: <<0xff, 0xfe, _rest::binary>>} = buffer, headers) do
     Logger.debug ~s(Header "COM" at #{Integer.to_string(buffer.position, 16)})
-    buffer = Buffer.skip(buffer, 4)
-    length = Binary.big_endian_to_integer(length_bytes)
-    # Remove 2 bytes for length and 1 for the final NULL
-    text_length = length - 2 - 1
-    {comment, buffer} = Buffer.consume(buffer, text_length)
-    buffer = if rem(length, 2) == 1 do
-      # Skip byte added for 2-byte alignment
-      Buffer.skip(buffer, 1)
-    else
-      buffer
-    end
-    header = %Data{type: "JPEG COM Comment", data: comment}
-    headers(buffer, [header | headers])
+    {comment, buffer} = COM.new(buffer)
+    headers(buffer, [comment | headers])
   end
 
   defp headers(%Buffer{} = buffer, headers) do
