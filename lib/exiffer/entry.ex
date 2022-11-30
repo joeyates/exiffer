@@ -158,7 +158,7 @@ defmodule Exiffer.Entry do
     if !entry_type do
       position = OffsetBuffer.tell(buffer) - 2
       offset = buffer.offset
-      raise "Unknown magic #{inspect(magic, [base: :hex])} found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+      raise "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
     end
     entry_table = @entry_info_map[override]
     info = entry_table[entry_type]
