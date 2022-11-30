@@ -106,10 +106,11 @@ defmodule Exiffer.Entry do
     flash: %{type: :flash, magic: <<0x92, 0x09>>, formats: [:int16u], name: "Flash", label: "Flash"},
     focal_length: %{type: :focal_length, magic: <<0x92, 0x0a>>, formats: [:rational_64u], name: "FocalLength", label: "Focal Length"},
     maker_notes: %{type: :maker_notes, magic: <<0x92, 0x7c>>, formats: [:raw_bytes], name: "MakerNotes", label: "Maker Notes"},
+    user_comment: %{type: :user_comment, magic: <<0x92, 0x86>>, formats: [:raw_bytes], name: "UserComment", label: "User Comment"},
     flashpix_version: %{type: :flashpix_version, magic: <<0xa0, 0x00>>, formats: [:raw_bytes], name: "FlashpixVersion", label: "Flashpix Version"},
     color_space: %{type: :color_space, magic: <<0xa0, 0x01>>, formats: [:int16u], name: "ColorSpace", label: "Color Space"},
-    exif_image_width: %{type: :exif_image_width, magic: <<0xa0, 0x02>>, formats: [:int32u], name: "ExifImageWidth", label: "Exif Image Width"},
-    exif_image_height: %{type: :exif_image_height, magic: <<0xa0, 0x03>>, formats: [:int32u], name: "ExifImageHeight", label: "Exif Image Height"},
+    exif_image_width: %{type: :exif_image_width, magic: <<0xa0, 0x02>>, formats: [:int16u, :int32u], name: "ExifImageWidth", label: "Exif Image Width"},
+    exif_image_height: %{type: :exif_image_height, magic: <<0xa0, 0x03>>, formats: [:int16u, :int32u], name: "ExifImageHeight", label: "Exif Image Height"},
     interop_offset: %{type: :interop_offset, magic: <<0xa0, 0x05>>, formats: [:int32u], name: "InteropOffset", label: "Interop Offset"},
     focal_plane_x_resolution: %{type: :focal_plane_x_resolution, magic: <<0xa2, 0x0e>>, formats: [:rational_64u], name: "FocalPlaneXResolution", label: "Focal Plane X Resolution"},
     focal_plane_y_resolution: %{type: :focal_plane_y_resolution, magic: <<0xa2, 0x0f>>, formats: [:rational_64u], name: "FocalPlaneYResolution", label: "Focal Plane Y Resolution"},
@@ -117,6 +118,7 @@ defmodule Exiffer.Entry do
     sensing_method: %{type: :sensing_method, magic: <<0xa2, 0x17>>, formats: [:int16u], name: "SensingMethod", label: "Sensing Method"},
     file_source: %{type: :file_source, magic: <<0xa3, 0x00>>, formats: [:raw_bytes], name: "FileSource", label: "File Source"},
     scene_type: %{type: :scene_type, magic: <<0xa3, 0x01>>, formats: [:raw_bytes], name: "SceneType", label: "Scene Type"},
+    custom_rendered: %{type: :custom_rendered, magic: <<0xa4, 0x01>>, formats: [:int16u], name: "CustomRendered", label: "Custom Rendered"},
     exposure_mode: %{type: :exposure_mode, magic: <<0xa4, 0x02>>, formats: [:int16u], name: "ExposureMode", label: "Exposure Mode"},
     exif_white_balance: %{type: :exif_white_balance, magic: <<0xa4, 0x03>>, formats: [:int16u], name: "EXIF WhiteBalance", label: "EXIF White Balance"},
     digital_zoom_ratio: %{type: :digital_zoom_ratio, magic: <<0xa4, 0x04>>, formats: [:rational_64u], name: "DigitalZoomRatio", label: "Digital Zoom Ratio"},
@@ -128,7 +130,9 @@ defmodule Exiffer.Entry do
   # Interop IFD entries reuse generic entry magic numbers, so we use a specific table for them
   @interop_entry_info %{
     interop_index: %{type: :interop_index, magic: <<0x00, 0x01>>, formats: [:string], name: "InteropIndex", label: "Interop Index"},
-    interop_version: %{type: :interop_version, magic: <<0x00, 0x02>>, formats: [:raw_bytes], name: "InteropVersion", label: "Interop Version"}
+    interop_version: %{type: :interop_version, magic: <<0x00, 0x02>>, formats: [:raw_bytes], name: "InteropVersion", label: "Interop Version"},
+    related_image_width: %{type: :related_image_width, magic: <<0x10, 0x01>>, formats: [:int16u], name: "RelatedImageWidth", label: "Related Image Width"},
+    related_image_height: %{type: :related_image_height, magic: <<0x10, 0x02>>, formats: [:int16u], name: "RelatedImageHeight", label: "Related Image Height"}
   }
 
   @entry_info_map %{
