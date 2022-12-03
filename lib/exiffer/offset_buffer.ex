@@ -16,7 +16,8 @@ defmodule Exiffer.OffsetBuffer do
   end
 
   def seek(%__MODULE__{buffer: buffer, offset: offset} = offset_buffer, position) do
-    buffer = Buffer.seek(buffer, offset + position)
+    new_position = offset + position
+    buffer = Buffer.seek(buffer, new_position)
     struct!(offset_buffer, buffer: buffer)
   end
 

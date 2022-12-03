@@ -29,12 +29,13 @@ defmodule Exiffer.Buffer do
   end
 
   def seek(%__MODULE__{io_device: io_device} = buffer, position) do
-    start = buffer.position
-    finish = start + buffer.remaining
-    {data, remaining} = if position >= start && position < finish do
-      count = position - start
+    finish = buffer.position + buffer.remaining
+    {data, remaining} = if position >= buffer.position && position < finish do
+      count = position - buffer.position
       <<_skip::binary-size(count), rest::binary>> = buffer.data
       remaining = buffer.remaining - count
+      correct_position = position + remaining
+      {:ok, _position} = :file.position(io_device, correct_position)
       {rest, remaining}
     else
       {:ok, _position} = :file.position(io_device, position)
@@ -49,8 +50,9 @@ defmodule Exiffer.Buffer do
     %__MODULE__{data: data, position: position, remaining: remaining} = buffer = ensure(buffer, count)
     available = if remaining >= count, do: count, else: remaining
     <<consumed::binary-size(available), rest::binary>> = data
+    new_position = position + count
     buffer =
-      struct!(buffer, data: rest, position: position + count, remaining: remaining - available)
+      struct!(buffer, data: rest, position: new_position, remaining: remaining - available)
       |> ensure(buffer.read_ahead)
 
     {consumed, buffer}
@@ -82,7 +84,8 @@ defmodule Exiffer.Buffer do
       chunk ->
         chunk
     end
-    {:ok, _position} = :file.position(io_device, position + remaining)
+    end_of_current_buffer = position + remaining
+    {:ok, _position} = :file.position(io_device, end_of_current_buffer)
     result
   end
 
@@ -119,9 +122,9 @@ defmodule Exiffer.Buffer do
         Logger.debug "Buffer.read EOF"
         buffer
       chunk ->
-        size = byte_size(chunk)
+        bytes_read = byte_size(chunk)
         data = <<data::binary, chunk::binary>>
-        struct!(buffer, data: data, remaining: remaining + size)
+        struct!(buffer, data: data, remaining: remaining + bytes_read)
     end
   end
 end
