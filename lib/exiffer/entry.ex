@@ -64,6 +64,7 @@ defmodule Exiffer.Entry do
     y_resolution: %{type: :y_resolution, magic: <<0x01, 0x1b>>, formats: [:rational_64u], name: "YResolution", label: "Y Resolution"},
     resolution_unit: %{type: :resolution_unit, magic: <<0x01, 0x28>>, formats: [:int16u], name: "ResolutionUnit", label: "Resolution Unit"},
     software: %{type: :software, magic: <<0x01, 0x31>>, formats: [:string], name: "Software", label: "Software"},
+    host_computer: %{type: :host_computer, magic: <<0x01, 0x3c>>, formats: [:string], name: "HostComputer", label: "Host Computer"},
     modification_date: %{type: :modification_date, magic: <<0x01, 0x32>>, formats: [:string], name: "ModificationDate", label: "Modification Date"},
     thumbnail_offset: %{type: :thumbnail_offset, magic: <<0x02, 0x01>>, formats: [:int32u], name: "ThumbnailOffset", label: "Thumbnail Offset"},
     thumbnail_length: %{type: :thumbnail_length, magic: <<0x02, 0x02>>, formats: [:int32u], name: "ThumbnailLength", label: "Thumbnail Length"},
