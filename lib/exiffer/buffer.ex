@@ -69,6 +69,8 @@ defmodule Exiffer.Buffer do
   Otherwise, position the buffer, read the bytes, then reposition the buffer
   to the previous position.
   """
+  def random(buffer, read_position, count)
+
   def random(%__MODULE__{data: data, position: position, remaining: remaining}, read_position, count) when read_position > position and (read_position + count) < (position + remaining) do
     start = read_position - position
     <<_before::binary-size(start), result::binary-size(count), _rest::binary>> = data
