@@ -12,6 +12,7 @@ defmodule Exiffer.Header.Data do
 
   @data_type %{
     <<0xff, 0xc0>> => %{key: :jpeg_sof0, name: "JPEG SOF0"},
+    <<0xff, 0xc2>> => %{key: :jpeg_sof2, name: "JPEG SOF2"},
     <<0xff, 0xc4>> => %{key: :jpeg_dht, name: "JPEG DHT"},
     <<0xff, 0xdd>> => %{key: :jpeg_dri, name: "JPEG DRI"}, # Define Restart Interval
     <<0xff, 0xdb>> => %{key: :jpeg_dqt, name: "JPEG DQT"},
