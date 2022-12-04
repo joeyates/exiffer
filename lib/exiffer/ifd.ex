@@ -54,10 +54,14 @@ defmodule Exiffer.IFD do
   end
 
   def puts(%__MODULE__{} = ifd) do
-    texts =
-      ifd.entries
-      |> Enum.flat_map(&(Entry.text(&1)))
+    ifd.entries
+    |> Enum.flat_map(&(Entry.text(&1)))
+    |> puts_texts()
+  end
 
+  defp puts_texts([]), do: :ok
+
+  defp puts_texts(texts) do
     longest_label =
       texts
       |> Enum.map(fn {key, _value} -> String.length(key) end)
