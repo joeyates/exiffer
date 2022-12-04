@@ -35,7 +35,7 @@ defmodule Exiffer.Entry do
     int16u: %{magic: @format_int16u, type: :int16u, name: "16-bit integer"},
     int32u: %{magic: @format_int32u, type: :int32u, name: "32-bit integer"},
     rational_64u: %{magic: @format_rational_64u, type: :rational_64u, name: "64-bit rational"},
-    raw_bytes: %{magic: @format_raw_bytes, type: :raw_bytes, name: "Inline String"},
+    raw_bytes: %{magic: @format_raw_bytes, type: :raw_bytes, name: "Raw bytes"},
     rational_64s: %{magic: @format_rational_64s, type: :rational_64s, name: "64-bit signed rational"}
   }
 
