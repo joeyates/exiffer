@@ -14,6 +14,7 @@ defmodule Exiffer.Entry do
 
   # Binaries are big endian
 
+  @format_int8u <<0x00, 0x01>>
   @format_string <<0x00, 0x02>>
   @format_int16u <<0x00, 0x03>>
   @format_int32u <<0x00, 0x04>>
@@ -22,6 +23,7 @@ defmodule Exiffer.Entry do
   @format_rational_64s <<0x00, 0x0a>>
 
   @format_type %{
+    @format_int8u => :int8u,
     @format_string => :string,
     @format_int16u => :int16u,
     @format_int32u => :int32u,
@@ -31,6 +33,7 @@ defmodule Exiffer.Entry do
   }
 
   @format %{
+    int8u: %{magic: @format_int8u, type: :int8u, name: "8-bit integer"},
     string: %{magic: @format_string, type: :string, name: "String"},
     int16u: %{magic: @format_int16u, type: :int16u, name: "16-bit integer"},
     int32u: %{magic: @format_int32u, type: :int32u, name: "32-bit integer"},
@@ -273,6 +276,13 @@ defmodule Exiffer.Entry do
     [{"Maker Notes", nil} | texts]
   end
 
+  def text(%__MODULE__{format: :int8u} = entry, opts) do
+    override = Keyword.get(opts, :override)
+    entry_table = @entry_info_map[override]
+    info = entry_table[entry.type]
+    [{info.label, entry.value}]
+  end
+
   def text(%__MODULE__{format: :string} = entry, opts) do
     override = Keyword.get(opts, :override)
     entry_table = @entry_info_map[override]
@@ -443,6 +453,11 @@ defmodule Exiffer.Entry do
       offset = Binary.to_integer(value_binary)
       OffsetBuffer.random(buffer, offset, length)
     end
+  end
+
+  defp value(_type, :int8u, %OffsetBuffer{} = buffer) do
+    <<_length_binary::binary-size(4), value_binary::binary-size(2), _rest::binary>> = buffer.buffer.data
+    Binary.to_integer(value_binary)
   end
 
   defp value(_type, :int16u, %OffsetBuffer{} = buffer) do
