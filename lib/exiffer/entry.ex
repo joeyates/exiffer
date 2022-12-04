@@ -261,7 +261,7 @@ defmodule Exiffer.Entry do
     []
   end
 
-  def text(%__MODULE__{type: :maker_notes} = entry, _opts) do
+  def text(%__MODULE__{type: :maker_notes, value: %MakerNotes{}} = entry, _opts) do
     texts =
       entry.value.ifd.entries
       |> Enum.flat_map(&(text(&1)))
@@ -307,7 +307,7 @@ defmodule Exiffer.Entry do
     [{info.label, Float.to_string(value)}]
   end
 
-  defp data(%__MODULE__{type: :maker_notes, value: value}, end_of_block) do
+  defp data(%__MODULE__{type: :maker_notes, value: %MakerNotes{} = value}, end_of_block) do
     file_byte_order = Binary.byte_order()
     Binary.set_byte_order(:little)
     ifd_end = byte_size(value.header)
@@ -405,21 +405,27 @@ defmodule Exiffer.Entry do
 
   defp value(:maker_notes, :raw_bytes, %OffsetBuffer{} = buffer) do
     position = OffsetBuffer.tell(buffer)
-    <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
-    ifd_offset = Binary.to_integer(offset_binary)
-    # Maker notes have their own offset into the file
-    notes_offset = buffer.offset + ifd_offset
-    notes_buffer =
-      OffsetBuffer.new(buffer.buffer, notes_offset)
-      |> OffsetBuffer.seek(0)
-    {header, notes_buffer} = OffsetBuffer.consume(notes_buffer, 12)
-    # Temporarily set process-local byte order
-    file_byte_order = Binary.byte_order()
-    Binary.set_byte_order(:little)
-    {ifd, buffer} = IFD.read(notes_buffer)
-    Binary.set_byte_order(file_byte_order)
-    _buffer = OffsetBuffer.seek(buffer, position)
-    %MakerNotes{header: header, ifd: ifd}
+    <<length_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
+    offset = Binary.to_integer(offset_binary)
+    # See if the maker notes are a parsable IFD
+    try do
+      # Maker notes have their own offset into the file
+      notes_offset = buffer.offset + offset
+      notes_buffer =
+        OffsetBuffer.new(buffer.buffer, notes_offset)
+        |> OffsetBuffer.seek(0)
+      {header, notes_buffer} = OffsetBuffer.consume(notes_buffer, 12)
+      # Temporarily set process-local byte order
+      file_byte_order = Binary.byte_order()
+      Binary.set_byte_order(:little)
+      {ifd, buffer} = IFD.read(notes_buffer)
+      Binary.set_byte_order(file_byte_order)
+      _buffer = OffsetBuffer.seek(buffer, position)
+      %MakerNotes{header: header, ifd: ifd}
+    rescue _e ->
+      length = Binary.to_integer(length_binary)
+      OffsetBuffer.random(buffer, offset, length)
+    end
   end
 
   defp value(_type, format, %OffsetBuffer{} = buffer) when format in [:string, :raw_bytes] do
