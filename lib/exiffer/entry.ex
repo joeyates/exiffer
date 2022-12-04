@@ -138,6 +138,8 @@ defmodule Exiffer.Entry do
     focal_length_in_35mm_format: %{type: :focal_length_in_35mm_format, magic: <<0xa4, 0x05>>, formats: [:int16u], label: "Focal Length In 35mm Format"},
     scene_capture_type: %{type: :scene_capture_type, magic: <<0xa4, 0x06>>, formats: [:int16u], label: "Scene Capture Type"},
     gain_control: %{type: :gain_control, magic: <<0xa4, 0x07>>, formats: [:int16u], label: "Gain Control"},
+    contrast: %{type: :contrast, magic: <<0xa4, 0x08>>, formats: [:int16u], label: "Contrast"},
+    saturation: %{type: :saturation, magic: <<0xa4, 0x09>>, formats: [:int16u], label: "Saturation"},
     sharpness_2: %{type: :sharpness_2, magic: <<0xa4, 0x0a>>, formats: [:int16u], label: "EXIF Sharpness"},
     subject_distance_range: %{type: :subject_distance_range, magic: <<0xa4, 0x0c>>, formats: [:int16u], label: "Subject Distance Range"},
     image_unique_id: %{type: :image_unique_id, magic: <<0xa4, 0x20>>, formats: [:string], label: "Image Unique Id"}
