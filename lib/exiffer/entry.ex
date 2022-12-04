@@ -112,7 +112,7 @@ defmodule Exiffer.Entry do
     flash: %{type: :flash, magic: <<0x92, 0x09>>, formats: [:int16u], label: "Flash"},
     focal_length: %{type: :focal_length, magic: <<0x92, 0x0a>>, formats: [:rational_64u], label: "Focal Length"},
     maker_notes: %{type: :maker_notes, magic: <<0x92, 0x7c>>, formats: [:raw_bytes], label: "Maker Notes"},
-    user_comment: %{type: :user_comment, magic: <<0x92, 0x86>>, formats: [:raw_bytes], label: "User Comment"},
+    user_comment: %{type: :user_comment, magic: <<0x92, 0x86>>, formats: [:string, :raw_bytes], label: "User Comment"},
     sub_sec_time: %{type: :sub_sec_time, magic: <<0x92, 0x90>>, formats: [:string], label: "Sub Sec Time"},
     tag_0x9999: %{type: :tag_0x9999, magic: <<0x99, 0x99>>, formats: [:string], label: "Tag0x9999"},
     flashpix_version: %{type: :flashpix_version, magic: <<0xa0, 0x00>>, formats: [:raw_bytes], label: "Flashpix Version"},
