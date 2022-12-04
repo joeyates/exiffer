@@ -67,7 +67,11 @@ defmodule Exiffer.IFD do
     |> Enum.each(fn {label, value} ->
       if value do
         IO.write String.pad_trailing("#{label}:", longest_label + 2)
-        IO.puts value
+        try do
+          IO.puts value
+        rescue _e ->
+          IO.puts "???"
+        end
       else
         # If there's no label, it's a subtitle
         IO.puts label
