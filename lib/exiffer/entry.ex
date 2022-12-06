@@ -20,6 +20,7 @@ defmodule Exiffer.Entry do
   @format_int32u <<0x00, 0x04>>
   @format_rational_64u <<0x00, 0x05>>
   @format_raw_bytes <<0x00, 0x07>>
+  @format_int32s <<0x00, 0x09>>
   @format_rational_64s <<0x00, 0x0a>>
 
   @format_type %{
@@ -29,6 +30,7 @@ defmodule Exiffer.Entry do
     @format_int32u => :int32u,
     @format_rational_64u => :rational_64u,
     @format_raw_bytes => :raw_bytes,
+    @format_int32s => :int32s,
     @format_rational_64s => :rational_64s
   }
 
@@ -39,6 +41,7 @@ defmodule Exiffer.Entry do
     int32u: %{magic: @format_int32u, type: :int32u, name: "32-bit integer"},
     rational_64u: %{magic: @format_rational_64u, type: :rational_64u, name: "64-bit rational"},
     raw_bytes: %{magic: @format_raw_bytes, type: :raw_bytes, name: "Raw bytes"},
+    int32s: %{magic: @format_int32s, type: :int32s, name: "32-bit signed integer"},
     rational_64s: %{magic: @format_rational_64s, type: :rational_64s, name: "64-bit signed rational"}
   }
 
@@ -292,7 +295,7 @@ defmodule Exiffer.Entry do
     [{info.label, entry.value}]
   end
 
-  def text(%__MODULE__{format: format} = entry, opts) when format in [:int16u, :int32u] do
+  def text(%__MODULE__{format: format} = entry, opts) when format in [:int16u, :int32u, :int32s] do
     override = Keyword.get(opts, :override)
     entry_table = @entry_info_map[override]
     info = entry_table[entry.type]
@@ -484,6 +487,12 @@ defmodule Exiffer.Entry do
     value_offset = Binary.to_integer(offset_binary)
     OffsetBuffer.random(buffer, value_offset, rational_count * 8)
     |> Binary.to_rational()
+  end
+
+  defp value(_type, :int32s, %OffsetBuffer{} = buffer) do
+    <<_length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
+    # TODO: handle negative values
+    Binary.to_integer(value_binary)
   end
 
   defp value(_type, :rational_64s, %OffsetBuffer{} = buffer) do
