@@ -190,7 +190,7 @@ defmodule Exiffer.Entry do
       position = OffsetBuffer.tell(buffer) - 4
       offset = buffer.offset
       expected = Enum.map(info.formats, &(@format[&1].name)) |> Enum.join(" or ")
-      raise "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+      Logger.warn "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
     end
     value = value(entry_type, format_type, buffer)
     buffer = OffsetBuffer.skip(buffer, 8)
