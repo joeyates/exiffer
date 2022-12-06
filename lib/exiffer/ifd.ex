@@ -29,15 +29,13 @@ defmodule Exiffer.IFD do
   """
   def binary(%__MODULE__{entries: entries}, offset, opts \\ []) do
     is_last = Keyword.get(opts, :is_last, true)
-    override = Keyword.get(opts, :override)
-    entry_opts = if override, do: [override: override]
     count = length(entries)
     next_ifd_pointer_offset = offset + 2 + count * 12
     {end_of_block, headers, extras} = Enum.reduce(
       entries,
       {next_ifd_pointer_offset + 4, [], []},
       fn entry, {end_of_block, headers, extras} ->
-        {header, extra} = Entry.binary(entry, end_of_block, entry_opts)
+        {header, extra} = Entry.binary(entry, end_of_block)
         {
           end_of_block + byte_size(extra),
           [header | headers],

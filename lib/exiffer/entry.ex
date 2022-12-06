@@ -9,8 +9,8 @@ defmodule Exiffer.Entry do
   alias Exiffer.OffsetBuffer
   require Logger
 
-  @enforce_keys ~w(type format value)a
-  defstruct ~w(type format value)a
+  @enforce_keys ~w(type format magic label value)a
+  defstruct ~w(type format label magic value)a
 
   # Binaries are big endian
 
@@ -89,7 +89,6 @@ defmodule Exiffer.Entry do
     slow_sync: %{type: :slow_sync, magic: <<0x10, 0x30>>, formats: [:int16u], label: "Slow Sync"},
     picture_mode: %{type: :picture_mode, magic: <<0x10, 0x31>>, formats: [:int16u], label: "Picture Mode"},
     auto_bracketing: %{type: :auto_bracketing, magic: <<0x11, 0x00>>, formats: [:int16u], label: "Auto Bracketing"},
-    tag_0x1200: %{type: :tag_0x1200, magic: <<0x12, 0x00>>, formats: [:int16u], label: "Tag0x1200"},
     blur_warning: %{type: :blur_warning, magic: <<0x13, 0x00>>, formats: [:int16u], label: "Blur Warning"},
     focus_warning: %{type: :focus_warning, magic: <<0x13, 0x01>>, formats: [:int16u], label: "Focus Warning"},
     exposure_warning: %{type: :exposure_warning, magic: <<0x13, 0x02>>, formats: [:int16u], label: "Exposure Warning"},
@@ -100,7 +99,6 @@ defmodule Exiffer.Entry do
     f_number: %{type: :f_number, magic: <<0x82, 0x9d>>, formats: [:rational_64u], label: "F Number"},
     exposure_program: %{type: :exposure_program, magic: <<0x88, 0x22>>, formats: [:int16u], label: "Exposure Program"},
     iso: %{type: :iso, magic: <<0x88, 0x27>>, formats: [:int16u], label: "Iso"},
-    tag_0x8895: %{type: :tag_0x8895, magic: <<0x88, 0x95>>, formats: [:int16u], label: "Tag 0x8895"},
     exif_version: %{type: :exif_version, magic: <<0x90, 0x00>>, formats: [:string, :raw_bytes], label: "Exif Version"},
     date_time_original: %{type: :date_time_original, magic: <<0x90, 0x03>>, formats: [:string], label: "Date Time Original"},
     create_date: %{type: :create_date, magic: <<0x90, 0x04>>, formats: [:string], label: "Create Date"},
@@ -120,7 +118,6 @@ defmodule Exiffer.Entry do
     maker_notes: %{type: :maker_notes, magic: <<0x92, 0x7c>>, formats: [:int8u, :raw_bytes], label: "Maker Notes"},
     user_comment: %{type: :user_comment, magic: <<0x92, 0x86>>, formats: [:string, :raw_bytes], label: "User Comment"},
     sub_sec_time: %{type: :sub_sec_time, magic: <<0x92, 0x90>>, formats: [:string], label: "Sub Sec Time"},
-    tag_0x9999: %{type: :tag_0x9999, magic: <<0x99, 0x99>>, formats: [:string], label: "Tag0x9999"},
     flashpix_version: %{type: :flashpix_version, magic: <<0xa0, 0x00>>, formats: [:raw_bytes], label: "Flashpix Version"},
     color_space: %{type: :color_space, magic: <<0xa0, 0x01>>, formats: [:int16u], label: "Color Space"},
     exif_image_width: %{type: :exif_image_width, magic: <<0xa0, 0x02>>, formats: [:int16u, :int32u], label: "Exif Image Width"},
@@ -175,26 +172,32 @@ defmodule Exiffer.Entry do
     entry_type_map = @entry_type_map[override]
     {magic, buffer} = OffsetBuffer.consume(buffer, 2)
     big_endian_magic = Binary.big_endian(magic)
-    entry_type = entry_type_map[big_endian_magic]
-    if !entry_type do
-      position = OffsetBuffer.tell(buffer) - 2
-      offset = buffer.offset
-      raise "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
-    end
     entry_table = @entry_info_map[override]
-    info = entry_table[entry_type]
     {format_magic, buffer} = OffsetBuffer.consume(buffer, 2)
     big_endian_format_magic = Binary.big_endian(format_magic)
     format_type = @format_type[big_endian_format_magic]
-    if format_type not in info.formats do
-      position = OffsetBuffer.tell(buffer) - 4
-      offset = buffer.offset
-      expected = Enum.map(info.formats, &(@format[&1].name)) |> Enum.join(" or ")
-      Logger.warn "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
-    end
-    value = value(entry_type, format_type, buffer)
+    entry =
+      case entry_type_map[big_endian_magic] do
+        nil ->
+          position = OffsetBuffer.tell(buffer) - 4
+          offset = buffer.offset
+          Logger.warn "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+          value = value(:unknown, format_type, buffer)
+          label = "Unknown entry tag 0x#{Integer.to_string(:binary.first(big_endian_magic), 16)} 0x#{Integer.to_string(:binary.last(big_endian_magic), 16)}"
+          %__MODULE__{type: :unknown, format: format_type, value: value, label: label, magic: big_endian_magic}
+        entry_type ->
+          info = entry_table[entry_type]
+          if format_type not in info.formats do
+            position = OffsetBuffer.tell(buffer) - 4
+            offset = buffer.offset
+            expected = Enum.map(info.formats, &(@format[&1].name)) |> Enum.join(" or ")
+            Logger.warn "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+          end
+          value = value(info.type, format_type, buffer)
+          %__MODULE__{type: info.type, format: format_type, value: value, label: info.label, magic: big_endian_magic}
+      end
     buffer = OffsetBuffer.skip(buffer, 8)
-    {%__MODULE__{type: entry_type, format: format_type, value: value}, buffer}
+    {entry, buffer}
   end
 
   def format_name(%__MODULE__{format: format}) do
@@ -205,12 +208,10 @@ defmodule Exiffer.Entry do
   Returns a two-ple {ifd_entry, ifd_extra_data},
   where ifd_extra_data is `<<>>` if there is none to be added.
   """
-  def binary(entry, end_of_block, opts \\ [])
+  def binary(entry, end_of_block)
 
-  def binary(%__MODULE__{type: type} = entry, end_of_block, _opts) when type in [:exif_offset, :gps_info, :interop_offset] do
-    entry_table = @entry_info_map[nil]
-    info = entry_table[entry.type]
-    magic_binary = Binary.big_endian_to_current(info.magic)
+  def binary(%__MODULE__{type: type} = entry, end_of_block) when type in [:exif_offset, :gps_info, :interop_offset] do
+    magic_binary = Binary.big_endian_to_current(entry.magic)
     format_binary =
       @format[entry.format].magic
       |> Binary.big_endian_to_current()
@@ -222,12 +223,8 @@ defmodule Exiffer.Entry do
     {header, extra}
   end
 
-  def binary(%__MODULE__{} = entry, end_of_block, opts) do
-    opts = opts || []
-    override = Keyword.get(opts, :override)
-    entry_table = @entry_info_map[override]
-    info = entry_table[entry.type]
-    magic_binary = Binary.big_endian_to_current(info.magic)
+  def binary(%__MODULE__{} = entry, end_of_block) do
+    magic_binary = Binary.big_endian_to_current(entry.magic)
     format_binary =
       @format[entry.format].magic
       |> Binary.big_endian_to_current()
@@ -240,9 +237,9 @@ defmodule Exiffer.Entry do
   @doc """
   Returns a two-ple {label, text} suitable for a text representation of the Entry
   """
-  def text(entry, opts \\ [])
+  def text(entry)
 
-  def text(%__MODULE__{type: :gps_info} = entry, _opts) do
+  def text(%__MODULE__{type: :gps_info} = entry) do
     texts =
       entry.value.entries
       |> Enum.flat_map(&(text(&1)))
@@ -250,16 +247,15 @@ defmodule Exiffer.Entry do
     [{"Interop", nil} | texts]
   end
 
-  def text(%__MODULE__{type: :interop_offset} = entry, _opts) do
-    opts = [override: :interop]
+  def text(%__MODULE__{type: :interop_offset} = entry) do
     texts =
       entry.value.entries
-      |> Enum.flat_map(&(text(&1, opts)))
+      |> Enum.flat_map(&(text(&1)))
 
     [{"Interop", nil} | texts]
   end
 
-  def text(%__MODULE__{type: :exif_offset} = entry, _opts) do
+  def text(%__MODULE__{type: :exif_offset} = entry) do
     texts =
       entry.value.entries
       |> Enum.map(&(text(&1)))
@@ -269,11 +265,11 @@ defmodule Exiffer.Entry do
     [{"EXIF", nil} | texts]
   end
 
-  def text(%__MODULE__{type: :thumbnail_offset} = _entry, _opts) do
+  def text(%__MODULE__{type: :thumbnail_offset} = _entry) do
     []
   end
 
-  def text(%__MODULE__{type: :maker_notes, value: %MakerNotes{}} = entry, _opts) do
+  def text(%__MODULE__{type: :maker_notes, value: %MakerNotes{}} = entry) do
     texts =
       entry.value.ifd.entries
       |> Enum.flat_map(&(text(&1)))
@@ -281,49 +277,31 @@ defmodule Exiffer.Entry do
     [{"Maker Notes", nil} | texts]
   end
 
-  def text(%__MODULE__{format: :int8u} = entry, opts) do
-    override = Keyword.get(opts, :override)
-    entry_table = @entry_info_map[override]
-    info = entry_table[entry.type]
-    [{info.label, entry.value}]
+  def text(%__MODULE__{format: :int8u} = entry) do
+    [{entry.label, entry.value}]
   end
 
-  def text(%__MODULE__{format: :string} = entry, opts) do
-    override = Keyword.get(opts, :override)
-    entry_table = @entry_info_map[override]
-    info = entry_table[entry.type]
-    [{info.label, entry.value}]
+  def text(%__MODULE__{format: :string} = entry) do
+    [{entry.label, entry.value}]
   end
 
-  def text(%__MODULE__{format: format} = entry, opts) when format in [:int16u, :int32u, :int32s] do
-    override = Keyword.get(opts, :override)
-    entry_table = @entry_info_map[override]
-    info = entry_table[entry.type]
-    [{info.label, Integer.to_string(entry.value)}]
+  def text(%__MODULE__{format: format} = entry) when format in [:int16u, :int32u, :int32s] do
+    [{entry.label, Integer.to_string(entry.value)}]
   end
 
-  def text(%__MODULE__{format: :rational_64u} = entry, opts) do
-    override = Keyword.get(opts, :override)
-    entry_table = @entry_info_map[override]
-    info = entry_table[entry.type]
-    [{info.label, rational64u_to_string(entry.value)}]
+  def text(%__MODULE__{format: :rational_64u} = entry) do
+    [{entry.label, rational64u_to_string(entry.value)}]
   end
 
-  def text(%__MODULE__{format: :raw_bytes} = entry, opts) do
-    override = Keyword.get(opts, :override)
-    entry_table = @entry_info_map[override]
-    info = entry_table[entry.type]
-    [{info.label, entry.value}] # TODO
+  def text(%__MODULE__{format: :raw_bytes} = entry) do
+    [{entry.label, entry.value}] # TODO
   end
 
   # TODO: handle negatives
-  def text(%__MODULE__{format: :rational_64s} = entry, opts) do
-    override = Keyword.get(opts, :override)
-    entry_table = @entry_info_map[override]
-    info = entry_table[entry.type]
+  def text(%__MODULE__{format: :rational_64s} = entry) do
     {numerator, denominator} = entry.value
     value = numerator / denominator
-    [{info.label, Float.to_string(value)}]
+    [{entry.label, Float.to_string(value)}]
   end
 
   defp data(%__MODULE__{type: :maker_notes, value: %MakerNotes{} = value}, end_of_block) do
