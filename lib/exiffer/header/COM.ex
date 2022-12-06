@@ -21,12 +21,6 @@ defmodule Exiffer.Header.COM do
     else
       comment
     end
-    buffer = if rem(length, 2) == 1 do
-      # Skip byte added for 2-byte alignment
-      Buffer.skip(buffer, 1)
-    else
-      buffer
-    end
     com = %__MODULE__{comment: comment}
     {com, buffer}
   end
