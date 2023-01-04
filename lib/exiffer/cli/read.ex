@@ -8,9 +8,10 @@ defmodule Exiffer.CLI.Read do
   @doc """
   Dump image file metadata.
   """
-  def run(filename) do
+  def run(filename, opts \\ []) do
+    logger_level = Keyword.get(opts, :log_level, :error)
     level = Logger.level()
-    Logger.configure(level: :error)
+    Logger.configure(level: logger_level)
     metadata = Exiffer.parse(filename)
 
     :ok = Exiffer.Serialize.puts(metadata)
