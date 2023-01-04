@@ -459,7 +459,12 @@ defmodule Exiffer.Entry do
         value
       true ->
         offset = Binary.to_integer(value_binary)
-        OffsetBuffer.random(buffer, offset, length)
+        string = OffsetBuffer.random(buffer, offset, length)
+        if :binary.last(string) == 0 do
+          :binary.part(string, {0, length - 1})
+        else
+          string
+        end
     end
   end
 
