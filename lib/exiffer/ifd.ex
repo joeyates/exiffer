@@ -92,10 +92,14 @@ defmodule Exiffer.IFD do
     position = OffsetBuffer.tell(buffer)
     offset = buffer.offset
     {entry, buffer} = Entry.new(buffer, opts)
-    format = Entry.format_name(entry)
-    Logger.debug "Entry #{count}, '#{entry.type}' (#{format}) at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+    if entry do
+      format = Entry.format_name(entry)
+      Logger.debug "Entry #{count}, '#{entry.type}' (#{format}) at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
 
-    read_entry(buffer, count - 1, [entry | entries], opts)
+      read_entry(buffer, count - 1, [entry | entries], opts)
+    else
+      read_entry(buffer, 0, entries, opts)
+    end
   end
 
   defp load_thumbnail(%OffsetBuffer{} = buffer, entries) do
