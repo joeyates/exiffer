@@ -178,29 +178,45 @@ defmodule Exiffer.Entry do
     entry_table = @entry_info_map[override]
     {format_magic, buffer} = OffsetBuffer.consume(buffer, 2)
     big_endian_format_magic = Binary.big_endian(format_magic)
-    format_type = @format_type[big_endian_format_magic]
-    entry =
-      case entry_type_map[big_endian_magic] do
-        nil ->
-          position = OffsetBuffer.tell(buffer) - 4
-          offset = buffer.offset
-          Logger.warn "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
-          value = value(:unknown, format_type, buffer)
-          label = "Unknown entry tag 0x#{Integer.to_string(:binary.first(big_endian_magic), 16)} 0x#{Integer.to_string(:binary.last(big_endian_magic), 16)}"
-          %__MODULE__{type: :unknown, format: format_type, value: value, label: label, magic: big_endian_magic}
-        entry_type ->
-          info = entry_table[entry_type]
-          if format_type not in info.formats do
+    with {:ok, format_type} <- format_type(big_endian_format_magic),
+         entry_type <- entry_type_map[big_endian_magic] do
+      entry =
+        case entry_type do
+          nil ->
             position = OffsetBuffer.tell(buffer) - 4
             offset = buffer.offset
-            expected = Enum.map(info.formats, &(@format[&1].name)) |> Enum.join(" or ")
-            Logger.warn "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
-          end
-          value = value(info.type, format_type, buffer)
-          %__MODULE__{type: info.type, format: format_type, value: value, label: info.label, magic: big_endian_magic}
-      end
-    buffer = OffsetBuffer.skip(buffer, 8)
-    {entry, buffer}
+            Logger.warn "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+            value = value(:unknown, format_type, buffer)
+            label = "Unknown entry tag 0x#{Integer.to_string(:binary.first(big_endian_magic), 16)} 0x#{Integer.to_string(:binary.last(big_endian_magic), 16)}"
+            %__MODULE__{type: :unknown, format: format_type, value: value, label: label, magic: big_endian_magic}
+          entry_type ->
+            info = entry_table[entry_type]
+            if format_type not in info.formats do
+              position = OffsetBuffer.tell(buffer) - 4
+              offset = buffer.offset
+              expected = Enum.map(info.formats, &(@format[&1].name)) |> Enum.join(" or ")
+              Logger.warn "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+            end
+            value = value(info.type, format_type, buffer)
+            %__MODULE__{type: info.type, format: format_type, value: value, label: info.label, magic: big_endian_magic}
+        end
+      buffer = OffsetBuffer.skip(buffer, 8)
+      {entry, buffer}
+    else
+      {:error, :unknown_format_magic} ->
+        message = "Unknown format magic #{inspect(big_endian_format_magic, [base: :hex])}"
+        Logger.error message
+        {nil, buffer}
+    end
+  end
+
+  defp format_type(big_endian_format_magic) do
+    case @format_type[big_endian_format_magic] do
+      nil ->
+        {:error, :unknown_format_magic}
+      format_type ->
+        {:ok, format_type}
+    end
   end
 
   def format_name(%__MODULE__{format: format}) do
