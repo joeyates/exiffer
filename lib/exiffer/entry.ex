@@ -402,7 +402,7 @@ defmodule Exiffer.Entry do
   defp read_ifd(%OffsetBuffer{} = buffer, offset, opts \\ []) do
     position = OffsetBuffer.tell(buffer)
     buffer = OffsetBuffer.seek(buffer, offset)
-    {ifd, buffer} = IFD.read(buffer, opts)
+    {:ok, ifd, buffer} = IFD.read(buffer, opts)
     _buffer = OffsetBuffer.seek(buffer, position)
     ifd
   end
@@ -434,7 +434,7 @@ defmodule Exiffer.Entry do
       {header, notes_buffer} = OffsetBuffer.consume(notes_buffer, 12)
       # Temporarily set process-local byte order
       Binary.set_byte_order(:little)
-      {ifd, buffer} = IFD.read(notes_buffer)
+      {:ok, ifd, buffer} = IFD.read(notes_buffer)
       _buffer = OffsetBuffer.seek(buffer, position)
       %MakerNotes{header: header, ifd: ifd}
     rescue _e ->

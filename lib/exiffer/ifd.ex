@@ -17,7 +17,12 @@ defmodule Exiffer.IFD do
     Logger.debug "IFD reading #{entry_count} entries"
     {entries, buffer} = read_entry(buffer, entry_count, [], opts)
     ifd = %__MODULE__{entries: Enum.reverse(entries)}
-    {ifd, buffer}
+    read_entries = length(entries)
+    if read_entries == entry_count do
+      {:ok, ifd, buffer}
+    else
+      {:error, ifd, buffer}
+    end
   end
 
   @doc """
