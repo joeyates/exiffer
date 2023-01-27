@@ -22,7 +22,9 @@ defmodule Exiffer.MixProject do
     application = [
       extra_applications: [:logger]
     ]
-    if Mix.env() == :prod do
+
+    exiffer_build_cli = System.get_env("EXIFFER_BUILD_CLI")
+    if exiffer_build_cli do
       [{:mod, {Exiffer.CLI, []}} | application]
     else
       application

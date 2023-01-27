@@ -3,4 +3,4 @@
 set -euxo pipefail
 
 podman build --file docker/bakeware-linux-build.Dockerfile --tag exiffer:latest .
-podman run -v `pwd`:/app/_build/prod/rel/bakeware -e MIX_ENV=prod -ti exiffer:latest mix release
+podman run -v `pwd`:/app/_build/prod/rel/bakeware -e MIX_ENV=prod -e EXIFFER_BUILD_CLI=1 -ti exiffer:latest mix release
