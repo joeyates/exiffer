@@ -2,6 +2,12 @@
 
 Conveniences for image manipulation.
 
+# Status
+
+This is alpha phase software, use at your peril!
+
+Currently, only handles JPEGs.
+
 # Build
 
 Create a (reasonable) portable Linux build:
