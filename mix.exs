@@ -8,6 +8,8 @@ defmodule Exiffer.MixProject do
       app: @app,
       version: "0.1.0",
       elixir: "~> 1.14",
+      description: "Read and update image metadata",
+      package: package(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       consolidate_protocols: Mix.env() != :test,
@@ -42,5 +44,15 @@ defmodule Exiffer.MixProject do
       steps: [:assemble, &Bakeware.assemble/1],
       strip_beams: Mix.env() == :prod
     ]
+  end
+
+  defp package do
+    %{
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/joeyates/exiffer"
+      },
+      maintainers: ["Joe Yates"]
+    }
   end
 end
