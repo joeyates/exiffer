@@ -15,7 +15,11 @@ defmodule Exiffer.CLI.Rewrite do
   @doc """
   Rewrite an image's metadata.
   """
-  def run(source, destination, gps) do
+  def run(source, destination, gps, opts \\ []) do
+    logger_level = Keyword.get(opts, :log_level, :error)
+    level = Logger.level()
+    Logger.configure(level: logger_level)
+
     input = Buffer.new(source)
     output = Buffer.new(destination, direction: :write)
 
@@ -32,6 +36,8 @@ defmodule Exiffer.CLI.Rewrite do
 
     :ok = Buffer.close(input)
     :ok = Buffer.close(output)
+
+    Logger.configure(level: level)
 
     {:ok}
   end
