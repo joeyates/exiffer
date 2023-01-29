@@ -15,7 +15,7 @@ defmodule Exiffer.CLI.Rewrite do
   @doc """
   Rewrite an image's metadata.
   """
-  def run([source, destination, gps]) do
+  def run(source, destination, gps) do
     input = Buffer.new(source)
     output = Buffer.new(destination, direction: :write)
 
