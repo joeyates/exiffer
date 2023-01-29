@@ -50,44 +50,17 @@ defmodule Exiffer.CLI.Rewrite do
     longitude = longitude |> float_to_dms() |> dms_to_rational()
     altitude = floor(altitude)
 
-    %Exiffer.Entry{
-      type: :gps_info,
-      format: :int32u,
-      value: %Exiffer.IFD{
-        entries: [
-          %Exiffer.Entry{
-            type: :gps_latitude_ref,
-            format: :string,
-            value: latitude_ref
-          },
-          %Exiffer.Entry{
-            type: :gps_latitude,
-            format: :rational_64u,
-            value: latitude
-          },
-          %Exiffer.Entry{
-            type: :gps_longitude_ref,
-            format: :string,
-            value: longitude_ref
-          },
-          %Exiffer.Entry{
-            type: :gps_longitude,
-            format: :rational_64u,
-            value: longitude
-          },
-          %Exiffer.Entry{
-            type: :gps_altitude_ref,
-            format: :int16u,
-            value: 0
-          },
-          %Exiffer.Entry{
-            type: :gps_altitude,
-            format: :rational_64u,
-            value: {altitude, 1}
-          }
-        ]
-      }
+    value = %Exiffer.IFD{
+      entries: [
+        Exiffer.Entry.new_by_type(:gps_latitude_ref, latitude_ref),
+        Exiffer.Entry.new_by_type(:gps_latitude, latitude),
+        Exiffer.Entry.new_by_type(:gps_longitude_ref, longitude_ref),
+        Exiffer.Entry.new_by_type(:gps_longitude, longitude),
+        Exiffer.Entry.new_by_type(:gps_altitude_ref, 0),
+        Exiffer.Entry.new_by_type(:gps_altitude, {altitude, 1})
+      ]
     }
+    Exiffer.Entry.new_by_type(:gps_info, value)
   end
 
   defp parse_gps(gps) do
