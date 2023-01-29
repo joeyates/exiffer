@@ -91,12 +91,18 @@ defmodule Exiffer.Buffer do
     result
   end
 
+  @copy_chunk_size 1_000_000
+
   def copy(%__MODULE__{} = input, %__MODULE__{} = output) do
-    case consume(input, 1_000_000) do
-      {<<chunk::binary-size(1_000_000)>>, input} ->
+    case consume(input, @copy_chunk_size) do
+      {<<chunk::binary-size(@copy_chunk_size)>>, input} ->
+        length = byte_size(chunk)
+        Logger.debug "#{__MODULE__}.copy/2 - chunk, #{length} bytes"
         :ok = write(output, chunk)
         copy(input, output)
       {chunk, _input} ->
+        length = byte_size(chunk)
+        Logger.debug "#{__MODULE__}.copy/2 - final chunk, #{length} bytes"
         :ok = write(output, chunk)
         nil
     end
