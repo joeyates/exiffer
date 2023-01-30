@@ -46,6 +46,7 @@ defmodule Exiffer.Header.APP1.EXIF do
   end
 
   def write(%__MODULE__{} = exif, io_device) do
+    Binary.set_byte_order(exif.byte_order)
     tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
     ifd_block = IFDBlock.binary(exif.ifd_block)
     byte_order = if exif.byte_order == :big, do: "MM", else: "II"
