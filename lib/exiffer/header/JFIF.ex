@@ -56,12 +56,34 @@ defmodule Exiffer.Header.JFIF do
     "#{hi}.#{lo}"
   end
 
+  def binary(%__MODULE__{} = jfif) do
+    x_resolution = Binary.int16u_to_current(jfif.x_resolution)
+    y_resolution = Binary.int16u_to_current(jfif.y_resolution)
+    bytes = <<
+      "JFIF"::binary, 0x00,
+      jfif.version::binary,
+      jfif.resolution_units::binary, x_resolution::binary, y_resolution::binary,
+      jfif.thumbnail_width, jfif.thumbnail_height,
+      jfif.thumbnail::binary
+    >>
+    length = byte_size(bytes)
+    length_binary = Binary.int16u_to_big_endian(2 + length)
+    <<0xff, 0xe0, length_binary::binary, bytes::binary>>
+  end
+
+  def write(jfif, io_device) do
+    Logger.debug "#{__MODULE__}.write/2"
+    binary = binary(jfif)
+    :ok = IO.binwrite(io_device, binary)
+  end
+
   defimpl Exiffer.Serialize do
-    def write(_jfif, _io_device) do
+    def write(jfif, io_device) do
+      Exiffer.Header.JFIF.write(jfif, io_device)
     end
 
-    def binary(_jfif) do
-      <<>>
+    def binary(jfif) do
+      Exiffer.Header.JFIF.binary(jfif)
     end
 
     def puts(jfif) do
