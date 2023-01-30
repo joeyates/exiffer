@@ -23,11 +23,17 @@ defmodule Exiffer.CLI.Rewrite do
     input = Buffer.new(source)
     output = Buffer.new(destination, direction: :write)
 
-    {metadata, input} = Exiffer.parse(input)
+    {item, input} = Exiffer.parse(input)
 
     entry = build_entry(gps)
 
-    {:ok, headers} = apply_gps(headers, entry)
+    metadata = if has_exif?(item.headers) do
+      item.headers
+    else
+      [blank_exif() | item.headers]
+    end
+
+    {:ok, metadata} = apply_gps(metadata, entry)
 
     Buffer.write(output, @jpeg_magic)
     :ok = Exiffer.Serialize.write(metadata, output.io_device)
@@ -96,6 +102,15 @@ defmodule Exiffer.CLI.Rewrite do
     [{d, 1}, {m, 1}, {mus, 1_000_000}]
   end
 
+  defp has_exif?(headers) do
+    Enum.any?(headers, fn header -> header.__struct__ == Exif end)
+  end
+
+  defp blank_exif do
+    ifd_block = %IFDBlock{ifds: []}
+    %EXIF{byte_order: :little, ifd_block: ifd_block}
+  end
+
   defp apply_gps(headers, entry) do
     {:ok, headers} = remove_gps(headers)
     {:ok, _headers} = add_gps(headers, entry)
@@ -109,6 +124,12 @@ defmodule Exiffer.CLI.Rewrite do
   defp add_gps(%EXIF{} = exif, entry) do
     ifd_block = add_gps(exif.ifd_block, entry)
     struct!(exif, ifd_block: ifd_block)
+  end
+
+  defp add_gps(%IFDBlock{ifds: []} = ifd_block, entry) do
+    ifd = %IFD{entries: []}
+    ifd = add_gps(ifd, entry)
+    struct!(ifd_block, ifds: [ifd])
   end
 
   defp add_gps(%IFDBlock{} = ifd_block, entry) do
