@@ -23,8 +23,8 @@ defmodule Exiffer.CLI do
     0
   end
 
-  def main([command | _args]) do
-    IO.puts(:stderr, "Unknown command: '#{command}'")
+  def main(args) do
+    IO.puts(:stderr, "Unknown command: '#{Enum.join(args, " ")}'")
     1
   end
 
