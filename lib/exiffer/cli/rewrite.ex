@@ -5,7 +5,7 @@ defmodule Exiffer.CLI.Rewrite do
 
   alias Exiffer.Buffer
   alias Exiffer.Entry
-  alias Exiffer.Header.APP1
+  alias Exiffer.Header.APP1.EXIF
   alias Exiffer.IFD
   alias Exiffer.IFDBlock
   require Logger
@@ -106,9 +106,9 @@ defmodule Exiffer.CLI.Rewrite do
     {:ok, headers}
   end
 
-  defp add_gps(%APP1{} = app1, entry) do
-    ifd_block = add_gps(app1.ifd_block, entry)
-    struct!(app1, ifd_block: ifd_block)
+  defp add_gps(%EXIF{} = exif, entry) do
+    ifd_block = add_gps(exif.ifd_block, entry)
+    struct!(exif, ifd_block: ifd_block)
   end
 
   defp add_gps(%IFDBlock{} = ifd_block, entry) do
@@ -129,9 +129,9 @@ defmodule Exiffer.CLI.Rewrite do
     {:ok, headers}
   end
 
-  defp remove_gps(%APP1{} = app1) do
-    ifd_block = remove_gps(app1.ifd_block)
-    struct!(app1, ifd_block: ifd_block)
+  defp remove_gps(%EXIF{} = exif) do
+    ifd_block = remove_gps(exif.ifd_block)
+    struct!(exif, ifd_block: ifd_block)
   end
 
   defp remove_gps(%IFDBlock{} = ifd_block) do
