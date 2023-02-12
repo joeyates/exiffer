@@ -210,6 +210,13 @@ defmodule Exiffer.Entry do
     end
   end
 
+  def new_by_type(type, value) do
+    entry_table = @entry_info_map[nil]
+    info = entry_table[type]
+    format_type = hd(info.formats)
+    %__MODULE__{type: type, format: format_type, value: value, label: info.label, magic: info.magic}
+  end
+
   defp format_type(big_endian_format_magic) do
     case @format_type[big_endian_format_magic] do
       nil ->

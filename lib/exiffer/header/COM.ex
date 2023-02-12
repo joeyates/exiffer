@@ -31,12 +31,25 @@ defmodule Exiffer.Header.COM do
     IO.puts "Comment: #{com.comment}"
   end
 
+  def binary(%__MODULE__{} = com) do
+    length = byte_size(com.comment)
+    length_binary = Binary.int16u_to_big_endian(2 + length)
+    <<0xff, 0xfe, length_binary::binary, com.comment::binary>>
+  end
+
+  def write(%__MODULE__{} = com, io_device) do
+    Logger.debug "#{__MODULE__}.write/2"
+    binary = binary(com)
+    :ok = IO.binwrite(io_device, binary)
+  end
+
   defimpl Exiffer.Serialize do
-    def write(_com, _io_device) do
+    def write(com, io_device) do
+      Exiffer.Header.COM.write(com, io_device)
     end
 
-    def binary(_com) do
-      <<>>
+    def binary(com) do
+      Exiffer.Header.COM.binary(com)
     end
 
     def puts(com) do

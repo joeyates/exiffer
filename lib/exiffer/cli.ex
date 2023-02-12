@@ -18,13 +18,13 @@ defmodule Exiffer.CLI do
     0
   end
 
-  def main(["rewrite", input, output]) do
-    Exiffer.CLI.Rewrite.run(input, output)
+  def main(["rewrite", source, destination, gps]) do
+    Exiffer.CLI.Rewrite.run(source, destination, gps)
     0
   end
 
-  def main([command | _args]) do
-    IO.puts(:stderr, "Unknown command: '#{command}'")
+  def main(args) do
+    IO.puts(:stderr, "Unknown command: '#{Enum.join(args, " ")}'")
     1
   end
 

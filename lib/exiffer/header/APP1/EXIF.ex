@@ -10,6 +10,7 @@ defmodule Exiffer.Header.APP1.EXIF do
 
   @exif_header "Exif\0\0"
   @tiff_header_marker <<0x00, 0x2a>>
+  @big_endian_marker "MM"
 
   @enforce_keys ~w(byte_order ifd_block)a
   defstruct ~w(byte_order ifd_block)a
@@ -19,7 +20,7 @@ defmodule Exiffer.Header.APP1.EXIF do
     buffer = Buffer.skip(buffer, 2 + String.length(@exif_header))
     length = Binary.big_endian_to_integer(length_bytes)
     {byte_order_marker, buffer} = Buffer.consume(buffer, 2)
-    byte_order = if byte_order_marker == "MM", do: :big, else: :little
+    byte_order = if byte_order_marker == @big_endian_marker, do: :big, else: :little
     Binary.set_byte_order(byte_order)
     tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
     {<<^tiff_header_marker::binary-size(2), ifd_header_offset_binary::binary-size(4)>>, buffer} = Buffer.consume(buffer, 6)
@@ -45,6 +46,7 @@ defmodule Exiffer.Header.APP1.EXIF do
   end
 
   def write(%__MODULE__{} = exif, io_device) do
+    Binary.set_byte_order(exif.byte_order)
     tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
     ifd_block = IFDBlock.binary(exif.ifd_block)
     byte_order = if exif.byte_order == :big, do: "MM", else: "II"
