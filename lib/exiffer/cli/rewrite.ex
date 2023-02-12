@@ -71,7 +71,7 @@ defmodule Exiffer.CLI.Rewrite do
 
   defp parse_gps(gps) do
     case Regex.named_captures(
-      ~r/(?<latitude>\d{1,3}[.,]\d+),(?<longitude>\d{1,3}[.,]\d+),(?<altitude>\d+)/,
+      ~r/(?<latitude>\-?\d{1,3}[.,]\d+),(?<longitude>\-?\d{1,3}[.,]\d+),(?<altitude>\d+)/,
       gps
     ) do
       %{"latitude" => latitude, "longitude" => longitude, "altitude" => altitude} ->
