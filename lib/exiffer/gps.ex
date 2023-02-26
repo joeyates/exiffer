@@ -8,14 +8,22 @@ defmodule Exiffer.GPS do
       gps
     ) do
       %{"latitude" => latitude, "longitude" => longitude, "altitude" => altitude} ->
-        %__MODULE__{
-          longitude: to_f(longitude),
-          latitude: to_f(latitude),
-          altitude: to_f(altitude)
+        {
+          :ok,
+          %__MODULE__{
+            longitude: to_f(longitude),
+            latitude: to_f(latitude),
+            altitude: to_f(altitude)
+          }
         }
       _ ->
-        nil
+        {:error, :unparseable}
     end
+  end
+
+  def parse!(gps) do
+    {:ok, parsed} = parse(gps)
+    parsed
   end
 
   defp to_f(s) do
