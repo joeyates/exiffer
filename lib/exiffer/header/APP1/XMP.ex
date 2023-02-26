@@ -4,6 +4,7 @@ defmodule Exiffer.Header.APP1.XMP do
   """
 
   alias Exiffer.{Binary, Buffer}
+  require Logger
 
   @adobe_xmp_header "http://ns.adobe.com/xap/1.0/\0"
 
@@ -32,17 +33,25 @@ defmodule Exiffer.Header.APP1.XMP do
     :ok
   end
 
-  defimpl Exiffer.Serialize do
-    def write(xmp, io_device) do
-      Exiffer.Header.APP1.XMP.write(xmp, io_device)
-    end
+  def binary(%__MODULE__{xpacket: xpacket}), do: xpacket
 
-    def binary(_xmp) do
-      <<>>
+  def write(%__MODULE__{} = data, io_device) do
+    Logger.info "#{__MODULE__}"
+    binary = binary(data)
+    :ok = IO.binwrite(io_device, binary)
+  end
+
+  defimpl Exiffer.Serialize do
+    def binary(xmp) do
+      Exiffer.Header.APP1.XMP.binary(xmp)
     end
 
     def puts(xmp) do
       Exiffer.Header.APP1.XMP.puts(xmp)
+    end
+
+    def write(xmp, io_device) do
+      Exiffer.Header.APP1.XMP.write(xmp, io_device)
     end
   end
 end

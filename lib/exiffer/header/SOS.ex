@@ -16,6 +16,11 @@ defmodule Exiffer.Header.SOS do
 
   def binary(%__MODULE__{}), do: <<0xff, 0xda>>
 
+  def puts(%__MODULE__{}) do
+    IO.puts "SOS"
+    IO.puts "---"
+  end
+
   def write(%__MODULE__{} = data, io_device) do
     Logger.info "SOS"
     binary = binary(data)
@@ -27,8 +32,8 @@ defmodule Exiffer.Header.SOS do
       Exiffer.Header.SOS.binary(data)
     end
 
-    def puts(_data) do
-      :ok
+    def puts(data) do
+      Exiffer.Header.SOS.puts(data)
     end
 
     def write(data, io_device) do

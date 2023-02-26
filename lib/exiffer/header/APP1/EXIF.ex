@@ -33,6 +33,25 @@ defmodule Exiffer.Header.APP1.EXIF do
     {exif, buffer}
   end
 
+  def binary(%__MODULE__{} = exif) do
+    Binary.set_byte_order(exif.byte_order)
+    tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
+    ifd_block = IFDBlock.binary(exif.ifd_block)
+    byte_order = if exif.byte_order == :big, do: "MM", else: "II"
+    first_ifd_offset_binary = Binary.int32u_to_current(8)
+    length = 2 + byte_size(@exif_header) + byte_size(byte_order) + byte_size(tiff_header_marker) + byte_size(first_ifd_offset_binary) + byte_size(ifd_block)
+    length_binary = Binary.int16u_to_big_endian(length)
+    <<
+      0xff, 0xe1,
+      length_binary::binary,
+      @exif_header::binary,
+      byte_order::binary,
+      tiff_header_marker::binary,
+      first_ifd_offset_binary::binary,
+      ifd_block::binary
+    >>
+  end
+
   def puts(%__MODULE__{} = exif) do
     IO.puts "File"
     IO.puts "----"
@@ -45,22 +64,7 @@ defmodule Exiffer.Header.APP1.EXIF do
   end
 
   def write(%__MODULE__{} = exif, io_device) do
-    Binary.set_byte_order(exif.byte_order)
-    tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
-    ifd_block = IFDBlock.binary(exif.ifd_block)
-    byte_order = if exif.byte_order == :big, do: "MM", else: "II"
-    first_ifd_offset_binary = Binary.int32u_to_current(8)
-    length = 2 + byte_size(@exif_header) + byte_size(byte_order) + byte_size(tiff_header_marker) + byte_size(first_ifd_offset_binary) + byte_size(ifd_block)
-    length_binary = Binary.int16u_to_big_endian(length)
-    binary = <<
-      0xff, 0xe1,
-      length_binary::binary,
-      @exif_header::binary,
-      byte_order::binary,
-      tiff_header_marker::binary,
-      first_ifd_offset_binary::binary,
-      ifd_block::binary
-    >>
+    binary = binary(exif)
     :ok = IO.binwrite(io_device, binary)
   end
 
@@ -69,8 +73,8 @@ defmodule Exiffer.Header.APP1.EXIF do
       Exiffer.Header.APP1.EXIF.write(exif, io_device)
     end
 
-    def binary(_exif) do
-      <<>>
+    def binary(exif) do
+      Exiffer.Header.APP1.EXIF.binary(exif)
     end
 
     def puts(exif) do

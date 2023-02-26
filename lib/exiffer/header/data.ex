@@ -47,6 +47,24 @@ defmodule Exiffer.Header.Data do
     {header, buffer}
   end
 
+  def binary(%__MODULE__{type: type, data: data}) do
+    length = 2 + byte_size(data)
+    binary_length = Binary.int16u_to_big_endian(length)
+    <<
+    @magic[type]::binary,
+    binary_length::binary,
+    data::binary
+    >>
+  end
+
+  def puts(%__MODULE__{type: type, data: data}) do
+    length = byte_size(data)
+    IO.puts "Data"
+    IO.puts "----"
+    IO.puts "type: #{type}"
+    IO.puts "data: #{length} bytes"
+  end
+
   def write(%__MODULE__{type: type, data: data}, io_device) do
     Logger.info("Data.write, type: #{type}")
     magic = @magic[type]
@@ -55,15 +73,6 @@ defmodule Exiffer.Header.Data do
     length_binary = Binary.int16u_to_big_endian(length)
     IO.binwrite(io_device, length_binary)
     IO.binwrite(io_device, data)
-  end
-
-  def binary(%__MODULE__{type: type, data: data}) do
-    length = 2 + byte_size(data)
-    <<
-    @magic[type]::binary,
-    Binary.int32u_to_big_endian(length)::binary,
-    data::binary
-    >>
   end
 
   defimpl Exiffer.Serialize do
@@ -75,8 +84,8 @@ defmodule Exiffer.Header.Data do
       Exiffer.Header.Data.binary(data)
     end
 
-    def puts(_data) do
-      :ok
+    def puts(data) do
+      Exiffer.Header.Data.puts(data)
     end
   end
 end
