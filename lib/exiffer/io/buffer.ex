@@ -50,7 +50,7 @@ defmodule Exiffer.IO.Buffer do
     %__MODULE__{data: data, position: position, remaining: remaining} = buffer = ensure(buffer, count)
     available = if remaining >= count, do: count, else: remaining
     <<consumed::binary-size(available), rest::binary>> = data
-    new_position = position + count
+    new_position = position + available
     buffer =
       struct!(buffer, data: rest, position: new_position, remaining: remaining - available)
       |> ensure(buffer.read_ahead)
