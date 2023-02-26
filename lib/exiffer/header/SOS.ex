@@ -8,7 +8,7 @@ defmodule Exiffer.Header.SOS do
 
   defstruct ~w()a
 
-  def new(%Buffer{data: <<0xff, 0xda, _rest::binary>>} = buffer) do
+  def new(%{data: <<0xff, 0xda, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     sos = %__MODULE__{}
     {sos, buffer}

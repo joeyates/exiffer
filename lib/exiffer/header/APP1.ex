@@ -9,7 +9,7 @@ defmodule Exiffer.Header.APP1 do
   @exif_header "Exif\0\0"
   @adobe_xmp_header "http://ns.adobe.com/xap/1.0/\0"
 
-  def new(%Buffer{data: <<0xff, 0xe1, _rest::binary>>} = buffer) do
+  def new(%{data: <<0xff, 0xe1, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     cond do
       Buffer.random(buffer, buffer.position + 2, String.length(@exif_header)) == @exif_header ->

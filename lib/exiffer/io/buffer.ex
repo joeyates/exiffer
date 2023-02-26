@@ -1,6 +1,6 @@
-defmodule Exiffer.Buffer do
+defmodule Exiffer.IO.Buffer do
   @moduledoc """
-  Documentation for `Exiffer.Buffer`.
+  Documentation for `Exiffer.IO.Buffer`.
 
   A buffer with read access to the file source.
 
@@ -133,6 +133,34 @@ defmodule Exiffer.Buffer do
         bytes_read = byte_size(chunk)
         data = <<data::binary, chunk::binary>>
         struct!(buffer, data: data, remaining: remaining + bytes_read)
+    end
+  end
+
+  defimpl Exiffer.Buffer do
+    alias Exiffer.IO.Buffer
+
+    def offset_buffer(buffer, offset) do
+      Exiffer.OffsetBuffer.new(buffer, offset)
+    end
+
+    def consume(buffer, count) do
+      Buffer.consume(buffer, count)
+    end
+
+    def seek(buffer, position) do
+      Buffer.seek(buffer, position)
+    end
+
+    def skip(buffer, count) do
+      Buffer.skip(buffer, count)
+    end
+
+    def random(buffer, read_position, count) do
+      Buffer.random(buffer, read_position, count)
+    end
+
+    def tell(buffer) do
+      Buffer.tell(buffer)
     end
   end
 end

@@ -11,7 +11,7 @@ defmodule Exiffer.OffsetBuffer do
   @enforce_keys ~w(buffer offset)a
   defstruct ~w(buffer offset)a
 
-  def new(%Buffer{} = buffer, offset \\ 0) do
+  def new(%{} = buffer, offset \\ 0) do
     %__MODULE__{buffer: buffer, offset: offset}
   end
 
@@ -37,5 +37,33 @@ defmodule Exiffer.OffsetBuffer do
 
   def tell(%__MODULE__{buffer: buffer, offset: offset}) do
     buffer.position - offset
+  end
+
+  defimpl Exiffer.Buffer do
+    alias Exiffer.OffsetBuffer
+
+    def offset_buffer(buffer, offset) do
+      OffsetBuffer.new(buffer.buffer, offset)
+    end
+
+    def consume(buffer, count) do
+      OffsetBuffer.consume(buffer, count)
+    end
+
+    def seek(buffer, position) do
+      OffsetBuffer.seek(buffer, position)
+    end
+
+    def skip(buffer, count) do
+      OffsetBuffer.skip(buffer, count)
+    end
+
+    def random(buffer, read_position, count) do
+      OffsetBuffer.random(buffer, read_position, count)
+    end
+
+    def tell(buffer) do
+      OffsetBuffer.tell(buffer)
+    end
   end
 end

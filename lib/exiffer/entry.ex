@@ -3,10 +3,8 @@ defmodule Exiffer.Entry do
   Documentation for `Exiffer.Entry`.
   """
 
-  alias Exiffer.Binary
+  alias Exiffer.{Binary, Buffer, IFD}
   alias Exiffer.Entry.MakerNotes
-  alias Exiffer.IFD
-  alias Exiffer.OffsetBuffer
   require Logger
 
   @enforce_keys ~w(type format magic label value)a
@@ -170,20 +168,20 @@ defmodule Exiffer.Entry do
     interop: @interop_entry_type
   }
 
-  def new(%OffsetBuffer{} = buffer, opts \\ []) do
+  def new(%{} = buffer, opts \\ []) do
     override = Keyword.get(opts, :override)
     entry_type_map = @entry_type_map[override]
-    {magic, buffer} = OffsetBuffer.consume(buffer, 2)
+    {magic, buffer} = Buffer.consume(buffer, 2)
     big_endian_magic = Binary.big_endian(magic)
     entry_table = @entry_info_map[override]
-    {format_magic, buffer} = OffsetBuffer.consume(buffer, 2)
+    {format_magic, buffer} = Buffer.consume(buffer, 2)
     big_endian_format_magic = Binary.big_endian(format_magic)
     with {:ok, format_type} <- format_type(big_endian_format_magic),
          entry_type <- entry_type_map[big_endian_magic] do
       entry =
         case entry_type do
           nil ->
-            position = OffsetBuffer.tell(buffer) - 4
+            position = Buffer.tell(buffer) - 4
             offset = buffer.offset
             Logger.warn "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
             value = value(:unknown, format_type, buffer)
@@ -192,7 +190,7 @@ defmodule Exiffer.Entry do
           entry_type ->
             info = entry_table[entry_type]
             if format_type not in info.formats do
-              position = OffsetBuffer.tell(buffer) - 4
+              position = Buffer.tell(buffer) - 4
               offset = buffer.offset
               expected = Enum.map(info.formats, &(@format[&1].name)) |> Enum.join(" or ")
               Logger.warn "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
@@ -200,7 +198,7 @@ defmodule Exiffer.Entry do
             value = value(info.type, format_type, buffer)
             %__MODULE__{type: info.type, format: format_type, value: value, label: info.label, magic: big_endian_magic}
         end
-      buffer = OffsetBuffer.skip(buffer, 8)
+      buffer = Buffer.skip(buffer, 8)
       {entry, buffer}
     else
       {:error, :unknown_format_magic} ->
@@ -406,28 +404,28 @@ defmodule Exiffer.Entry do
     Float.to_string(value)
   end
 
-  defp read_ifd(%OffsetBuffer{} = buffer, offset, opts \\ []) do
-    position = OffsetBuffer.tell(buffer)
-    buffer = OffsetBuffer.seek(buffer, offset)
+  defp read_ifd(%{} = buffer, offset, opts \\ []) do
+    position = Buffer.tell(buffer)
+    buffer = Buffer.seek(buffer, offset)
     {:ok, ifd, buffer} = IFD.read(buffer, opts)
-    _buffer = OffsetBuffer.seek(buffer, position)
+    _buffer = Buffer.seek(buffer, position)
     ifd
   end
 
-  defp value(type, :int32u, %OffsetBuffer{} = buffer) when type == :interop_offset do
+  defp value(type, :int32u, %{} = buffer) when type == :interop_offset do
     <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     offset = Binary.to_integer(offset_binary)
     read_ifd(buffer, offset, override: :interop)
   end
 
-  defp value(type, :int32u, %OffsetBuffer{} = buffer) when type in [:exif_offset, :gps_info] do
+  defp value(type, :int32u, %{} = buffer) when type in [:exif_offset, :gps_info] do
     <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     offset = Binary.to_integer(offset_binary)
     read_ifd(buffer, offset)
   end
 
-  defp value(:maker_notes, :raw_bytes, %OffsetBuffer{} = buffer) do
-    position = OffsetBuffer.tell(buffer)
+  defp value(:maker_notes, :raw_bytes, %{} = buffer) do
+    position = Buffer.tell(buffer)
     <<length_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     offset = Binary.to_integer(offset_binary)
     # See if the maker notes are a parsable IFD
@@ -436,22 +434,22 @@ defmodule Exiffer.Entry do
       # Maker notes have their own offset into the file
       notes_offset = buffer.offset + offset
       notes_buffer =
-        OffsetBuffer.new(buffer.buffer, notes_offset)
-        |> OffsetBuffer.seek(0)
-      {header, notes_buffer} = OffsetBuffer.consume(notes_buffer, 12)
+        Buffer.offset_buffer(buffer.buffer, notes_offset)
+        |> Buffer.seek(0)
+      {header, notes_buffer} = Buffer.consume(notes_buffer, 12)
       # Temporarily set process-local byte order
       Binary.set_byte_order(:little)
       {:ok, ifd, buffer} = IFD.read(notes_buffer)
-      _buffer = OffsetBuffer.seek(buffer, position)
+      _buffer = Buffer.seek(buffer, position)
       %MakerNotes{header: header, ifd: ifd}
     rescue _e ->
       length = Binary.to_integer(length_binary)
-      OffsetBuffer.random(buffer, offset, length)
+      Buffer.random(buffer, offset, length)
     end
     Binary.set_byte_order(file_byte_order)
   end
 
-  defp value(_type, format, %OffsetBuffer{} = buffer) when format in [:string, :raw_bytes] do
+  defp value(_type, format, %{} = buffer) when format in [:string, :raw_bytes] do
     <<length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     length = Binary.to_integer(length_binary)
     cond do
@@ -466,7 +464,7 @@ defmodule Exiffer.Entry do
         value
       true ->
         offset = Binary.to_integer(value_binary)
-        string = OffsetBuffer.random(buffer, offset, length)
+        string = Buffer.random(buffer, offset, length)
         if :binary.last(string) == 0 do
           :binary.part(string, {0, length - 1})
         else
@@ -475,39 +473,39 @@ defmodule Exiffer.Entry do
     end
   end
 
-  defp value(_type, :int8u, %OffsetBuffer{} = buffer) do
+  defp value(_type, :int8u, %{} = buffer) do
     <<_length_binary::binary-size(4), value_binary::binary-size(2), _rest::binary>> = buffer.buffer.data
     Binary.to_integer(value_binary)
   end
 
-  defp value(_type, :int16u, %OffsetBuffer{} = buffer) do
+  defp value(_type, :int16u, %{} = buffer) do
     <<_length_binary::binary-size(4), value_binary::binary-size(2), _rest::binary>> = buffer.buffer.data
     Binary.to_integer(value_binary)
   end
 
-  defp value(_type, :int32u, %OffsetBuffer{} = buffer) do
+  defp value(_type, :int32u, %{} = buffer) do
     <<_length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     Binary.to_integer(value_binary)
   end
 
-  defp value(_type, :rational_64u, %OffsetBuffer{} = buffer) do
+  defp value(_type, :rational_64u, %{} = buffer) do
     <<count_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     rational_count = Binary.to_integer(count_binary)
     value_offset = Binary.to_integer(offset_binary)
-    OffsetBuffer.random(buffer, value_offset, rational_count * 8)
+    Buffer.random(buffer, value_offset, rational_count * 8)
     |> Binary.to_rational()
   end
 
-  defp value(_type, :int32s, %OffsetBuffer{} = buffer) do
+  defp value(_type, :int32s, %{} = buffer) do
     <<_length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     # TODO: handle negative values
     Binary.to_integer(value_binary)
   end
 
-  defp value(_type, :rational_64s, %OffsetBuffer{} = buffer) do
+  defp value(_type, :rational_64s, %{} = buffer) do
     <<_count_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     value_offset = Binary.to_integer(offset_binary)
-    OffsetBuffer.random(buffer, value_offset, 8)
+    Buffer.random(buffer, value_offset, 8)
     |> Binary.to_signed_rational()
   end
 end

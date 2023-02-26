@@ -3,12 +3,9 @@ defmodule Exiffer.CLI.Rewrite do
   Documentation for `Exiffer.CLI.Rewrite`.
   """
 
-  alias Exiffer.Buffer
-  alias Exiffer.GPS
-  alias Exiffer.Rewrite
+  alias Exiffer.{GPS, JPEG, Rewrite}
+  alias Exiffer.IO.{Buffer}
   require Logger
-
-  @jpeg_magic <<0xff, 0xd8>>
 
   @doc """
   Rewrite an image's metadata.
@@ -25,7 +22,7 @@ defmodule Exiffer.CLI.Rewrite do
     {:ok, metadata, input} = Rewrite.set_gps(input, gps)
 
     output = Buffer.new(destination, direction: :write)
-    Buffer.write(output, @jpeg_magic)
+    Buffer.write(output, JPEG.magic())
     :ok = Exiffer.Serialize.write(metadata, output.io_device)
 
     Buffer.copy(input, output)

@@ -3,14 +3,13 @@ defmodule Exiffer.Header.APP4 do
   Documentation for `Exiffer.Header.APP4`.
   """
 
-  alias Exiffer.Buffer
-  alias Exiffer.Binary
+  alias Exiffer.{Binary, Buffer}
   require Logger
 
   @enforce_keys ~w(value)a
   defstruct ~w(value)a
 
-  def new(%Buffer{data: <<0xff, 0xe4, _rest::binary>>} = buffer) do
+  def new(%{data: <<0xff, 0xe4, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     {<<length_bytes::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)
     length = Binary.big_endian_to_integer(length_bytes)

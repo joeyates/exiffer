@@ -3,15 +3,14 @@ defmodule Exiffer.Header.APP1.XMP do
   Documentation for `Exiffer.Header.APP1.XMP`.
   """
 
-  alias Exiffer.Binary
-  alias Exiffer.Buffer
+  alias Exiffer.{Binary, Buffer}
 
   @adobe_xmp_header "http://ns.adobe.com/xap/1.0/\0"
 
   @enforce_keys ~w(xpacket)a
   defstruct ~w(xpacket)a
 
-  def new(%Buffer{data: <<length_bytes::binary-size(2), @adobe_xmp_header::binary, _rest::binary>>} = buffer) do
+  def new(%{data: <<length_bytes::binary-size(2), @adobe_xmp_header::binary, _rest::binary>>} = buffer) do
     length = Binary.big_endian_to_integer(length_bytes)
     header_length = String.length(@adobe_xmp_header)
     buffer = Buffer.skip(buffer, 2 + header_length)

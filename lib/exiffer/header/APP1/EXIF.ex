@@ -3,8 +3,7 @@ defmodule Exiffer.Header.APP1.EXIF do
   Documentation for `Exiffer.Header.APP1.EXIF`.
   """
 
-  alias Exiffer.Binary
-  alias Exiffer.Buffer
+  alias Exiffer.{Binary, Buffer}
   alias Exiffer.IFDBlock
   require Logger
 
@@ -15,7 +14,7 @@ defmodule Exiffer.Header.APP1.EXIF do
   @enforce_keys ~w(byte_order ifd_block)a
   defstruct ~w(byte_order ifd_block)a
 
-  def new(%Buffer{data: <<length_bytes::binary-size(2), @exif_header::binary, _rest::binary>>} = buffer) do
+  def new(%{data: <<length_bytes::binary-size(2), @exif_header::binary, _rest::binary>>} = buffer) do
     exif_start = buffer.position
     buffer = Buffer.skip(buffer, 2 + String.length(@exif_header))
     length = Binary.big_endian_to_integer(length_bytes)

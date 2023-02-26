@@ -3,8 +3,7 @@ defmodule Exiffer.Header.Data do
   Documentation for `Exiffer.Header.Data`.
   """
 
-  alias Exiffer.Binary
-  alias Exiffer.Buffer
+  alias Exiffer.{Binary, Buffer}
   require Logger
 
   @enforce_keys ~w(type data)a
@@ -34,7 +33,7 @@ defmodule Exiffer.Header.Data do
 
   @magic Enum.into(@data_type, %{}, fn {magic, %{key: key}} -> {key, magic} end)
 
-  def new(%Buffer{} = buffer) do
+  def new(%{} = buffer) do
     {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} = Buffer.consume(buffer, 4)
     type = @data_type[magic]
     if !type do

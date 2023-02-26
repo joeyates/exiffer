@@ -3,16 +3,14 @@ defmodule Exiffer.IFD do
   Documentation for `Exiffer.IFD`.
   """
 
-  alias Exiffer.Binary
-  alias Exiffer.Entry
-  alias Exiffer.OffsetBuffer
+  alias Exiffer.{Binary, Buffer, Entry}
   require Logger
 
   @enforce_keys ~w(entries)a
   defstruct ~w(entries)a
 
-  def read(%OffsetBuffer{} = buffer, opts \\ []) do
-    {entry_count_bytes, buffer} = OffsetBuffer.consume(buffer, 2)
+  def read(%{} = buffer, opts \\ []) do
+    {entry_count_bytes, buffer} = Buffer.consume(buffer, 2)
     entry_count = Binary.to_integer(entry_count_bytes)
     Logger.debug "IFD reading #{entry_count} entries"
     {entries, buffer} = read_entry(buffer, entry_count, [], opts)
@@ -93,8 +91,8 @@ defmodule Exiffer.IFD do
     load_thumbnail(buffer, entries)
   end
 
-  defp read_entry(%OffsetBuffer{} = buffer, count, entries, opts) do
-    position = OffsetBuffer.tell(buffer)
+  defp read_entry(%{} = buffer, count, entries, opts) do
+    position = Buffer.tell(buffer)
     offset = buffer.offset
     {entry, buffer} = Entry.new(buffer, opts)
     if entry do
@@ -107,10 +105,10 @@ defmodule Exiffer.IFD do
     end
   end
 
-  defp load_thumbnail(%OffsetBuffer{} = buffer, entries) do
+  defp load_thumbnail(%{} = buffer, entries) do
     case thumbnail_entries(entries) do
       {thumbnail_offset, thumbnail_length} ->
-        thumbnail = OffsetBuffer.random(buffer, thumbnail_offset, thumbnail_length)
+        thumbnail = Buffer.random(buffer, thumbnail_offset, thumbnail_length)
         # Replace thumbnail offset with the thumbnail binary
         entries = Enum.map(entries, fn entry ->
           if entry.type == :thumbnail_offset do
