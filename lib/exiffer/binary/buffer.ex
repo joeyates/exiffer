@@ -15,8 +15,8 @@ defmodule Exiffer.Binary.Buffer do
 
   def consume(%__MODULE__{} = buffer, count) do
     remaining = buffer.size - buffer.position
-    available = if remaining >= count, do: count, else: remaining
     <<_before::binary-size(buffer.position), rest::binary>> = buffer.original
+    available = if remaining >= count, do: count, else: remaining
     <<consumed::binary-size(available), data::binary>> = rest
     position = buffer.position + available
     buffer = struct!(buffer, data: data, position: position)
