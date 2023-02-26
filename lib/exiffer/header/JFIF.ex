@@ -5,8 +5,7 @@ defmodule Exiffer.Header.JFIF do
   JFIF is the "JPEG File Interchange Format"
   """
 
-  alias Exiffer.Binary
-  alias Exiffer.Buffer
+  alias Exiffer.{Binary, Buffer}
   require Logger
 
   @enforce_keys ~w()a
@@ -20,7 +19,7 @@ defmodule Exiffer.Header.JFIF do
     thumbnail
   )a
 
-  def new(%Buffer{data: <<0xff, 0xe0, _rest::binary>>} = buffer) do
+  def new(%{data: <<0xff, 0xe0, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     {<<_length_binary::binary-size(2), "JFIF", 0x00>>, buffer} = Buffer.consume(buffer, 7)
     {<<version::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)

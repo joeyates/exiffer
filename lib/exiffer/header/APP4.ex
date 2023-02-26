@@ -3,14 +3,13 @@ defmodule Exiffer.Header.APP4 do
   Documentation for `Exiffer.Header.APP4`.
   """
 
-  alias Exiffer.Buffer
-  alias Exiffer.Binary
+  alias Exiffer.{Binary, Buffer}
   require Logger
 
   @enforce_keys ~w(value)a
   defstruct ~w(value)a
 
-  def new(%Buffer{data: <<0xff, 0xe4, _rest::binary>>} = buffer) do
+  def new(%{data: <<0xff, 0xe4, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     {<<length_bytes::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)
     length = Binary.big_endian_to_integer(length_bytes)
@@ -25,6 +24,13 @@ defmodule Exiffer.Header.APP4 do
     <<0xff, 0xe4, length_binary::binary, value::binary>>
   end
 
+  def puts(%__MODULE__{value: value}) do
+    length = byte_size(value)
+    IO.puts "APP4"
+    IO.puts "----"
+    IO.puts "value: #{length} bytes"
+  end
+
   def write(%__MODULE__{} = data, io_device) do
     Logger.info "APP4"
     binary = binary(data)
@@ -36,12 +42,12 @@ defmodule Exiffer.Header.APP4 do
       Exiffer.Header.APP4.binary(data)
     end
 
-    def write(data, io_device) do
-      Exiffer.Header.APP4.write(data, io_device)
+    def puts(data) do
+      Exiffer.Header.APP4.puts(data)
     end
 
-    def puts(_data) do
-      :ok
+    def write(data, io_device) do
+      Exiffer.Header.APP4.write(data, io_device)
     end
   end
 end

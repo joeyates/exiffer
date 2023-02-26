@@ -3,15 +3,15 @@ defmodule Exiffer.Header.APP1.XMP do
   Documentation for `Exiffer.Header.APP1.XMP`.
   """
 
-  alias Exiffer.Binary
-  alias Exiffer.Buffer
+  alias Exiffer.{Binary, Buffer}
+  require Logger
 
   @adobe_xmp_header "http://ns.adobe.com/xap/1.0/\0"
 
   @enforce_keys ~w(xpacket)a
   defstruct ~w(xpacket)a
 
-  def new(%Buffer{data: <<length_bytes::binary-size(2), @adobe_xmp_header::binary, _rest::binary>>} = buffer) do
+  def new(%{data: <<length_bytes::binary-size(2), @adobe_xmp_header::binary, _rest::binary>>} = buffer) do
     length = Binary.big_endian_to_integer(length_bytes)
     header_length = String.length(@adobe_xmp_header)
     buffer = Buffer.skip(buffer, 2 + header_length)
@@ -33,17 +33,25 @@ defmodule Exiffer.Header.APP1.XMP do
     :ok
   end
 
-  defimpl Exiffer.Serialize do
-    def write(xmp, io_device) do
-      Exiffer.Header.APP1.XMP.write(xmp, io_device)
-    end
+  def binary(%__MODULE__{xpacket: xpacket}), do: xpacket
 
-    def binary(_xmp) do
-      <<>>
+  def write(%__MODULE__{} = data, io_device) do
+    Logger.info "#{__MODULE__}"
+    binary = binary(data)
+    :ok = IO.binwrite(io_device, binary)
+  end
+
+  defimpl Exiffer.Serialize do
+    def binary(xmp) do
+      Exiffer.Header.APP1.XMP.binary(xmp)
     end
 
     def puts(xmp) do
       Exiffer.Header.APP1.XMP.puts(xmp)
+    end
+
+    def write(xmp, io_device) do
+      Exiffer.Header.APP1.XMP.write(xmp, io_device)
     end
   end
 end

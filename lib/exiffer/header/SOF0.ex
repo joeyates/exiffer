@@ -3,8 +3,7 @@ defmodule Exiffer.Header.SOF0 do
   Documentation for `Exiffer.Header.SOF0`.
   """
 
-  alias Exiffer.Binary
-  alias Exiffer.Buffer
+  alias Exiffer.{Binary, Buffer}
   require Logger
 
   @enforce_keys ~w(bits_per_sample width height color_components_count components)a
@@ -18,7 +17,7 @@ defmodule Exiffer.Header.SOF0 do
     y_cb_cr_sub_sampling
   )a
 
-  def new(%Buffer{data: <<0xff, 0xc0, _rest::binary>>} = buffer) do
+  def new(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 4)
     {<<bits, height_binary::binary-size(2), width_binary::binary-size(2)>>, buffer} = Buffer.consume(buffer, 5)
     width = Binary.to_integer(width_binary)
