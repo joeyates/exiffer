@@ -60,9 +60,9 @@ defmodule Exiffer.Header.Data do
   def binary(%__MODULE__{type: type, data: data}) do
     length = 2 + byte_size(data)
     <<
-    @magic[type],
-    Binary.int32u_to_big_endian(length),
-    data
+    @magic[type]::binary,
+    Binary.int32u_to_big_endian(length)::binary,
+    data::binary
     >>
   end
 

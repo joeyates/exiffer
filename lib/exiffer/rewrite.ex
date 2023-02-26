@@ -8,7 +8,7 @@ defmodule Exiffer.Rewrite do
   alias Exiffer.IFD
   alias Exiffer.IFDBlock
 
-  def set_gps(input, gps) do
+  def set_gps(%{} = input, gps) do
     entry = build_entry(gps)
 
     {image, remainder} = Exiffer.parse(input)
