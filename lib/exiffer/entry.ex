@@ -360,8 +360,9 @@ defmodule Exiffer.Entry do
     size = byte_size(entry.value)
     if size <= 4 do
       pad_count = 4 - size
+      reported_size = if size < 4, do: size + 1, else: size
       <<padding::binary-size(pad_count), _rest::binary>> = <<0, 0, 0, 0>>
-      {size + 1, <<entry.value::binary, padding::binary>>, <<>>}
+      {reported_size, <<entry.value::binary, padding::binary>>, <<>>}
     else
       # Always add a final NULL after strings added after the block
       size = size + 1
