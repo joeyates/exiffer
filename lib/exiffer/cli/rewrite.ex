@@ -17,8 +17,7 @@ defmodule Exiffer.CLI.Rewrite do
 
     input = Buffer.new(source)
 
-    %GPS{} = gps = GPS.parse(gps_text)
-
+    {:ok, %GPS{} = gps} = GPS.parse(gps_text)
     {:ok, metadata, input} = Rewrite.set_gps(input, gps)
 
     Logger.debug "Setting initial byte order to :big"
