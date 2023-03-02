@@ -66,7 +66,7 @@ defmodule Exiffer.Header.Data do
   end
 
   def write(%__MODULE__{type: type, data: data}, io_device) do
-    Logger.info("Data.write, type: #{type}")
+    Logger.debug "Writing generic data header, type: #{type}"
     magic = @magic[type]
     IO.binwrite(io_device, magic)
     length = 2 + byte_size(data)

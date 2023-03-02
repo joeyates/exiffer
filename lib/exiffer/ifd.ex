@@ -38,6 +38,9 @@ defmodule Exiffer.IFD do
       entries,
       {next_ifd_pointer_offset + 4, [], []},
       fn entry, {end_of_block, headers, extras} ->
+        format = Entry.format_name(entry)
+        content = Entry.text(entry)
+        Logger.debug "Creating binary for #{format} Entry, value: #{inspect(content)}"
         {header, extra} = Entry.binary(entry, end_of_block)
         {
           end_of_block + byte_size(extra),
@@ -97,10 +100,12 @@ defmodule Exiffer.IFD do
     {entry, buffer} = Entry.new(buffer, opts)
     if entry do
       format = Entry.format_name(entry)
-      Logger.debug "Entry #{count}, '#{entry.type}' (#{format}) at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+      content = Entry.text(entry)
+      Logger.debug "Reading Entry #{count}, #{format} at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}, value: #{inspect(content)}"
 
       read_entry(buffer, count - 1, [entry | entries], opts)
     else
+      Logger.debug "Entry #{count} not read"
       read_entry(buffer, 0, entries, opts)
     end
   end

@@ -36,7 +36,7 @@ defmodule Exiffer.Header.APP1.XMP do
   def binary(%__MODULE__{xpacket: xpacket}), do: xpacket
 
   def write(%__MODULE__{} = data, io_device) do
-    Logger.info "#{__MODULE__}"
+    Logger.debug "Writing APP1.XMP header"
     binary = binary(data)
     :ok = IO.binwrite(io_device, binary)
   end

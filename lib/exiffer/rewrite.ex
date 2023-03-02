@@ -3,12 +3,16 @@ defmodule Exiffer.Rewrite do
   Rewrite an image file, adding and removing arbitrary metadata
   """
 
+  require Logger
+
   alias Exiffer.{Entry, IFD, IFDBlock}
   alias Exiffer.Header.APP1.EXIF
 
   def set_gps(%{} = input, gps) do
-
+    Logger.info "Exiffer.Rewrite.set_gps/2"
+    Logger.info "Parsing image"
     {image, remainder} = Exiffer.parse(input)
+    Logger.info "Parsing complete"
 
     has_exif = has_exif?(image.headers)
     metadata = if has_exif do
@@ -17,9 +21,11 @@ defmodule Exiffer.Rewrite do
       [blank_exif() | image.headers]
     end
 
+    Logger.info "Adding/updating GPS entry"
     entry = build_entry(gps)
     {:ok, metadata} = apply_gps(metadata, entry)
 
+    Logger.info "Exiffer.Rewrite.set_gps/2 - complete"
     {:ok, metadata, remainder}
   end
 

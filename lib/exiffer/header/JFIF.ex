@@ -71,7 +71,7 @@ defmodule Exiffer.Header.JFIF do
   end
 
   def write(jfif, io_device) do
-    Logger.debug "#{__MODULE__}.write/2"
+    Logger.debug "Writing JFIF header"
     binary = binary(jfif)
     :ok = IO.binwrite(io_device, binary)
   end

@@ -32,7 +32,7 @@ defmodule Exiffer.Header.APP4 do
   end
 
   def write(%__MODULE__{} = data, io_device) do
-    Logger.info "APP4"
+    Logger.debug "Writing APP4 header"
     binary = binary(data)
     :ok = IO.binwrite(io_device, binary)
   end

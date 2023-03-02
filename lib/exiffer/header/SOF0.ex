@@ -74,7 +74,7 @@ defmodule Exiffer.Header.SOF0 do
   end
 
   def write(sof0, io_device) do
-    Logger.debug "#{__MODULE__}.write/2"
+    Logger.debug "Writing SOF0 header"
     binary = binary(sof0)
     :ok = IO.binwrite(io_device, binary)
   end

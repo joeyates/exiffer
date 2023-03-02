@@ -37,7 +37,7 @@ defmodule Exiffer.Header.COM do
   end
 
   def write(%__MODULE__{} = com, io_device) do
-    Logger.debug "#{__MODULE__}.write/2"
+    Logger.debug "Writing COM header"
     binary = binary(com)
     :ok = IO.binwrite(io_device, binary)
   end

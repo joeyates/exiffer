@@ -15,6 +15,7 @@ defmodule Exiffer.CLI.Rewrite do
     level = Logger.level()
     Logger.configure(level: logger_level)
 
+    Logger.info "Exiffer.CLI.Rewrite.run/4"
     input = Buffer.new(source)
 
     {:ok, %GPS{} = gps} = GPS.parse(gps_text)

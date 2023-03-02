@@ -30,7 +30,7 @@ defmodule Exiffer.Header.APP1.EXIF do
     {ifd_block, buffer} = IFDBlock.new(buffer, offset)
     exif = %__MODULE__{byte_order: byte_order, ifd_block: ifd_block}
     exif_end = exif_start + length
-    Logger.debug "APP1.EXIF read completed, seeking to #{Integer.to_string(exif_end, 16)}"
+    Logger.debug "APP1.EXIF.new/1 read completed, seeking to 0x#{Integer.to_string(exif_end, 16)}"
     buffer = Buffer.seek(buffer, exif_end)
     Logger.debug "APP1.EXIF.new/1 - resetting byte order to previous value: :#{previous_byte_order}"
     Binary.set_byte_order(previous_byte_order)
@@ -72,6 +72,7 @@ defmodule Exiffer.Header.APP1.EXIF do
   end
 
   def write(%__MODULE__{} = exif, io_device) do
+    Logger.debug "Writing EXIF header"
     binary = binary(exif)
     :ok = IO.binwrite(io_device, binary)
   end

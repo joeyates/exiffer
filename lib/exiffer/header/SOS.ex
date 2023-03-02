@@ -22,7 +22,7 @@ defmodule Exiffer.Header.SOS do
   end
 
   def write(%__MODULE__{} = data, io_device) do
-    Logger.info "SOS"
+    Logger.debug "Writing SOS header"
     binary = binary(data)
     :ok = IO.binwrite(io_device, binary)
   end

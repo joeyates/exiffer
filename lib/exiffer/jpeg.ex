@@ -27,10 +27,12 @@ defmodule Exiffer.JPEG do
   end
 
   def binary(%__MODULE__{} = jpeg) do
+    Logger.info "Exiffer.JPEG creating binary"
     Exiffer.Serialize.binary(jpeg.headers)
   end
 
   def write(%__MODULE__{} = jpeg, io_device) do
+    Logger.info "Exiffer.JPEG writing binary"
     :ok = IO.binwrite(io_device, @magic)
     :ok = Exiffer.Serialize.write(jpeg.headers, io_device)
   end
@@ -38,43 +40,45 @@ defmodule Exiffer.JPEG do
   defp headers(buffer, headers)
 
   defp headers(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer, headers) do
+    Logger.debug "Reading SOF0 header at #{Integer.to_string(buffer.position, 16)}"
     {sof0, buffer} = SOF0.new(buffer)
     headers = Enum.reverse([sof0 | headers])
     {buffer, headers}
   end
 
   defp headers(%{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
+    Logger.debug "Reading SOS header at #{Integer.to_string(buffer.position, 16)}"
     {sos, buffer} = SOS.new(buffer)
     headers = Enum.reverse([sos | headers])
     {buffer, headers}
   end
 
   defp headers(%{data: <<0xff, 0xe0, _rest::binary>>} = buffer, headers) do
-    Logger.debug ~s(Header "JFIF" at #{Integer.to_string(buffer.position, 16)})
+    Logger.debug "Reading JFIF header at #{Integer.to_string(buffer.position, 16)}"
     {jfif, buffer} = JFIF.new(buffer)
     headers(buffer, [jfif | headers])
   end
 
   defp headers(%{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
-    Logger.debug ~s(Header "APP1" at #{Integer.to_string(buffer.position, 16)})
+    Logger.debug "Reading APP1 header at #{Integer.to_string(buffer.position, 16)}"
     {app1, buffer} = APP1.new(buffer)
     headers(buffer, [app1 | headers])
   end
 
   defp headers(%{data: <<0xff, 0xe4, _rest::binary>>} = buffer, headers) do
-    Logger.debug ~s(Header "APP4" at #{Integer.to_string(buffer.position, 16)})
+    Logger.debug "Reading APP4 header at #{Integer.to_string(buffer.position, 16)}"
     {app4, buffer} = APP4.new(buffer)
     headers(buffer, [app4 | headers])
   end
 
   defp headers(%{data: <<0xff, 0xfe, _rest::binary>>} = buffer, headers) do
-    Logger.debug ~s(Header "COM" at #{Integer.to_string(buffer.position, 16)})
+    Logger.debug "Reading COM header at #{Integer.to_string(buffer.position, 16)}"
     {comment, buffer} = COM.new(buffer)
     headers(buffer, [comment | headers])
   end
 
   defp headers(%{} = buffer, headers) do
-    Logger.debug ~s(Header Data at #{Integer.to_string(buffer.position, 16)})
+    Logger.debug "Reading generic data header at #{Integer.to_string(buffer.position, 16)}"
     {header, buffer} = Data.new(buffer)
     headers(buffer, [header | headers])
   end
