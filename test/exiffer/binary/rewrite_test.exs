@@ -26,33 +26,33 @@ defmodule Exiffer.Binary.RewriteTest do
   describe ".set_gps" do
     setup do
       {:ok, binary} = File.read("test/support/fixtures/exiffer_code.jpg")
-      gps_text = "1,2,3"
+      gps = %{longitude: 2, latitude: 1, altitude: 3}
 
-      [binary: binary, gps_text: gps_text]
+      [binary: binary, gps: gps]
     end
 
-    test "it returns a binary", %{binary: binary, gps_text: gps_text} do
-      result = Rewrite.set_gps(binary, gps_text)
+    test "it returns a binary", %{binary: binary, gps: gps} do
+      result = Rewrite.set_gps(binary, gps)
 
       assert is_binary(result)
     end
 
-    test "it sets the latitude", %{binary: binary, gps_text: gps_text} do
-      result = Rewrite.set_gps(binary, gps_text)
+    test "it sets the latitude", %{binary: binary, gps: gps} do
+      result = Rewrite.set_gps(binary, gps)
 
       latitude = extract(result, :gps_latitude)
       assert latitude.value == [{1, 1}, {0, 1}, {0, 1000000}]
     end
 
-    test "it sets the longitude", %{binary: binary, gps_text: gps_text} do
-      result = Rewrite.set_gps(binary, gps_text)
+    test "it sets the longitude", %{binary: binary, gps: gps} do
+      result = Rewrite.set_gps(binary, gps)
 
       longitude = extract(result, :gps_longitude)
       assert longitude.value == [{2, 1}, {0, 1}, {0, 1000000}]
     end
 
-    test "it sets the altitude", %{binary: binary, gps_text: gps_text} do
-      result = Rewrite.set_gps(binary, gps_text)
+    test "it sets the altitude", %{binary: binary, gps: gps} do
+      result = Rewrite.set_gps(binary, gps)
 
       longitude = extract(result, :gps_altitude)
       assert longitude.value == {3, 1}

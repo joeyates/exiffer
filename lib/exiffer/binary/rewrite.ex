@@ -6,10 +6,10 @@ defmodule Exiffer.Binary.Rewrite do
   alias Exiffer.Binary.Buffer
   alias Exiffer.{GPS, JPEG, Rewrite}
 
-  def set_gps(source, gps_text) when is_binary(source) do
+  def set_gps(source, %{longitude: longitude, latitude: latitude, altitude: altitude}) when is_binary(source) do
     input = Buffer.new(source)
 
-    %GPS{} = gps = GPS.parse!(gps_text)
+    gps = %GPS{longitude: longitude, latitude: latitude, altitude: altitude}
 
     {:ok, metadata, input} = Rewrite.set_gps(input, gps)
 
