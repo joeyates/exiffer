@@ -7,7 +7,6 @@ defmodule Exiffer.Rewrite do
   alias Exiffer.Header.APP1.EXIF
 
   def set_gps(%{} = input, gps) do
-    entry = build_entry(gps)
 
     {image, remainder} = Exiffer.parse(input)
 
@@ -17,6 +16,7 @@ defmodule Exiffer.Rewrite do
       [blank_exif() | image.headers]
     end
 
+    entry = build_entry(gps)
     {:ok, metadata} = apply_gps(metadata, entry)
 
     {:ok, metadata, remainder}
