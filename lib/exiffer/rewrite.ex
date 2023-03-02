@@ -3,10 +3,8 @@ defmodule Exiffer.Rewrite do
   Rewrite an image file, adding and removing arbitrary metadata
   """
 
-  alias Exiffer.Entry
+  alias Exiffer.{Entry, IFD, IFDBlock}
   alias Exiffer.Header.APP1.EXIF
-  alias Exiffer.IFD
-  alias Exiffer.IFDBlock
 
   def set_gps(%{} = input, gps) do
     entry = build_entry(gps)

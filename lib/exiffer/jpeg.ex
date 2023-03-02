@@ -4,13 +4,7 @@ defmodule Exiffer.JPEG do
   """
 
   alias Exiffer.{Binary, Buffer}
-  alias Exiffer.Header.APP1
-  alias Exiffer.Header.APP4
-  alias Exiffer.Header.COM
-  alias Exiffer.Header.Data
-  alias Exiffer.Header.JFIF
-  alias Exiffer.Header.SOF0
-  alias Exiffer.Header.SOS
+  alias Exiffer.Header.{APP1, APP4, COM, Data, JFIF, SOF0, SOS}
   require Logger
 
   @enforce_keys ~w(headers)a
