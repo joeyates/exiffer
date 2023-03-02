@@ -35,7 +35,7 @@ defmodule Exiffer.Rewrite do
 
   defp build_entry(gps) do
     latitude_ref = if gps.latitude >= 0, do: "N", else: "S"
-    longitude_ref = if gps.longitude >= 0, do: "W", else: "E"
+    longitude_ref = if gps.longitude >= 0, do: "E", else: "W"
     latitude = gps.latitude |> float_to_dms() |> dms_to_rational()
     longitude = gps.longitude |> float_to_dms() |> dms_to_rational()
     altitude = floor(gps.altitude)
