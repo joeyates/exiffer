@@ -329,11 +329,11 @@ defmodule Exiffer.Entry do
   end
 
   defp data(%__MODULE__{type: :maker_notes, value: %MakerNotes{} = value}, end_of_block) do
-    file_byte_order = Binary.byte_order()
+    previous_byte_order = Binary.byte_order()
     Binary.set_byte_order(:little)
     ifd_end = byte_size(value.header)
     binary = IFD.binary(value.ifd, ifd_end)
-    Binary.set_byte_order(file_byte_order)
+    Binary.set_byte_order(previous_byte_order)
     extra = <<value.header::binary, binary::binary>>
     size = byte_size(extra)
     value = Binary.int32u_to_current(end_of_block)

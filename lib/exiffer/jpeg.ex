@@ -22,6 +22,7 @@ defmodule Exiffer.JPEG do
 
   def new(%{data: <<@magic, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
+    Logger.debug "JPEG.new/1 - setting initial byte order to :big"
     Binary.set_byte_order(:big)
     {%{} = buffer, headers} = headers(buffer, [])
     {%__MODULE__{headers: headers}, buffer}

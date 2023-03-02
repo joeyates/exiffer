@@ -3,7 +3,7 @@ defmodule Exiffer.CLI.Rewrite do
   Documentation for `Exiffer.CLI.Rewrite`.
   """
 
-  alias Exiffer.{GPS, JPEG, Rewrite}
+  alias Exiffer.{Binary, GPS, JPEG, Rewrite}
   alias Exiffer.IO.{Buffer}
   require Logger
 
@@ -20,6 +20,9 @@ defmodule Exiffer.CLI.Rewrite do
     %GPS{} = gps = GPS.parse(gps_text)
 
     {:ok, metadata, input} = Rewrite.set_gps(input, gps)
+
+    Logger.debug "Setting initial byte order to :big"
+    Binary.set_byte_order(:big)
 
     output = Buffer.new(destination, direction: :write)
     Buffer.write(output, JPEG.magic())
