@@ -23,7 +23,7 @@ defmodule Exiffer.Rewrite do
   end
 
   defp has_exif?(headers) do
-    Enum.any?(headers, fn header -> header.__struct__ == Exif end)
+    Enum.any?(headers, fn header -> header.__struct__ == EXIF end)
   end
 
   defp blank_exif do
