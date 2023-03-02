@@ -10,7 +10,8 @@ defmodule Exiffer.Rewrite do
 
     {image, remainder} = Exiffer.parse(input)
 
-    metadata = if has_exif?(image.headers) do
+    has_exif = has_exif?(image.headers)
+    metadata = if has_exif do
       image.headers
     else
       [blank_exif() | image.headers]
