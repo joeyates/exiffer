@@ -31,6 +31,7 @@ defmodule Exiffer.JPEG do
   end
 
   def write(%__MODULE__{} = jpeg, io_device) do
+    :ok = IO.binwrite(io_device, @magic)
     :ok = Exiffer.Serialize.write(jpeg.headers, io_device)
   end
 
