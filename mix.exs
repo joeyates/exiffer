@@ -6,7 +6,7 @@ defmodule Exiffer.MixProject do
   def project do
     [
       app: @app,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.14",
       description: "Read and update image metadata",
       package: package(),
