@@ -10,7 +10,7 @@ Currently, only handles JPEGs.
 
 # Build
 
-Create a (reasonable) portable Linux build:
+Create a (reasonably) portable Linux build:
 
 ```sh
 podman build --file docker/bakeware-linux-build.Dockerfile --tag exiffer:latest .
