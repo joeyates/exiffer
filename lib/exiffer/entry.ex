@@ -452,14 +452,12 @@ defmodule Exiffer.Entry do
         notes_buffer =
           Buffer.offset_buffer(buffer.buffer, notes_offset)
           |> Buffer.seek(0)
-        Logger.debug("Skipping first 12 bytes of maker notes")
-        {header, notes_buffer} = Buffer.consume(notes_buffer, 12)
         # Temporarily set process-local byte order
         Binary.set_byte_order(:little)
         Logger.debug("Reading maker notes IFD")
         {:ok, ifd, buffer} = IFD.read(notes_buffer)
         _buffer = Buffer.seek(buffer, position)
-        %MakerNotes{header: header, ifd: ifd}
+        %MakerNotes{ifd: ifd}
       rescue _e ->
         Logger.debug("Maker notes are not an IFD, falling back to reading as raw bytes")
         Buffer.random(buffer, offset, length)
