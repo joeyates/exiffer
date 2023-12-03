@@ -5,7 +5,7 @@ defmodule Exiffer.Entry do
 
   alias Exiffer.{Binary, Buffer, IFD}
   alias Exiffer.Entry.MakerNotes
-  import Exiffer.Logging, only: [integer: 1]
+  import Exiffer.Logging, only: [integer: 1, pair: 1]
   require Logger
 
   @enforce_keys ~w(type format magic label value)a
@@ -179,9 +179,11 @@ defmodule Exiffer.Entry do
     entry_type_map = @entry_type_map[override]
     {magic, buffer} = Buffer.consume(buffer, 2)
     big_endian_magic = Binary.big_endian(magic)
+    Logger.debug("Found entry magic #{pair(big_endian_magic)}")
     entry_table = @entry_info_map[override]
     {format_magic, buffer} = Buffer.consume(buffer, 2)
     big_endian_format_magic = Binary.big_endian(format_magic)
+    Logger.debug("Found format magic #{pair(big_endian_format_magic)}")
     with {:ok, format_type} <- format_type(big_endian_format_magic),
          entry_type <- entry_type_map[big_endian_magic] do
       Logger.debug("Found entry type '#{entry_type}' and format #{format_type}")
@@ -189,9 +191,9 @@ defmodule Exiffer.Entry do
         case entry_type do
           nil ->
             offset = buffer.offset
-            Logger.warning "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at #{integer(position)}, offset #{Integer.to_string(offset, 16)}"
+            Logger.warning "Unknown IFD entry magic #{pair(big_endian_magic)} (big endian) found at #{integer(position)}, (offset #{integer(offset + position)}"
             value = value(:unknown, format_type, buffer)
-            label = "Unknown entry tag 0x#{Integer.to_string(:binary.first(big_endian_magic), 16)} 0x#{Integer.to_string(:binary.last(big_endian_magic), 16)}"
+            label = "Unknown entry tag #{pair(big_endian_magic)}"
             %__MODULE__{type: :unknown, format: format_type, value: value, label: label, magic: big_endian_magic}
           entry_type ->
             info = entry_table[entry_type]
