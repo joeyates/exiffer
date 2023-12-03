@@ -3,9 +3,9 @@ defmodule Exiffer.IFD do
   Documentation for `Exiffer.IFD`.
   """
 
-  alias Exiffer.{Binary, Buffer, Entry}
   require Logger
 
+  alias Exiffer.{Binary, Buffer, Entry}
   import Exiffer.Logging, only: [integer: 1]
 
   @enforce_keys ~w(entries)a
