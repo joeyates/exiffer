@@ -10,6 +10,7 @@ defmodule Exiffer.Header.APP1.EXIF do
   @exif_header "Exif\0\0"
   @tiff_header_marker <<0x00, 0x2a>>
   @big_endian_marker "MM"
+  @little_endian_marker "II"
 
   @enforce_keys ~w(byte_order ifd_block)a
   defstruct ~w(byte_order ifd_block)a
@@ -19,8 +20,13 @@ defmodule Exiffer.Header.APP1.EXIF do
     buffer = Buffer.skip(buffer, 2 + String.length(@exif_header))
     length = Binary.big_endian_to_integer(length_bytes)
     {byte_order_marker, buffer} = Buffer.consume(buffer, 2)
-    byte_order = if byte_order_marker == @big_endian_marker, do: :big, else: :little
-    Logger.debug "APP1.EXIF.new/1 - setting byte order to :#{byte_order}"
+    Logger.debug("EXIF.new - byte order marker: #{byte_order_marker}")
+    byte_order = case byte_order_marker do
+       @big_endian_marker -> :big
+       @little_endian_marker -> :little
+       _ -> raise "Unknown byte order marker: #{byte_order_marker}"
+    end
+    Logger.debug "EXIF.new - setting byte order to :#{byte_order}"
     previous_byte_order = Binary.byte_order()
     Binary.set_byte_order(byte_order)
     tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
@@ -32,7 +38,7 @@ defmodule Exiffer.Header.APP1.EXIF do
     exif_end = exif_start + length
     Logger.debug "APP1.EXIF.new/1 read completed, seeking to 0x#{Integer.to_string(exif_end, 16)}"
     buffer = Buffer.seek(buffer, exif_end)
-    Logger.debug "APP1.EXIF.new/1 - resetting byte order to previous value: :#{previous_byte_order}"
+    Logger.debug "EXIF.new - resetting byte order to previous value: :#{previous_byte_order}"
     Binary.set_byte_order(previous_byte_order)
     {exif, buffer}
   end
