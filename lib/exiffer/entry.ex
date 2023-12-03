@@ -443,7 +443,7 @@ defmodule Exiffer.Entry do
     ifd
   end
 
-  defp value(type, :int32u, %{} = buffer) when type == :interop_offset do
+  defp value(:interop_offset, :int32u, %{} = buffer) do
     <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     offset = Binary.to_integer(offset_binary)
     read_ifd(buffer, offset, override: :interop)
