@@ -55,7 +55,7 @@ defmodule Exiffer.JPEG do
     {buffer, headers}
   end
 
-  defp headers(%{data: <<0xff, 0xe0, _rest::binary>>} = buffer, headers) do
+  defp headers(%{data: <<0xff, 0xe0, _length::binary-size(2), "JFIF", 0x00, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading JFIF header at #{integer(buffer.position)}"
     {jfif, buffer} = JFIF.new(buffer)
     headers(buffer, [jfif | headers])

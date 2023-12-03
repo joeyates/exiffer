@@ -19,9 +19,8 @@ defmodule Exiffer.Header.JFIF do
     thumbnail
   )a
 
-  def new(%{data: <<0xff, 0xe0, _rest::binary>>} = buffer) do
-    buffer = Buffer.skip(buffer, 2)
-    {<<_length_binary::binary-size(2), "JFIF", 0x00>>, buffer} = Buffer.consume(buffer, 7)
+  def new(%{data: <<0xff, 0xe0, _length_binary::binary-size(2), "JFIF", 0x00, _rest::binary>>} = buffer) do
+    buffer = Buffer.skip(buffer, 9)
     {<<version::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)
     {<<resolution_units::binary-size(1), x_resolution::binary-size(2), y_resolution::binary-size(2)>>, buffer} = Buffer.consume(buffer, 5)
     {<<thumbnail_width, thumbnail_height>>, buffer} = Buffer.consume(buffer, 2)
