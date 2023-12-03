@@ -19,6 +19,7 @@ defmodule Exiffer.Header.APP1.EXIF do
     exif_start = Buffer.tell(buffer)
     buffer = Buffer.skip(buffer, 2 + String.length(@exif_header))
     length = Binary.big_endian_to_integer(length_bytes)
+    Logger.debug("APP1 - length: #{length}")
     {byte_order_marker, buffer} = Buffer.consume(buffer, 2)
     Logger.debug("EXIF.new - byte order marker: #{byte_order_marker}")
     byte_order = case byte_order_marker do
