@@ -158,18 +158,34 @@ defmodule Exiffer.Entry do
     related_image_height: %{type: :related_image_height, magic: <<0x10, 0x02>>, formats: [:int16u], label: "Related Image Height"}
   }
 
+  @maker_notes_entry_info %{
+    maker_note_version: %{type: :maker_note_version, magic: <<0x00, 0x01>>, formats: [:raw_bytes], label: "Maker Note Version"},
+    device_type: %{type: :device_type, magic: <<0x00, 0x02>>, formats: [:int32u], label: "Device Type"},
+    raw_data_byte_order: %{type: :raw_data_byte_order, magic: <<0x00, 0x40>>, formats: [:int32u], label: "Raw Data Byte Order"},
+    raw_data_cfa_pattern: %{type: :raw_data_cfa_pattern, magic: <<0x00, 0x50>>, formats: [:int32u], label: "Raw Data CFA Pattern"},
+    face_detect: %{type: :face_detect, magic: <<0x01, 0x00>>, formats: [:int16u], label: "Face Detect"},
+  }
+
   @entry_info_map %{
     nil: @entry_info,
-    interop: @interop_entry_info
+    interop: @interop_entry_info,
+    maker_notes: @maker_notes_entry_info
   }
 
   # Map magic numbers to entry types
   @entry_type Enum.into(@entry_info, %{}, fn {type, %{magic: magic}} -> {magic, type} end)
   @interop_entry_type Enum.into(@interop_entry_info, %{}, fn {type, %{magic: magic}} -> {magic, type} end)
+  @maker_notes_entry_type Enum.into(@maker_notes_entry_info, %{}, fn {type, %{magic: magic}} -> {magic, type} end)
 
   @entry_type_map %{
     nil: @entry_type,
-    interop: @interop_entry_type
+    interop: @interop_entry_type,
+    maker_notes: @maker_notes_entry_type
+  }
+
+  @override %{
+    interop_offset: :interop,
+    maker_notes: :maker_notes
   }
 
   def new(%{} = buffer, opts \\ []) do
@@ -249,7 +265,8 @@ defmodule Exiffer.Entry do
     size_binary = Binary.int32u_to_current(1)
     value = Binary.int32u_to_current(end_of_block)
     header = <<magic_binary::binary, format_binary::binary, size_binary::binary, value::binary>>
-    opts = if type == :interop_offset, do: [override: :interop], else: []
+    override = @override[type]
+    opts = if override, do: [override: override], else: []
     extra = IFD.binary(entry.value, end_of_block, opts)
     {header, extra}
   end
@@ -455,7 +472,7 @@ defmodule Exiffer.Entry do
         # Temporarily set process-local byte order
         Binary.set_byte_order(:little)
         Logger.debug("Reading maker notes IFD")
-        {:ok, ifd, buffer} = IFD.read(notes_buffer)
+        {:ok, ifd, buffer} = IFD.read(notes_buffer, override: :maker_notes)
         _buffer = Buffer.seek(buffer, position)
         %MakerNotes{ifd: ifd}
       rescue _e ->
