@@ -111,6 +111,7 @@ defmodule Exiffer.Entry do
     brightness_value: %{type: :brightness_value, magic: <<0x92, 0x03>>, formats: [:rational_64s], label: "Brightness Value"},
     exposure_compensation: %{type: :exposure_compensation, magic: <<0x92, 0x04>>, formats: [:rational_64s], label: "Exposure Compensation"},
     max_aperture_value: %{type: :max_aperture_value, magic: <<0x92, 0x05>>, formats: [:rational_64u], label: "Max Aperture Value"},
+    subject_distance: %{type: :subject_distance, magic: <<0x92, 0x06>>, formats: [:rational_64u], label: "Subject Distance"},
     metering_mode: %{type: :metering_mode, magic: <<0x92, 0x07>>, formats: [:int16u], label: "Metering Mode"},
     light_source: %{type: :light_source, magic: <<0x92, 0x08>>, formats: [:int16u], label: "Light Source"},
     flash: %{type: :flash, magic: <<0x92, 0x09>>, formats: [:int16u], label: "Flash"},
