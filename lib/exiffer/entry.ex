@@ -119,6 +119,8 @@ defmodule Exiffer.Entry do
     maker_notes: %{type: :maker_notes, magic: <<0x92, 0x7c>>, formats: [:int8u, :raw_bytes, :string], label: "Maker Notes"},
     user_comment: %{type: :user_comment, magic: <<0x92, 0x86>>, formats: [:string, :raw_bytes], label: "User Comment"},
     sub_sec_time: %{type: :sub_sec_time, magic: <<0x92, 0x90>>, formats: [:string], label: "Sub Sec Time"},
+    sub_sec_time_original: %{type: :sub_sec_time_original, magic: <<0x92, 0x91>>, formats: [:string], label: "Sub Sec Time Original"},
+    sub_sec_time_digitized: %{type: :sub_sec_time_digitized, magic: <<0x92, 0x92>>, formats: [:string], label: "Sub Sec Time Digitized"},
     flashpix_version: %{type: :flashpix_version, magic: <<0xa0, 0x00>>, formats: [:raw_bytes], label: "Flashpix Version"},
     color_space: %{type: :color_space, magic: <<0xa0, 0x01>>, formats: [:int16u], label: "Color Space"},
     exif_image_width: %{type: :exif_image_width, magic: <<0xa0, 0x02>>, formats: [:int16u, :int32u, :int32s], label: "Exif Image Width"},
