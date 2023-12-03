@@ -3,9 +3,11 @@ defmodule Exiffer.Header.APP1.EXIF do
   Documentation for `Exiffer.Header.APP1.EXIF`.
   """
 
+  require Logger
+
   alias Exiffer.{Binary, Buffer}
   alias Exiffer.IFDBlock
-  require Logger
+  import Exiffer.Logging, only: [integer: 1]
 
   @exif_header "Exif\0\0"
   @tiff_header_marker <<0x00, 0x2a>>
@@ -37,7 +39,7 @@ defmodule Exiffer.Header.APP1.EXIF do
     {ifd_block, buffer} = IFDBlock.new(buffer, offset)
     exif = %__MODULE__{byte_order: byte_order, ifd_block: ifd_block}
     exif_end = exif_start + length
-    Logger.debug "APP1.EXIF.new/1 read completed, seeking to 0x#{Integer.to_string(exif_end, 16)}"
+    Logger.debug "APP1 read completed, seeking to #{integer(exif_end)}"
     buffer = Buffer.seek(buffer, exif_end)
     Logger.debug "EXIF.new - resetting byte order to previous value: :#{previous_byte_order}"
     Binary.set_byte_order(previous_byte_order)

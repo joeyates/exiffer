@@ -3,9 +3,11 @@ defmodule Exiffer.JPEG do
   Documentation for `Exiffer.JPEG`.
   """
 
+  require Logger
+
   alias Exiffer.{Binary, Buffer}
   alias Exiffer.Header.{APP1, APP4, COM, Data, JFIF, SOF0, SOS}
-  require Logger
+  import Exiffer.Logging, only: [integer: 1]
 
   @enforce_keys ~w(headers)a
   defstruct ~w(headers)a
@@ -54,7 +56,7 @@ defmodule Exiffer.JPEG do
   end
 
   defp headers(%{data: <<0xff, 0xe0, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading JFIF header at #{Integer.to_string(buffer.position, 16)}"
+    Logger.debug "Reading JFIF header at #{integer(buffer.position)}"
     {jfif, buffer} = JFIF.new(buffer)
     headers(buffer, [jfif | headers])
   end
