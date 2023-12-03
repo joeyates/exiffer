@@ -1,34 +1,41 @@
 defmodule Exiffer.CLI do
-  use Bakeware.Script
+  # bakeware is declared as an optional dependency in `mix.exs`.
+  # This allows use of exiffer **without** including bakeware.
+  # Here, we skip any use of Bakeware if it is not present.
+  quote do
+    if function_exported?(Bakeware.Script, :__info__, 1) do
+      use Bakeware.Script
 
-  @impl Bakeware.Script
-  def main([]) do
-    IO.puts(:stderr, "Please supply a command")
-    list_top_level_commands()
-    1
-  end
+      @impl Bakeware.Script
+      def main([]) do
+        IO.puts(:stderr, "Please supply a command")
+        list_top_level_commands()
+        1
+      end
 
-  def main(["help" | _args]) do
-    list_top_level_commands()
-    0
-  end
+      def main(["help" | _args]) do
+        list_top_level_commands()
+        0
+      end
 
-  def main(["read", filename]) do
-    Exiffer.CLI.Read.run(filename)
-    0
-  end
+      def main(["read", filename]) do
+        Exiffer.CLI.Read.run(filename)
+        0
+      end
 
-  def main(["rewrite", source, destination, gps]) do
-    Exiffer.CLI.Rewrite.run(source, destination, gps)
-    0
-  end
+      def main(["rewrite", source, destination, gps]) do
+        Exiffer.CLI.Rewrite.run(source, destination, gps)
+        0
+      end
 
-  def main(args) do
-    IO.puts(:stderr, "Unknown command: '#{Enum.join(args, " ")}'")
-    1
-  end
+      def main(args) do
+        IO.puts(:stderr, "Unknown command: '#{Enum.join(args, " ")}'")
+        1
+      end
 
-  defp list_top_level_commands do
-    IO.puts("exiffer read|rewrite")
+      defp list_top_level_commands do
+        IO.puts("exiffer read|rewrite")
+      end
+    end
   end
 end
