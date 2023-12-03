@@ -173,6 +173,8 @@ defmodule Exiffer.Entry do
   }
 
   def new(%{} = buffer, opts \\ []) do
+    position = Buffer.tell(buffer)
+    Logger.debug("Reading IFD Entry at #{integer(position)}")
     override = Keyword.get(opts, :override)
     entry_type_map = @entry_type_map[override]
     {magic, buffer} = Buffer.consume(buffer, 2)
@@ -185,19 +187,17 @@ defmodule Exiffer.Entry do
       entry =
         case entry_type do
           nil ->
-            position = Buffer.tell(buffer) - 4
             offset = buffer.offset
-            Logger.warning "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+            Logger.warning "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at #{integer(position)}, offset #{Integer.to_string(offset, 16)}"
             value = value(:unknown, format_type, buffer)
             label = "Unknown entry tag 0x#{Integer.to_string(:binary.first(big_endian_magic), 16)} 0x#{Integer.to_string(:binary.last(big_endian_magic), 16)}"
             %__MODULE__{type: :unknown, format: format_type, value: value, label: label, magic: big_endian_magic}
           entry_type ->
             info = entry_table[entry_type]
             if format_type not in info.formats do
-              position = Buffer.tell(buffer) - 4
               offset = buffer.offset
               expected = Enum.map(info.formats, &(@format[&1].name)) |> Enum.join(" or ")
-              Logger.warning "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+              Logger.warning "'#{info.label}' Entry, found format #{format_type} expected to be #{expected}, at #{integer(position)}, (offset #{integer(offset + position)})"
             end
             value = value(info.type, format_type, buffer)
             %__MODULE__{type: info.type, format: format_type, value: value, label: info.label, magic: big_endian_magic}
@@ -430,20 +430,18 @@ defmodule Exiffer.Entry do
   end
 
   defp value(:maker_notes, :raw_bytes, %{} = buffer) do
-    Logger.debug "Reading maker notes"
     position = Buffer.tell(buffer)
+    Logger.debug "Reading maker notes at #{integer(position)}"
     <<length_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
+    # Maker notes have their own offset into the file
     offset = Binary.to_integer(offset_binary)
-    Logger.debug "Maker notes relative offset: #{integer(offset)}"
+    notes_offset = buffer.offset + offset
+    Logger.debug("Maker notes offset: #{integer(offset)} (absolute #{integer(notes_offset)})")
     length = Binary.to_integer(length_binary)
     Logger.debug("Maker notes length: #{integer(length)}")
     # See if the maker notes are a parsable IFD
     file_byte_order = Binary.byte_order()
     try do
-      # Maker notes have their own offset into the file
-      Logger.debug("Current offset #{integer(buffer.offset)}")
-      notes_offset = buffer.offset + offset
-      Logger.debug("Maker notes offset: #{integer(notes_offset)}")
       notes_buffer =
         Buffer.offset_buffer(buffer.buffer, notes_offset)
         |> Buffer.seek(0)

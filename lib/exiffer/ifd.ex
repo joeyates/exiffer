@@ -16,11 +16,13 @@ defmodule Exiffer.IFD do
     entry_count = Binary.to_integer(entry_count_bytes)
     Logger.debug "IFD reading #{integer(entry_count)} entries"
     {entries, buffer} = read_entry(buffer, entry_count, [], opts)
+    Logger.debug("IFD read #{length(entries)} entries")
     ifd = %__MODULE__{entries: Enum.reverse(entries)}
     read_entries = length(entries)
     if read_entries == entry_count do
       {:ok, ifd, buffer}
     else
+      Logger.debug("IFD.read returning error as #{read_entries} entries were found, expected #{entry_count}")
       {:error, ifd, buffer}
     end
   end
@@ -93,6 +95,7 @@ defmodule Exiffer.IFD do
   end
 
   defp read_entry(buffer, 0, entries, _opts) do
+    Logger.debug("Loading thumbnail, if specified")
     load_thumbnail(buffer, entries)
   end
 
@@ -100,11 +103,12 @@ defmodule Exiffer.IFD do
     nth = length(entries)
     position = Buffer.tell(buffer)
     offset = buffer.offset
+    Logger.debug "Reading Entry #{nth} at buffer position #{integer(position)}, (absolute #{integer(offset + position)})"
     {entry, buffer} = Entry.new(buffer, opts)
     if entry do
       format = Entry.format_name(entry)
       content = Entry.text(entry)
-      Logger.debug "Reading Entry #{nth}, #{format} at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}, value: #{inspect(content)}"
+      Logger.debug "#{format} Entry #{nth} read: #{inspect(content)}"
 
       read_entry(buffer, count - 1, [entry | entries], opts)
     else
