@@ -97,17 +97,18 @@ defmodule Exiffer.IFD do
   end
 
   defp read_entry(%{} = buffer, count, entries, opts) do
+    nth = length(entries)
     position = Buffer.tell(buffer)
     offset = buffer.offset
     {entry, buffer} = Entry.new(buffer, opts)
     if entry do
       format = Entry.format_name(entry)
       content = Entry.text(entry)
-      Logger.debug "Reading Entry #{count}, #{format} at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}, value: #{inspect(content)}"
+      Logger.debug "Reading Entry #{nth}, #{format} at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}, value: #{inspect(content)}"
 
       read_entry(buffer, count - 1, [entry | entries], opts)
     else
-      Logger.debug "Entry #{count} not read"
+      Logger.debug "Entry #{nth} not read"
       read_entry(buffer, 0, entries, opts)
     end
   end
