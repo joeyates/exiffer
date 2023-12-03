@@ -355,13 +355,11 @@ defmodule Exiffer.Entry do
   defp data(%__MODULE__{type: :maker_notes, value: %MakerNotes{} = value}, end_of_block) do
     previous_byte_order = Binary.byte_order()
     Binary.set_byte_order(:little)
-    ifd_end = byte_size(value.header)
-    binary = IFD.binary(value.ifd, ifd_end)
+    binary = IFD.binary(value.ifd, 0)
     Binary.set_byte_order(previous_byte_order)
-    extra = <<value.header::binary, binary::binary>>
-    size = byte_size(extra)
+    size = byte_size(binary)
     value = Binary.int32u_to_current(end_of_block)
-    {size, value, extra}
+    {size, value, binary}
   end
 
   defp data(%__MODULE__{type: :thumbnail_offset} = entry, end_of_block) do

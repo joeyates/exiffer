@@ -4,5 +4,5 @@ defmodule Exiffer.Entry.MakerNotes do
   """
 
   @enforce_keys ~w(ifd)a
-  defstruct ~w(header ifd)a
+  defstruct ~w(ifd)a
 end
