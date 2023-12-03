@@ -428,25 +428,33 @@ defmodule Exiffer.Entry do
   end
 
   defp value(:maker_notes, :raw_bytes, %{} = buffer) do
+    Logger.debug "Reading maker notes"
     position = Buffer.tell(buffer)
     <<length_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> = buffer.buffer.data
     offset = Binary.to_integer(offset_binary)
+    Logger.debug "Maker notes relative offset: #{integer(offset)}"
+    length = Binary.to_integer(length_binary)
+    Logger.debug("Maker notes length: #{integer(length)}")
     # See if the maker notes are a parsable IFD
     file_byte_order = Binary.byte_order()
     try do
       # Maker notes have their own offset into the file
+      Logger.debug("Current offset #{integer(buffer.offset)}")
       notes_offset = buffer.offset + offset
+      Logger.debug("Maker notes offset: #{integer(notes_offset)}")
       notes_buffer =
         Buffer.offset_buffer(buffer.buffer, notes_offset)
         |> Buffer.seek(0)
+      Logger.debug("Skipping first 12 bytes of maker notes")
       {header, notes_buffer} = Buffer.consume(notes_buffer, 12)
       # Temporarily set process-local byte order
       Binary.set_byte_order(:little)
+      Logger.debug("Reading maker notes IFD")
       {:ok, ifd, buffer} = IFD.read(notes_buffer)
       _buffer = Buffer.seek(buffer, position)
       %MakerNotes{header: header, ifd: ifd}
     rescue _e ->
-      length = Binary.to_integer(length_binary)
+      Logger.debug("Maker notes are not an IFD, falling back to reading as raw bytes")
       Buffer.random(buffer, offset, length)
     end
     Binary.set_byte_order(file_byte_order)
