@@ -3,6 +3,8 @@ defmodule Exiffer.Header.APP1 do
   Documentation for `Exiffer.Header.APP1`.
   """
 
+  require Logger
+
   alias Exiffer.Buffer
   alias Exiffer.Header.APP1.{EXIF, XMP}
 
@@ -13,6 +15,7 @@ defmodule Exiffer.Header.APP1 do
     buffer = Buffer.skip(buffer, 2)
     cond do
       Buffer.random(buffer, buffer.position + 2, String.length(@exif_header)) == @exif_header ->
+        Logger.debug("APP1 - found EXIF header")
         EXIF.new(buffer)
       Buffer.random(buffer, buffer.position + 2, String.length(@adobe_xmp_header)) == @adobe_xmp_header ->
         XMP.new(buffer)
