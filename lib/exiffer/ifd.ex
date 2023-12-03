@@ -6,13 +6,15 @@ defmodule Exiffer.IFD do
   alias Exiffer.{Binary, Buffer, Entry}
   require Logger
 
+  import Exiffer.Logging, only: [integer: 1]
+
   @enforce_keys ~w(entries)a
   defstruct ~w(entries)a
 
   def read(%{} = buffer, opts \\ []) do
     {entry_count_bytes, buffer} = Buffer.consume(buffer, 2)
     entry_count = Binary.to_integer(entry_count_bytes)
-    Logger.debug "IFD reading #{entry_count} entries"
+    Logger.debug "IFD reading #{integer(entry_count)} entries"
     {entries, buffer} = read_entry(buffer, entry_count, [], opts)
     ifd = %__MODULE__{entries: Enum.reverse(entries)}
     read_entries = length(entries)

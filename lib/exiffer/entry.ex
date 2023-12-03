@@ -5,6 +5,7 @@ defmodule Exiffer.Entry do
 
   alias Exiffer.{Binary, Buffer, IFD}
   alias Exiffer.Entry.MakerNotes
+  import Exiffer.Logging, only: [integer: 1]
   require Logger
 
   @enforce_keys ~w(type format magic label value)a
