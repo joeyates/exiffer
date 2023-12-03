@@ -18,9 +18,9 @@ defmodule Exiffer.Binary.Rewrite do
     <<_before::binary-size(input.position), rest::binary-size(remainder)>> = input.original
 
     <<
-      JPEG.magic()::binary(),
-      header_binary::binary(),
-      rest::binary()
+      JPEG.magic()::binary,
+      header_binary::binary,
+      rest::binary
     >>
   end
 end

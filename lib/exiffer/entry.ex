@@ -183,7 +183,7 @@ defmodule Exiffer.Entry do
           nil ->
             position = Buffer.tell(buffer) - 4
             offset = buffer.offset
-            Logger.warn "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+            Logger.warning "Unknown IFD entry magic #{inspect(big_endian_magic, [base: :hex])} (big endian) found at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
             value = value(:unknown, format_type, buffer)
             label = "Unknown entry tag 0x#{Integer.to_string(:binary.first(big_endian_magic), 16)} 0x#{Integer.to_string(:binary.last(big_endian_magic), 16)}"
             %__MODULE__{type: :unknown, format: format_type, value: value, label: label, magic: big_endian_magic}
@@ -193,7 +193,7 @@ defmodule Exiffer.Entry do
               position = Buffer.tell(buffer) - 4
               offset = buffer.offset
               expected = Enum.map(info.formats, &(@format[&1].name)) |> Enum.join(" or ")
-              Logger.warn "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+              Logger.warning "#{info.label} Entry, found format #{format_type} expected to be #{expected}, at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
             end
             value = value(info.type, format_type, buffer)
             %__MODULE__{type: info.type, format: format_type, value: value, label: info.label, magic: big_endian_magic}
