@@ -403,10 +403,13 @@ defmodule Exiffer.Entry do
     |> Enum.join(", ")
   end
 
-  defp rational64u_to_string(value) do
-    {numerator, denominator} = value
-    value = numerator / denominator
-    Float.to_string(value)
+  defp rational64u_to_string({_, 0}) do
+    "nil"
+  end
+
+  defp rational64u_to_string({numerator, denominator}) do
+    (numerator / denominator)
+    |> Float.to_string()
   end
 
   defp read_ifd(%{} = buffer, offset, opts \\ []) do
