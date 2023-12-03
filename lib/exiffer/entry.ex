@@ -368,6 +368,11 @@ defmodule Exiffer.Entry do
     {1, value, extra}
   end
 
+  defp data(%__MODULE__{format: :int8u} = entry, _end_of_block) do
+    value = <<entry.value, 0x00, 0x00, 0x00>>
+    {1, value, <<>>}
+  end
+
   defp data(%__MODULE__{format: :int16u} = entry, _end_of_block) do
     value = <<Binary.int16u_to_current(entry.value)::binary, 0x00, 0x00>>
     {1, value, <<>>}
