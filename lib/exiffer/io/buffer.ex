@@ -91,6 +91,8 @@ defmodule Exiffer.IO.Buffer do
     result
   end
 
+  def tell(buffer), do: buffer.position
+
   @copy_chunk_size 1_000_000
 
   def copy(%__MODULE__{} = input, %__MODULE__{} = output) do
