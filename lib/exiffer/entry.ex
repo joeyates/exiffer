@@ -184,6 +184,7 @@ defmodule Exiffer.Entry do
     big_endian_format_magic = Binary.big_endian(format_magic)
     with {:ok, format_type} <- format_type(big_endian_format_magic),
          entry_type <- entry_type_map[big_endian_magic] do
+      Logger.debug("Found entry type '#{entry_type}' and format #{format_type}")
       entry =
         case entry_type do
           nil ->
