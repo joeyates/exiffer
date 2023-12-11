@@ -207,7 +207,7 @@ defmodule Exiffer.Entry do
         case entry_type do
           nil ->
             offset = buffer.offset
-            Logger.warning "Unknown IFD entry magic #{pair(big_endian_magic)} (big endian) found at #{integer(position)}, (offset #{integer(offset + position)}"
+            Logger.warning "Unknown IFD entry magic #{pair(big_endian_magic)} (big endian) found at #{integer(position)}, (offset #{integer(offset + position)})"
             value = value(:unknown, format_type, buffer)
             label = "Unknown entry tag #{pair(big_endian_magic)}"
             %__MODULE__{type: :unknown, format: format_type, value: value, label: label, magic: big_endian_magic}
