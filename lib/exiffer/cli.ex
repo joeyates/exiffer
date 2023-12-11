@@ -22,9 +22,9 @@ if Code.ensure_loaded?(Bakeware.Script) do
       longitude: %{type: :float, required: true, short: "n"},
       altitude: %{type: :float, short: "a"}
     ]
-    def main(["set-gps" | _rest] = args) do
-      case HelpfulOptions.parse(args, subcommands: [~w(set-gps)], switches: @set_gps_switches) do
-        {:ok, _subcommand, args, []} ->
+    def main(["set-gps" | rest]) do
+      case HelpfulOptions.parse(rest, switches: @set_gps_switches) do
+        {:ok, [], args, []} ->
           SetGPS.run(args)
           0
 
@@ -38,9 +38,9 @@ if Code.ensure_loaded?(Bakeware.Script) do
     @read_switches [
       filename: %{type: :string, required: true, short: "f"}
     ]
-    def main(["read" | _rest] = args) do
-      case HelpfulOptions.parse(args, subcommands: [~w(read)], switches: @read_switches) do
-        {:ok, _subcommand, args, []} ->
+    def main(["read" | rest]) do
+      case HelpfulOptions.parse(rest, switches: @read_switches) do
+        {:ok, [], args, []} ->
           Read.run(args)
           0
 
