@@ -1,24 +1,27 @@
-defmodule Exiffer.CLI.Rewrite do
+defmodule Exiffer.CLI.SetGPS do
   @moduledoc """
-  Documentation for `Exiffer.CLI.Rewrite`.
+  Documentation for `Exiffer.CLI.SetGPS`.
   """
 
   alias Exiffer.{Binary, GPS, JPEG, Rewrite}
   alias Exiffer.IO.{Buffer}
   require Logger
 
+  @spec run(map) :: {:ok}
   @doc """
-  Rewrite an image's metadata.
+  Rewrite an image's GPS metadata.
   """
-  def run(source, destination, gps_text, opts \\ []) do
-    logger_level = Keyword.get(opts, :log_level, :error)
-    level = Logger.level()
-    Logger.configure(level: logger_level)
-
+  def run(opts) do
     Logger.info "Exiffer.CLI.Rewrite.run/4"
+    source = Map.fetch!(opts, :source)
+    destination = Map.fetch!(opts, :destination)
+    latitude = Map.fetch!(opts, :latitude)
+    longitude = Map.fetch!(opts, :longitude)
+    altitude = Map.get(opts, :altitude, 0)
+
+    gps = %GPS{latitude: latitude, longitude: longitude, altitude: altitude}
     input = Buffer.new(source)
 
-    {:ok, %GPS{} = gps} = GPS.parse(gps_text)
     {:ok, metadata, input} = Rewrite.set_gps(input, gps)
 
     Logger.debug "Setting initial byte order to :big"
@@ -32,8 +35,6 @@ defmodule Exiffer.CLI.Rewrite do
 
     :ok = Buffer.close(input)
     :ok = Buffer.close(output)
-
-    Logger.configure(level: level)
 
     {:ok}
   end

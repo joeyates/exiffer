@@ -34,7 +34,8 @@ defmodule Exiffer.MixProject do
   defp deps do
     [
       {:bakeware, ">= 0.0.0", runtime: false, optional: true},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:helpful_options, ">= 0.0.0"}
     ]
   end
 

@@ -5,17 +5,15 @@ defmodule Exiffer.CLI.Read do
 
   require Logger
 
+  @spec run(map) :: {:ok}
   @doc """
   Dump image file metadata.
   """
-  def run(filename, opts \\ []) do
-    logger_level = Keyword.get(opts, :log_level, :error)
-    level = Logger.level()
-    Logger.configure(level: logger_level)
+  def run(opts) do
+    filename = Map.fetch!(opts, :filename)
     metadata = Exiffer.parse(filename)
 
     :ok = Exiffer.Serialize.puts(metadata)
-    Logger.configure(level: level)
 
     {:ok}
   end
