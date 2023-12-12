@@ -35,7 +35,7 @@ defmodule Exiffer.MixProject do
     [
       {:bakeware, ">= 0.0.0", runtime: false, optional: true},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:helpful_options, ">= 0.0.0"}
+      {:helpful_options, ">= 0.3.0", optional: true}
     ]
   end
 

@@ -24,12 +24,12 @@ if Code.ensure_loaded?(Bakeware.Script) do
     ]
     def main(["set-gps" | rest]) do
       case HelpfulOptions.parse(rest, switches: @set_gps_switches) do
-        {:ok, [], args, []} ->
+        {:ok, args, []} ->
           SetGPS.run(args)
           0
 
         {:error, error} ->
-          IO.inspect(:stderr, error, [])
+          IO.puts(:stderr, error)
           list_top_level_commands()
           1
       end
