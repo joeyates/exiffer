@@ -16,11 +16,11 @@ if Code.ensure_loaded?(Bakeware.Script) do
     end
 
     @set_gps_switches [
-      source: %{type: :string, required: true, short: "s"},
-      destination: %{type: :string, required: true, short: "d"},
-      latitude: %{type: :float, required: true, short: "t"},
-      longitude: %{type: :float, required: true, short: "n"},
-      altitude: %{type: :float, short: "a"}
+      source: %{type: :string, required: true, short: :s, description: "Source image"},
+      destination: %{type: :string, required: true, short: :d, description: "Destination image"},
+      latitude: %{type: :float, required: true, short: :t, description: "Latitude"},
+      longitude: %{type: :float, required: true, short: :n, description: "Longitude"},
+      altitude: %{type: :float, short: :a, description: "Altitude"},
     ]
     def main(["set-gps" | rest]) do
       case HelpfulOptions.parse(rest, switches: @set_gps_switches) do
@@ -35,8 +35,21 @@ if Code.ensure_loaded?(Bakeware.Script) do
       end
     end
 
+    def main(["help", "set-gps"]) do
+      switches = HelpfulOptions.help!(switches: @set_gps_switches)
+      IO.puts(
+        """
+        NAME
+          exiffer set-gps - set GPS coordinates in image metadata
+
+        OPTIONS
+        #{switches}
+        """
+      )
+    end
+
     @read_switches [
-      filename: %{type: :string, required: true, short: "f"}
+      filename: %{type: :string, required: true, short: "f", description: "Image filename"}
     ]
     def main(["read" | rest]) do
       case HelpfulOptions.parse(rest, switches: @read_switches) do
@@ -49,6 +62,19 @@ if Code.ensure_loaded?(Bakeware.Script) do
           list_top_level_commands()
           1
       end
+    end
+
+    def main(["help", "read"]) do
+      switches = HelpfulOptions.help!(switches: @read_switches)
+      IO.puts(
+        """
+        NAME
+          exiffer read - read image metadata
+
+        OPTIONS
+        #{switches}
+        """
+      )
     end
 
     def main(["help" | _args]) do
