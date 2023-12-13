@@ -50,7 +50,8 @@ if Code.ensure_loaded?(Bakeware.Script) do
 
     @read_switches [
       filename: %{type: :string, required: true, short: "f", description: "Image filename"},
-      format: %{type: :string, short: :o, default: "text", description: "Output format ('text' or 'json')"}
+      format: %{type: :string, short: :o, default: "text", description: "Output format ('text' or 'json')"},
+      quiet: %{type: :boolean, short: :q, default: true, description: "Suppress output"}
     ]
     def main(["read" | rest]) do
       case HelpfulOptions.parse(rest, switches: @read_switches) do
@@ -74,6 +75,9 @@ if Code.ensure_loaded?(Bakeware.Script) do
 
         OPTIONS
         #{switches}
+
+        By default `--quiet` is set to `true` in order to not create confusing output.
+        If you want logging output, pass the `--no-quiet` flag.
         """
       )
     end
