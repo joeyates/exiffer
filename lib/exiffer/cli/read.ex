@@ -19,7 +19,7 @@ defmodule Exiffer.CLI.Read do
         :ok = Exiffer.Serialize.puts(metadata)
 
       "json" ->
-        IO.puts(Jason.encode!(metadata))
+        IO.puts(Jason.encode!(metadata, pretty: true))
 
       _ ->
         IO.puts("Unknown format: #{format}")
