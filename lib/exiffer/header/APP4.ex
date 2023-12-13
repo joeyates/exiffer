@@ -15,7 +15,7 @@ defmodule Exiffer.Header.APP4 do
       Jason.Encode.map(
         %{
           module: "Exiffer.Header.APP4",
-          value: "(#{byte_size(entry.value)} bytes))",
+          value: "(#{byte_size(entry.value)} bytes)",
         },
         opts
       )

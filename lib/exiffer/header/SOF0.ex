@@ -28,7 +28,7 @@ defmodule Exiffer.Header.SOF0 do
           width: entry.width,
           height: entry.height,
           color_components_count: entry.color_components_count,
-          components: "(#{byte_size(entry.components)} bytes))"
+          components: "(#{byte_size(entry.components)} bytes)"
         },
         opts
       )

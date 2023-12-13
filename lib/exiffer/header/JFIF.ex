@@ -32,7 +32,7 @@ defmodule Exiffer.Header.JFIF do
           y_resolution: entry.y_resolution,
           thumbnail_width: entry.thumbnail_width,
           thumbnail_height: entry.thumbnail_height,
-          thumbnail: "(#{byte_size(entry.thumbnail)} bytes))",
+          thumbnail: "(#{byte_size(entry.thumbnail)} bytes)",
         },
         opts
       )

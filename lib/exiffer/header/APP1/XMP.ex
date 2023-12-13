@@ -17,7 +17,7 @@ defmodule Exiffer.Header.APP1.XMP do
       Jason.Encode.map(
         %{
           module: "Exiffer.Header.APP1.XMP",
-          xpacket: "(#{byte_size(entry.xpacket)} bytes))",
+          xpacket: "(#{byte_size(entry.xpacket)} bytes)",
         },
         opts
       )

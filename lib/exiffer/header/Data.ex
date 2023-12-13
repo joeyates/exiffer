@@ -17,7 +17,7 @@ defmodule Exiffer.Header.Data do
         %{
           module: "Exiffer.Header.Data",
           type: entry.type,
-          data: "(#{byte_size(entry.data)} bytes))",
+          data: "(#{byte_size(entry.data)} bytes)",
         },
         opts
       )
