@@ -11,6 +11,19 @@ defmodule Exiffer.Header.APP1.XMP do
   @enforce_keys ~w(xpacket)a
   defstruct ~w(xpacket)a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.Header.APP1.XMP{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.Header.APP1.XMP",
+          xpacket: "(#{byte_size(entry.xpacket)} bytes))",
+        },
+        opts
+      )
+    end
+  end
+
   def new(%{data: <<length_bytes::binary-size(2), @adobe_xmp_header::binary, _rest::binary>>} = buffer) do
     length = Binary.big_endian_to_integer(length_bytes)
     header_length = String.length(@adobe_xmp_header)

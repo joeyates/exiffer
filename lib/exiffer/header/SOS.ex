@@ -8,6 +8,16 @@ defmodule Exiffer.Header.SOS do
 
   defstruct ~w()a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.Header.SOS{}, Jason.Encode.opts()) :: String.t()
+    def encode(_entry, opts) do
+      Jason.Encode.map(
+        %{module: "Exiffer.Header.SOS"},
+        opts
+      )
+    end
+  end
+
   def new(%{data: <<0xff, 0xda, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     sos = %__MODULE__{}

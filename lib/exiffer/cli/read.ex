@@ -11,9 +11,19 @@ defmodule Exiffer.CLI.Read do
   """
   def run(opts) do
     filename = Map.fetch!(opts, :filename)
+    format = Map.get(opts, :format, "text")
     metadata = Exiffer.parse(filename)
 
-    :ok = Exiffer.Serialize.puts(metadata)
+    case format do
+      "text" ->
+        :ok = Exiffer.Serialize.puts(metadata)
+
+      "json" ->
+        IO.puts(Jason.encode!(metadata))
+
+      _ ->
+        IO.puts("Unknown format: #{format}")
+    end
 
     {:ok}
   end

@@ -17,6 +17,24 @@ defmodule Exiffer.Header.SOF0 do
     y_cb_cr_sub_sampling
   )a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.Header.SOF0{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Logger.debug("Encoding SOF0")
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.Header.SOF0",
+          bits_per_sample: entry.bits_per_sample,
+          width: entry.width,
+          height: entry.height,
+          color_components_count: entry.color_components_count,
+          components: "(#{byte_size(entry.components)} bytes))"
+        },
+        opts
+      )
+    end
+  end
+
   def new(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 4)
     {<<bits, height_binary::binary-size(2), width_binary::binary-size(2)>>, buffer} = Buffer.consume(buffer, 5)

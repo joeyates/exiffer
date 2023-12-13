@@ -12,6 +12,19 @@ defmodule Exiffer.JPEG do
   @enforce_keys ~w(headers)a
   defstruct ~w(headers)a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.JPEG{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.JPEG",
+          headers: entry.headers
+        },
+        opts
+      )
+    end
+  end
+
   @magic <<0xff, 0xd8>>
 
   def magic, do: @magic

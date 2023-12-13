@@ -9,6 +9,21 @@ defmodule Exiffer.Header.Data do
   @enforce_keys ~w(type data)a
   defstruct ~w(type data)a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.Header.Data{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Logger.debug("Encoding Data")
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.Header.Data",
+          type: entry.type,
+          data: "(#{byte_size(entry.data)} bytes))",
+        },
+        opts
+      )
+    end
+  end
+
   @data_type %{
     <<0xff, 0xc0>> => %{key: :jpeg_sof0, name: "JPEG SOF0"},
     <<0xff, 0xc2>> => %{key: :jpeg_sof2, name: "JPEG SOF2"},

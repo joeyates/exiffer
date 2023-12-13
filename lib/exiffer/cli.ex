@@ -49,11 +49,12 @@ if Code.ensure_loaded?(Bakeware.Script) do
     end
 
     @read_switches [
-      filename: %{type: :string, required: true, short: "f", description: "Image filename"}
+      filename: %{type: :string, required: true, short: "f", description: "Image filename"},
+      format: %{type: :string, short: :o, default: "text", description: "Output format ('text' or 'json')"}
     ]
     def main(["read" | rest]) do
       case HelpfulOptions.parse(rest, switches: @read_switches) do
-        {:ok, [], args, []} ->
+        {:ok, args, []} ->
           Read.run(args)
           0
 

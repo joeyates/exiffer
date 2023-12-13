@@ -9,6 +9,19 @@ defmodule Exiffer.Header.COM do
   @enforce_keys ~w(comment)a
   defstruct ~w(comment)a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.Header.COM{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.Header.COM",
+          comment: entry.comment
+        },
+        opts
+      )
+    end
+  end
+
   def new(%{data: <<0xff, 0xfe, length_binary::binary-size(2), _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 4)
     length = Binary.big_endian_to_integer(length_binary)

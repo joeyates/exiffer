@@ -11,6 +11,42 @@ defmodule Exiffer.Entry do
   @enforce_keys ~w(type format magic label value)a
   defstruct ~w(type format label magic value)a
 
+  defimpl Jason.Encoder do
+    @spec encode(%Exiffer.Entry{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      values =
+        entry
+        |> Exiffer.Entry.text()
+        |> Enum.map(fn {_k, value} -> value end)
+        |> Enum.map(&present/1)
+
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.Entry",
+          type: entry.type,
+          format: entry.format,
+          label: entry.label,
+          value: values
+        },
+        opts
+      )
+    end
+
+    defp present(value)
+
+    defp present(nil), do: nil
+
+    defp present(value) when is_integer(value), do: value
+
+    defp present(value) when is_binary(value) do
+      if String.printable?(value) do
+        value
+      else
+        Base.encode16(value)
+      end
+    end
+  end
+
   # Binaries are big endian
 
   @format_int8u <<0x00, 0x01>>

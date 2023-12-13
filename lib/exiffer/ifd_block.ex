@@ -9,6 +9,19 @@ defmodule Exiffer.IFDBlock do
   @enforce_keys ~w(ifds)a
   defstruct ~w(ifds)a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.IFDBlock{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.IFDBlock",
+          ifds: entry.ifds
+        },
+        opts
+      )
+    end
+  end
+
   def new(%{} = main_buffer, offset) do
     offset_buffer = Buffer.offset_buffer(main_buffer, offset)
     {ifds, _offset_buffer} = read(offset_buffer, [])

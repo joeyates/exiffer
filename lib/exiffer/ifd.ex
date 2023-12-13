@@ -11,6 +11,19 @@ defmodule Exiffer.IFD do
   @enforce_keys ~w(entries)a
   defstruct ~w(entries)a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.IFD{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.IFD",
+          entries: entry.entries
+        },
+        opts
+      )
+    end
+  end
+
   def read(%{} = buffer, opts \\ []) do
     {entry_count_bytes, buffer} = Buffer.consume(buffer, 2)
     entry_count = Binary.to_integer(entry_count_bytes)

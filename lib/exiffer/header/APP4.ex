@@ -9,6 +9,19 @@ defmodule Exiffer.Header.APP4 do
   @enforce_keys ~w(value)a
   defstruct ~w(value)a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.Header.APP4{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.Header.APP4",
+          value: "(#{byte_size(entry.value)} bytes))",
+        },
+        opts
+      )
+    end
+  end
+
   def new(%{data: <<0xff, 0xe4, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     {<<length_bytes::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)

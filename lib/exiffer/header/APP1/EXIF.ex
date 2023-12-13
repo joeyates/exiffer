@@ -17,6 +17,20 @@ defmodule Exiffer.Header.APP1.EXIF do
   @enforce_keys ~w(byte_order ifd_block)a
   defstruct ~w(byte_order ifd_block)a
 
+  defimpl Jason.Encoder  do
+    @spec encode(%Exiffer.Header.APP1.EXIF{}, Jason.Encode.opts()) :: String.t()
+    def encode(entry, opts) do
+      Jason.Encode.map(
+        %{
+          module: "Exiffer.Header.APP1.EXIF",
+          byte_order: entry.byte_order,
+          ifd_block: entry.ifd_block
+        },
+        opts
+      )
+    end
+  end
+
   def new(%{data: <<length_bytes::binary-size(2), @exif_header::binary, _rest::binary>>} = buffer) do
     exif_start = Buffer.tell(buffer)
     buffer = Buffer.skip(buffer, 2 + String.length(@exif_header))
