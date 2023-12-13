@@ -60,7 +60,7 @@ if Code.ensure_loaded?(Bakeware.Script) do
           0
 
         {:error, error} ->
-          IO.inspect(:stderr, error, [])
+          IO.puts(:stderr, error)
           list_top_level_commands()
           1
       end
