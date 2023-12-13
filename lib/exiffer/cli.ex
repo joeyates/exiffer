@@ -20,7 +20,7 @@ if Code.ensure_loaded?(Bakeware.Script) do
       destination: %{type: :string, required: true, short: :d, description: "Destination image"},
       latitude: %{type: :float, required: true, short: :t, description: "Latitude"},
       longitude: %{type: :float, required: true, short: :n, description: "Longitude"},
-      altitude: %{type: :float, short: :a, description: "Altitude"},
+      altitude: %{type: :float, short: :a, description: "Altitude"}
     ]
     def main(["set-gps" | rest]) do
       case HelpfulOptions.parse(rest, switches: @set_gps_switches) do
