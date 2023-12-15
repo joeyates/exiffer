@@ -3,7 +3,8 @@ defmodule Exiffer.Header.Data do
   Documentation for `Exiffer.Header.Data`.
   """
 
-  alias Exiffer.{Binary, Buffer}
+  alias Exiffer.Binary
+  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(type data)a

@@ -5,7 +5,8 @@ defmodule Exiffer.Header.JFIF do
   JFIF is the "JPEG File Interchange Format"
   """
 
-  alias Exiffer.{Binary, Buffer}
+  alias Exiffer.Binary
+  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w()a

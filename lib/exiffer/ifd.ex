@@ -5,7 +5,8 @@ defmodule Exiffer.IFD do
 
   require Logger
 
-  alias Exiffer.{Binary, Buffer, Entry}
+  alias Exiffer.{Binary, Entry}
+  alias Exiffer.IO.Buffer
   import Exiffer.Logging, only: [integer: 1]
 
   @enforce_keys ~w(entries)a

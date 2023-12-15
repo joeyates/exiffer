@@ -3,19 +3,20 @@ defmodule Exiffer do
   Documentation for `Exiffer`.
   """
 
+  alias Exiffer.IO.Buffer
   alias Exiffer.JPEG
 
   @jpeg_magic <<0xff, 0xd8>>
 
   def parse(filename) when is_binary(filename) do
-    buffer = Exiffer.IO.Buffer.new(filename)
+    buffer = Buffer.new(filename)
     {metadata, buffer} = parse(buffer)
-    :ok = Exiffer.IO.Buffer.close(buffer)
+    :ok = Buffer.close(buffer)
 
     metadata
   end
 
-  def parse(%{data: <<@jpeg_magic, _rest::binary>>} = buffer) do
+  def parse(%Buffer{data: <<@jpeg_magic, _rest::binary>>} = buffer) do
     {%JPEG{}, _buffer} = JPEG.new(buffer)
   end
 

@@ -3,7 +3,8 @@ defmodule Exiffer.Header.APP4 do
   Documentation for `Exiffer.Header.APP4`.
   """
 
-  alias Exiffer.{Binary, Buffer}
+  alias Exiffer.Binary
+  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(value)a

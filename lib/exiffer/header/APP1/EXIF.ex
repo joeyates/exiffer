@@ -5,7 +5,8 @@ defmodule Exiffer.Header.APP1.EXIF do
 
   require Logger
 
-  alias Exiffer.{Binary, Buffer}
+  alias Exiffer.Binary
+  alias Exiffer.IO.Buffer
   alias Exiffer.IFDBlock
   import Exiffer.Logging, only: [integer: 1]
 

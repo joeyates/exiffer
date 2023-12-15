@@ -4,7 +4,7 @@ defmodule Exiffer.CLI.SetGPS do
   """
 
   alias Exiffer.{Binary, GPS, JPEG, Rewrite}
-  alias Exiffer.IO.{Buffer}
+  alias Exiffer.IO.Buffer
   require Logger
 
   @spec run(map) :: {:ok}

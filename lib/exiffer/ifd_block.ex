@@ -3,7 +3,8 @@ defmodule Exiffer.IFDBlock do
   Documentation for `Exiffer.IFDBlock`.
   """
 
-  alias Exiffer.{Binary, Buffer, IFD}
+  alias Exiffer.{Binary, IFD}
+  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(ifds)a

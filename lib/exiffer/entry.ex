@@ -3,8 +3,9 @@ defmodule Exiffer.Entry do
   Documentation for `Exiffer.Entry`.
   """
 
-  alias Exiffer.{Binary, Buffer, IFD}
+  alias Exiffer.{Binary, IFD}
   alias Exiffer.Entry.MakerNotes
+  alias Exiffer.IO.Buffer
   import Exiffer.Logging, only: [integer: 1, pair: 1]
   require Logger
 

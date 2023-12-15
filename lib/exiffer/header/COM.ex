@@ -3,7 +3,8 @@ defmodule Exiffer.Header.COM do
   Documentation for `Exiffer.Header.COM`.
   """
 
-  alias Exiffer.{Binary, Buffer}
+  alias Exiffer.Binary
+  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(comment)a

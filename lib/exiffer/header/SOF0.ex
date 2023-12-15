@@ -3,7 +3,8 @@ defmodule Exiffer.Header.SOF0 do
   Documentation for `Exiffer.Header.SOF0`.
   """
 
-  alias Exiffer.{Binary, Buffer}
+  alias Exiffer.Binary
+  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(bits_per_sample width height color_components_count components)a

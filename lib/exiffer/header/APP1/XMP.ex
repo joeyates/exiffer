@@ -3,7 +3,8 @@ defmodule Exiffer.Header.APP1.XMP do
   Documentation for `Exiffer.Header.APP1.XMP`.
   """
 
-  alias Exiffer.{Binary, Buffer}
+  alias Exiffer.Binary
+  alias Exiffer.IO.Buffer
   require Logger
 
   @adobe_xmp_header "http://ns.adobe.com/xap/1.0/\0"
