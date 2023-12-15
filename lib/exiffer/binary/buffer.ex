@@ -1,4 +1,9 @@
 defmodule Exiffer.Binary.Buffer do
+  @moduledoc """
+  Documentation for `Exiffer.Binary.Buffer`.
+
+  A wrapper for a blob of binary data
+  """
   @enforce_keys ~w(data original size)a
   defstruct [:data, :original, :size, position: 0]
 
