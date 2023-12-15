@@ -13,6 +13,10 @@ defmodule Exiffer.IO.Buffer do
   @enforce_keys ~w(io_device)a
   defstruct [:io_device, data: <<>>, position: 0, remaining: 0, read_ahead: 1000]
 
+  def offset_buffer(buffer, offset) do
+    Exiffer.OffsetBuffer.new(buffer, offset)
+  end
+
   def new(filename, opts \\ []) do
     read_ahead = Keyword.get(opts, :read_ahead, 1000)
     direction = Keyword.get(opts, :direction, :read)
@@ -30,27 +34,32 @@ defmodule Exiffer.IO.Buffer do
 
   def seek(%__MODULE__{io_device: io_device} = buffer, position) do
     finish = buffer.position + buffer.remaining
-    {data, remaining} = if position >= buffer.position && position < finish do
-      count = position - buffer.position
-      <<_skip::binary-size(count), rest::binary>> = buffer.data
-      remaining = buffer.remaining - count
-      correct_position = position + remaining
-      {:ok, _position} = :file.position(io_device, correct_position)
-      {rest, remaining}
-    else
-      {:ok, _position} = :file.position(io_device, position)
-      {<<>>, 0}
-    end
+
+    {data, remaining} =
+      if position >= buffer.position && position < finish do
+        count = position - buffer.position
+        <<_skip::binary-size(count), rest::binary>> = buffer.data
+        remaining = buffer.remaining - count
+        correct_position = position + remaining
+        {:ok, _position} = :file.position(io_device, correct_position)
+        {rest, remaining}
+      else
+        {:ok, _position} = :file.position(io_device, position)
+        {<<>>, 0}
+      end
 
     struct!(buffer, data: data, position: position, remaining: remaining)
     |> ensure(buffer.read_ahead)
   end
 
   def consume(%__MODULE__{} = buffer, count) do
-    %__MODULE__{data: data, position: position, remaining: remaining} = buffer = ensure(buffer, count)
+    %__MODULE__{data: data, position: position, remaining: remaining} =
+      buffer = ensure(buffer, count)
+
     available = if remaining >= count, do: count, else: remaining
     <<consumed::binary-size(available), rest::binary>> = data
     new_position = position + available
+
     buffer =
       struct!(buffer, data: rest, position: new_position, remaining: remaining - available)
       |> ensure(buffer.read_ahead)
@@ -71,7 +80,12 @@ defmodule Exiffer.IO.Buffer do
   """
   def random(buffer, read_position, count)
 
-  def random(%__MODULE__{data: data, position: position, remaining: remaining}, read_position, count) when read_position > position and (read_position + count) < (position + remaining) do
+  def random(
+        %__MODULE__{data: data, position: position, remaining: remaining},
+        read_position,
+        count
+      )
+      when read_position > position and read_position + count < position + remaining do
     start = read_position - position
     <<_before::binary-size(start), result::binary-size(count), _rest::binary>> = data
     result
@@ -80,12 +94,16 @@ defmodule Exiffer.IO.Buffer do
   def random(%__MODULE__{} = buffer, read_position, count) do
     %__MODULE__{io_device: io_device, position: position, remaining: remaining} = buffer
     {:ok, _position} = :file.position(io_device, read_position)
-    result = case IO.binread(io_device, count) do
-      :eof ->
-        nil
-      chunk ->
-        chunk
-    end
+
+    result =
+      case IO.binread(io_device, count) do
+        :eof ->
+          nil
+
+        chunk ->
+          chunk
+      end
+
     end_of_current_buffer = position + remaining
     {:ok, _position} = :file.position(io_device, end_of_current_buffer)
     result
@@ -99,12 +117,13 @@ defmodule Exiffer.IO.Buffer do
     case consume(input, @copy_chunk_size) do
       {<<chunk::binary-size(@copy_chunk_size)>>, input} ->
         length = byte_size(chunk)
-        Logger.debug "#{__MODULE__}.copy/2 - chunk, #{length} bytes"
+        Logger.debug("#{__MODULE__}.copy/2 - chunk, #{length} bytes")
         :ok = write(output, chunk)
         copy(input, output)
+
       {chunk, _input} ->
         length = byte_size(chunk)
-        Logger.debug "#{__MODULE__}.copy/2 - final chunk, #{length} bytes"
+        Logger.debug("#{__MODULE__}.copy/2 - final chunk, #{length} bytes")
         :ok = write(output, chunk)
         nil
     end
@@ -118,7 +137,8 @@ defmodule Exiffer.IO.Buffer do
     :ok = File.close(io_device)
   end
 
-  defp ensure(%__MODULE__{remaining: remaining} = buffer, amount) when remaining > amount, do: buffer
+  defp ensure(%__MODULE__{remaining: remaining} = buffer, amount) when remaining > amount,
+    do: buffer
 
   defp ensure(%__MODULE__{remaining: remaining, read_ahead: read_ahead} = buffer, amount) do
     new_length = max(amount, read_ahead)
@@ -129,8 +149,9 @@ defmodule Exiffer.IO.Buffer do
   defp read(%__MODULE__{io_device: io_device, data: data, remaining: remaining} = buffer, amount) do
     case IO.binread(io_device, amount) do
       :eof ->
-        Logger.debug "Buffer.read EOF"
+        Logger.debug("Buffer.read EOF")
         buffer
+
       chunk ->
         bytes_read = byte_size(chunk)
         data = <<data::binary, chunk::binary>>
@@ -142,7 +163,7 @@ defmodule Exiffer.IO.Buffer do
     alias Exiffer.IO.Buffer
 
     def offset_buffer(buffer, offset) do
-      Exiffer.OffsetBuffer.new(buffer, offset)
+      Buffer.offset_buffer(buffer, offset)
     end
 
     def consume(buffer, count) do

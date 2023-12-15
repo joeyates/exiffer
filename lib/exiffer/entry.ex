@@ -684,15 +684,15 @@ defmodule Exiffer.Entry do
   }
 
   def new(%{} = buffer, opts \\ []) do
-    position = Buffer.tell(buffer)
+    position = Exiffer.Buffer.tell(buffer)
     Logger.debug("Reading IFD Entry at #{integer(position)}")
     override = Keyword.get(opts, :override)
     entry_type_map = @entry_type_map[override]
-    {magic, buffer} = Buffer.consume(buffer, 2)
+    {magic, buffer} = Exiffer.Buffer.consume(buffer, 2)
     big_endian_magic = Binary.big_endian(magic)
     Logger.debug("Found entry magic #{pair(big_endian_magic)}")
     entry_table = @entry_info_map[override]
-    {format_magic, buffer} = Buffer.consume(buffer, 2)
+    {format_magic, buffer} = Exiffer.Buffer.consume(buffer, 2)
     big_endian_format_magic = Binary.big_endian(format_magic)
     Logger.debug("Found format magic #{pair(big_endian_format_magic)}")
 
@@ -743,7 +743,7 @@ defmodule Exiffer.Entry do
             }
         end
 
-      buffer = Buffer.skip(buffer, 8)
+      buffer = Exiffer.Buffer.skip(buffer, 8)
       {entry, buffer}
     else
       {:error, :unknown_format_magic} ->
@@ -977,10 +977,10 @@ defmodule Exiffer.Entry do
   end
 
   defp read_ifd(%{} = buffer, offset, opts \\ []) do
-    position = Buffer.tell(buffer)
-    buffer = Buffer.seek(buffer, offset)
+    position = Exiffer.Buffer.tell(buffer)
+    buffer = Exiffer.Buffer.seek(buffer, offset)
     {:ok, ifd, buffer} = IFD.read(buffer, opts)
-    _buffer = Buffer.seek(buffer, position)
+    _buffer = Exiffer.Buffer.seek(buffer, position)
     ifd
   end
 
@@ -1059,7 +1059,7 @@ defmodule Exiffer.Entry do
 
       true ->
         offset = Binary.to_integer(value_binary)
-        string = Buffer.random(buffer, offset, length)
+        string = Exiffer.Buffer.random(buffer, offset, length)
 
         if :binary.last(string) == 0 do
           :binary.part(string, {0, length - 1})
@@ -1097,7 +1097,7 @@ defmodule Exiffer.Entry do
     rational_count = Binary.to_integer(count_binary)
     value_offset = Binary.to_integer(offset_binary)
 
-    Buffer.random(buffer, value_offset, rational_count * 8)
+    Exiffer.Buffer.random(buffer, value_offset, rational_count * 8)
     |> Binary.to_rational()
   end
 
@@ -1115,7 +1115,7 @@ defmodule Exiffer.Entry do
 
     value_offset = Binary.to_integer(offset_binary)
 
-    Buffer.random(buffer, value_offset, 8)
+    Exiffer.Buffer.random(buffer, value_offset, 8)
     |> Binary.to_signed_rational()
   end
 end

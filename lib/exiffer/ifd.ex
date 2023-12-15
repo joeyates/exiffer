@@ -26,7 +26,7 @@ defmodule Exiffer.IFD do
   end
 
   def read(%{} = buffer, opts \\ []) do
-    {entry_count_bytes, buffer} = Buffer.consume(buffer, 2)
+    {entry_count_bytes, buffer} = Exiffer.Buffer.consume(buffer, 2)
     entry_count = Binary.to_integer(entry_count_bytes)
     Logger.debug "IFD reading #{integer(entry_count)} entries"
     {entries, buffer} = read_entry(buffer, entry_count, [], opts)
@@ -115,7 +115,7 @@ defmodule Exiffer.IFD do
 
   defp read_entry(%{} = buffer, count, entries, opts) do
     nth = length(entries)
-    position = Buffer.tell(buffer)
+    position = Exiffer.Buffer.tell(buffer)
     offset = buffer.offset
     Logger.debug "Reading Entry #{nth} at buffer position #{integer(position)}, (absolute #{integer(offset + position)})"
     {entry, buffer} = Entry.new(buffer, opts)

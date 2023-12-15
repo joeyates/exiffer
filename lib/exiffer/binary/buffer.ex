@@ -44,11 +44,15 @@ defmodule Exiffer.Binary.Buffer do
 
   def close(%__MODULE__{}), do: :ok
 
+  def offset_buffer(buffer, offset) do
+    Exiffer.OffsetBuffer.new(buffer, offset)
+  end
+
   defimpl Exiffer.Buffer do
     alias Exiffer.Binary.Buffer
 
     def offset_buffer(buffer, offset) do
-      Exiffer.OffsetBuffer.new(buffer, offset)
+      Buffer.offset_buffer(buffer, offset)
     end
 
     def consume(buffer, count) do

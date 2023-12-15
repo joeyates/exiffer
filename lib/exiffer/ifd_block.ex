@@ -66,18 +66,18 @@ defmodule Exiffer.IFDBlock do
   end
 
   defp read(%{} = buffer, ifds) do
-    position = Buffer.tell(buffer) - 2
+    position = Exiffer.Buffer.tell(buffer) - 2
     offset = buffer.offset
     Logger.debug "IFDBlock.do_read at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
     case IFD.read(buffer) do
       {:ok, ifd, buffer} ->
-        {next_ifd_bytes, buffer} = Buffer.consume(buffer, 4)
+        {next_ifd_bytes, buffer} = Exiffer.Buffer.consume(buffer, 4)
         next_ifd = Binary.to_integer(next_ifd_bytes)
         if next_ifd == 0 do
           {[ifd | ifds], buffer}
         else
           Logger.debug "IFDBlock.do_read, reading next IFD at 0x#{Integer.to_string(next_ifd, 16)}"
-          buffer = Buffer.seek(buffer, next_ifd)
+          buffer = Exiffer.Buffer.seek(buffer, next_ifd)
           read(buffer, [ifd | ifds])
         end
       {:error, ifd, buffer} ->
