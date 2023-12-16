@@ -1,6 +1,6 @@
-defmodule Exiffer.Header.COM do
+defmodule Exiffer.JPEG.Header.COM do
   @moduledoc """
-  Documentation for `Exiffer.Header.COM`.
+  Documentation for `Exiffer.JPEG.Header.COM`.
   """
 
   alias Exiffer.Binary
@@ -11,11 +11,11 @@ defmodule Exiffer.Header.COM do
   defstruct ~w(comment)a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.COM{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.COM{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Jason.Encode.map(
         %{
-          module: "Exiffer.Header.COM",
+          module: "Exiffer.JPEG.Header.COM",
           comment: entry.comment
         },
         opts
@@ -57,16 +57,18 @@ defmodule Exiffer.Header.COM do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.Header.COM
+
     def write(com, io_device) do
-      Exiffer.Header.COM.write(com, io_device)
+      COM.write(com, io_device)
     end
 
     def binary(com) do
-      Exiffer.Header.COM.binary(com)
+      COM.binary(com)
     end
 
     def puts(com) do
-      Exiffer.Header.COM.puts(com)
+      COM.puts(com)
     end
   end
 end

@@ -19,7 +19,7 @@ defmodule Exiffer.Binary.RewriteTest do
     end)
   end
 
-  def entry_by_type(%Exiffer.Entry{type: :gps_info} = gps_info, type) do
+  def entry_by_type(%Exiffer.JPEG.Entry{type: :gps_info} = gps_info, type) do
     Enum.find(gps_info.value.entries, fn e -> e.type == type end)
   end
 

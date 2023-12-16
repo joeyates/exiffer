@@ -1,6 +1,6 @@
-defmodule Exiffer.Header.JFIF do
+defmodule Exiffer.JPEG.Header.JFIF do
   @moduledoc """
-  Documentation for `Exiffer.Header.JFIF`.
+  Documentation for `Exiffer.JPEG.Header.JFIF`.
 
   JFIF is the "JPEG File Interchange Format"
   """
@@ -21,12 +21,12 @@ defmodule Exiffer.Header.JFIF do
   )a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.JFIF{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.JFIF{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Logger.debug("Encoding JFIF")
       Jason.Encode.map(
         %{
-          module: "Exiffer.Header.JFIF",
+          module: "Exiffer.JPEG.Header.JFIF",
           version: entry.version,
           resolution_units: entry.resolution_units,
           x_resolution: entry.x_resolution,
@@ -112,16 +112,18 @@ defmodule Exiffer.Header.JFIF do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.Header.JFIF
+
     def write(jfif, io_device) do
-      Exiffer.Header.JFIF.write(jfif, io_device)
+      JFIF.write(jfif, io_device)
     end
 
     def binary(jfif) do
-      Exiffer.Header.JFIF.binary(jfif)
+      JFIF.binary(jfif)
     end
 
     def puts(jfif) do
-      Exiffer.Header.JFIF.puts(jfif)
+      JFIF.puts(jfif)
     end
   end
 end

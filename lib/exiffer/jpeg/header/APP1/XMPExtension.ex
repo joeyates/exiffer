@@ -1,6 +1,6 @@
-defmodule Exiffer.Header.APP1.XMPExtension do
+defmodule Exiffer.JPEG.Header.APP1.XMPExtension do
   @moduledoc """
-  Documentation for `Exiffer.Header.APP1.XMPExtension`.
+  Documentation for `Exiffer.JPEG.Header.APP1.XMPExtension`.
   """
 
   alias Exiffer.Binary
@@ -13,11 +13,11 @@ defmodule Exiffer.Header.APP1.XMPExtension do
   defstruct ~w(xpacket)a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.APP1.XMPExtension{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.APP1.XMPExtension{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Jason.Encode.map(
         %{
-          module: "Exiffer.Header.APP1.XMPExtension",
+          module: "Exiffer.JPEG.Header.APP1.XMPExtension",
           xpacket: "(#{byte_size(entry.xpacket)} bytes)",
         },
         opts
@@ -56,16 +56,18 @@ defmodule Exiffer.Header.APP1.XMPExtension do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.JPEG.Header.APP1.XMPExtension
+
     def binary(xmp) do
-      Exiffer.Header.APP1.XMPExtension.binary(xmp)
+      XMPExtension.binary(xmp)
     end
 
     def puts(xmp) do
-      Exiffer.Header.APP1.XMPExtension.puts(xmp)
+      XMPExtension.puts(xmp)
     end
 
     def write(xmp, io_device) do
-      Exiffer.Header.APP1.XMPExtension.write(xmp, io_device)
+      XMPExtension.write(xmp, io_device)
     end
   end
 end

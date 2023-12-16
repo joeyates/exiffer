@@ -1,12 +1,12 @@
-defmodule Exiffer.Header.APP1 do
+defmodule Exiffer.JPEG.Header.APP1 do
   @moduledoc """
-  Documentation for `Exiffer.Header.APP1`.
+  Documentation for `Exiffer.JPEG.Header.APP1`.
   """
 
   require Logger
 
   alias Exiffer.IO.Buffer
-  alias Exiffer.Header.APP1.{EXIF, XMP, XMPExtension}
+  alias Exiffer.JPEG.Header.APP1.{EXIF, XMP, XMPExtension}
 
   @exif_header "Exif\0\0"
   @adobe_xmp_header "http://ns.adobe.com/xap/1.0/\0"

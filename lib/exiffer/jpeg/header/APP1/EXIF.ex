@@ -1,6 +1,6 @@
-defmodule Exiffer.Header.APP1.EXIF do
+defmodule Exiffer.JPEG.Header.APP1.EXIF do
   @moduledoc """
-  Documentation for `Exiffer.Header.APP1.EXIF`.
+  Documentation for `Exiffer.JPEG.Header.APP1.EXIF`.
   """
 
   require Logger
@@ -19,11 +19,11 @@ defmodule Exiffer.Header.APP1.EXIF do
   defstruct ~w(byte_order ifd_block)a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.APP1.EXIF{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.APP1.EXIF{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Jason.Encode.map(
         %{
-          module: "Exiffer.Header.APP1.EXIF",
+          module: "Exiffer.JPEG.Header.APP1.EXIF",
           byte_order: entry.byte_order,
           ifd_block: entry.ifd_block
         },
@@ -102,16 +102,18 @@ defmodule Exiffer.Header.APP1.EXIF do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.JPEG.Header.APP1.EXIF
+
     def write(exif, io_device) do
-      Exiffer.Header.APP1.EXIF.write(exif, io_device)
+      EXIF.write(exif, io_device)
     end
 
     def binary(exif) do
-      Exiffer.Header.APP1.EXIF.binary(exif)
+      EXIF.binary(exif)
     end
 
     def puts(exif) do
-      Exiffer.Header.APP1.EXIF.puts(exif)
+      APP1.EXIF.puts(exif)
     end
   end
 end

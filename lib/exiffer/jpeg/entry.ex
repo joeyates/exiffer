@@ -1,29 +1,30 @@
-defmodule Exiffer.Entry do
+defmodule Exiffer.JPEG.Entry do
   @moduledoc """
-  Documentation for `Exiffer.Entry`.
+  Documentation for `Exiffer.JPEG.Entry`.
   """
 
-  alias Exiffer.{Binary, IFD}
-  alias Exiffer.Entry.MakerNotes
-  alias Exiffer.IO.Buffer
-  import Exiffer.Logging, only: [integer: 1, pair: 1]
   require Logger
+
+  alias Exiffer.{Binary, IFD}
+  alias Exiffer.IO.Buffer
+  alias Exiffer.JPEG.Entry.MakerNotes
+  import Exiffer.Logging, only: [integer: 1, pair: 1]
 
   @enforce_keys ~w(type format magic label value)a
   defstruct ~w(type format label magic value)a
 
   defimpl Jason.Encoder do
-    @spec encode(%Exiffer.Entry{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Entry{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       values =
         entry
-        |> Exiffer.Entry.text()
+        |> Exiffer.JPEG.Entry.text()
         |> Enum.map(fn {_k, value} -> value end)
         |> Enum.map(&present/1)
 
       Jason.Encode.map(
         %{
-          module: "Exiffer.Entry",
+          module: "Exiffer.JPEG.Entry",
           type: entry.type,
           format: entry.format,
           label: entry.label,

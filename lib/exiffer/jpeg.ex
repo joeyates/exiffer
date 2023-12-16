@@ -7,7 +7,7 @@ defmodule Exiffer.JPEG do
 
   alias Exiffer.Binary
   alias Exiffer.IO.Buffer
-  alias Exiffer.Header.{APP1, APP4, COM, Data, JFIF, SOF0, SOS}
+  alias Exiffer.JPEG.Header.{APP1, APP4, COM, Data, JFIF, SOF0, SOS}
   import Exiffer.Logging, only: [integer: 1]
 
   @enforce_keys ~w(headers)a

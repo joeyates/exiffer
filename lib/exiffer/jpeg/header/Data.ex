@@ -1,6 +1,6 @@
-defmodule Exiffer.Header.Data do
+defmodule Exiffer.JPEG.Header.Data do
   @moduledoc """
-  Documentation for `Exiffer.Header.Data`.
+  Documentation for `Exiffer.JPEG.Header.Data`.
   """
 
   alias Exiffer.Binary
@@ -11,12 +11,12 @@ defmodule Exiffer.Header.Data do
   defstruct ~w(type data)a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.Data{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.Data{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Logger.debug("Encoding Data")
       Jason.Encode.map(
         %{
-          module: "Exiffer.Header.Data",
+          module: "Exiffer.JPEG.Header.Data",
           type: entry.type,
           data: "(#{byte_size(entry.data)} bytes)",
         },
@@ -93,16 +93,18 @@ defmodule Exiffer.Header.Data do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.JPEG.Header.Data
+
     def write(data, io_device) do
-      Exiffer.Header.Data.write(data, io_device)
+      Data.write(data, io_device)
     end
 
     def binary(data) do
-      Exiffer.Header.Data.binary(data)
+      Data.binary(data)
     end
 
     def puts(data) do
-      Exiffer.Header.Data.puts(data)
+      Data.puts(data)
     end
   end
 end
