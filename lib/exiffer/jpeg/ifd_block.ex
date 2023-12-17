@@ -6,7 +6,6 @@ defmodule Exiffer.JPEG.IFDBlock do
   require Logger
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   alias Exiffer.JPEG.IFD
 
   @enforce_keys ~w(ifds)a
@@ -26,7 +25,7 @@ defmodule Exiffer.JPEG.IFDBlock do
   end
 
   def new(%{} = main_buffer, offset) do
-    offset_buffer = Buffer.offset_buffer(main_buffer, offset)
+    offset_buffer = Exiffer.Buffer.offset_buffer(main_buffer, offset)
     {ifds, _offset_buffer} = read(offset_buffer, [])
     ifd_block = %__MODULE__{ifds: Enum.reverse(ifds)}
     {ifd_block, main_buffer}

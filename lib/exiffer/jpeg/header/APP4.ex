@@ -4,7 +4,6 @@ defmodule Exiffer.JPEG.Header.APP4 do
   """
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(value)a
@@ -24,10 +23,10 @@ defmodule Exiffer.JPEG.Header.APP4 do
   end
 
   def new(%{data: <<0xff, 0xe4, _rest::binary>>} = buffer) do
-    buffer = Buffer.skip(buffer, 2)
+    buffer = Exiffer.Buffer.skip(buffer, 2)
     {<<length_bytes::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)
     length = Binary.big_endian_to_integer(length_bytes)
-    {value, buffer} = Buffer.consume(buffer, length - 2)
+    {value, buffer} = Exiffer.Buffer.consume(buffer, length - 2)
     app4 = %__MODULE__{value: value}
     {app4, buffer}
   end

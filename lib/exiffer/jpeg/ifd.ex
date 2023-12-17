@@ -7,7 +7,6 @@ defmodule Exiffer.JPEG.IFD do
 
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   alias Exiffer.JPEG.Entry
   import Exiffer.Logging, only: [integer: 1]
 
@@ -136,7 +135,7 @@ defmodule Exiffer.JPEG.IFD do
   defp load_thumbnail(%{} = buffer, entries) do
     case thumbnail_entries(entries) do
       {thumbnail_offset, thumbnail_length} ->
-        thumbnail = Buffer.random(buffer, thumbnail_offset, thumbnail_length)
+        thumbnail = Exiffer.Buffer.random(buffer, thumbnail_offset, thumbnail_length)
         # Replace thumbnail offset with the thumbnail binary
         entries = Enum.map(entries, fn entry ->
           if entry.type == :thumbnail_offset do

@@ -4,7 +4,6 @@ defmodule Exiffer.JPEG.Header.SOF0 do
   """
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(bits_per_sample width height color_components_count components)a
@@ -37,18 +36,18 @@ defmodule Exiffer.JPEG.Header.SOF0 do
   end
 
   def new(%{data: <<0xFF, 0xC0, _rest::binary>>} = buffer) do
-    buffer = Buffer.skip(buffer, 4)
+    buffer = Exiffer.Buffer.skip(buffer, 4)
 
     {<<bits, height_binary::binary-size(2), width_binary::binary-size(2)>>, buffer} =
-      Buffer.consume(buffer, 5)
+      Exiffer.Buffer.consume(buffer, 5)
 
     width = Binary.to_integer(width_binary)
     height = Binary.to_integer(height_binary)
-    {<<color_components_count>>, buffer} = Buffer.consume(buffer, 1)
+    {<<color_components_count>>, buffer} = Exiffer.Buffer.consume(buffer, 1)
     components_length = color_components_count * 3
 
     {<<components::binary-size(components_length)>>, buffer} =
-      Buffer.consume(buffer, components_length)
+      Exiffer.Buffer.consume(buffer, components_length)
 
     <<_lead::binary-size(2), encoding_process, _rest::binary>> = components
 

@@ -7,7 +7,6 @@ defmodule Exiffer.JPEG.Entry do
 
   alias Exiffer.Binary
   alias Exiffer.JPEG.IFD
-  alias Exiffer.IO.Buffer
   alias Exiffer.JPEG.Entry.MakerNotes
   import Exiffer.Logging, only: [integer: 1, pair: 1]
 
@@ -1003,7 +1002,7 @@ defmodule Exiffer.JPEG.Entry do
   end
 
   defp value(:maker_notes, :raw_bytes, %{} = buffer) do
-    position = Buffer.tell(buffer)
+    position = Exiffer.Buffer.tell(buffer)
     Logger.debug("Reading maker notes at #{integer(position)}")
 
     <<length_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> =
@@ -1021,19 +1020,19 @@ defmodule Exiffer.JPEG.Entry do
     result =
       try do
         notes_buffer =
-          Buffer.offset_buffer(buffer.buffer, notes_offset)
-          |> Buffer.seek(0)
+          Exiffer.Buffer.offset_buffer(buffer.buffer, notes_offset)
+          |> Exiffer.Buffer.seek(0)
 
         # Temporarily set process-local byte order
         Binary.set_byte_order(:little)
         Logger.debug("Reading maker notes IFD")
         {:ok, ifd, buffer} = IFD.read(notes_buffer, override: :maker_notes)
-        _buffer = Buffer.seek(buffer, position)
+        _buffer = Exiffer.Buffer.seek(buffer, position)
         %MakerNotes{ifd: ifd}
       rescue
         _e ->
           Logger.debug("Maker notes are not an IFD, falling back to reading as raw bytes")
-          Buffer.random(buffer, offset, length)
+          Exiffer.Buffer.random(buffer, offset, length)
       end
 
     Binary.set_byte_order(file_byte_order)

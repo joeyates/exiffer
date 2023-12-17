@@ -4,7 +4,6 @@ defmodule Exiffer.JPEG.Header.APP1.XMP do
   """
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   require Logger
 
   @adobe_xmp_header "http://ns.adobe.com/xap/1.0/\0"
@@ -28,9 +27,9 @@ defmodule Exiffer.JPEG.Header.APP1.XMP do
   def new(%{data: <<length_bytes::binary-size(2), @adobe_xmp_header::binary, _rest::binary>>} = buffer) do
     length = Binary.big_endian_to_integer(length_bytes)
     header_length = String.length(@adobe_xmp_header)
-    buffer = Buffer.skip(buffer, 2 + header_length)
+    buffer = Exiffer.Buffer.skip(buffer, 2 + header_length)
     xpacket_length = length - 2 - header_length
-    {xpacket, buffer} = Buffer.consume(buffer, xpacket_length)
+    {xpacket, buffer} = Exiffer.Buffer.consume(buffer, xpacket_length)
     xmp = %__MODULE__{xpacket: xpacket}
     {xmp, buffer}
   end
