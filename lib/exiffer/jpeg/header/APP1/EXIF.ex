@@ -112,7 +112,7 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
     end
 
     def puts(exif) do
-      APP1.EXIF.puts(exif)
+      EXIF.puts(exif)
     end
   end
 end
