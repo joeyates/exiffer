@@ -40,7 +40,7 @@ defmodule Exiffer.CLI.ReadTest do
     test "it reads PNG files" do
       assert capture_io(fn ->
                Read.run(%{filename: "test/support/fixtures/exiffer_code.png"})
-             end) =~ "Ciao\n"
+             end) =~ "IHDR\n"
     end
   end
 end
