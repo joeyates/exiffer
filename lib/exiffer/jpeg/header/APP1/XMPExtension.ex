@@ -36,14 +36,9 @@ defmodule Exiffer.JPEG.Header.APP1.XMPExtension do
   end
 
   def puts(%__MODULE__{} = xmp) do
-    truncated = if String.length(xmp.xpacket) > 47 do
-      "#{String.slice(xmp.xpacket, 0, 47)}..."
-    else
-      xmp.xpacket
-    end
-    IO.puts "XPacket"
-    IO.puts "-------"
-    IO.puts truncated
+    IO.puts "XMPExtension"
+    IO.puts "------------"
+    IO.puts "#{byte_size(xmp.xpacket)} bytes"
     :ok
   end
 
