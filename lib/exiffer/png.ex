@@ -34,4 +34,35 @@ defmodule Exiffer.PNG do
     chunk = Chunk.new(type, data)
     chunks(buffer, [chunk | chunks])
   end
+
+  def binary(%__MODULE__{} = png) do
+    Logger.info "Exiffer.PNG creating binary"
+    Exiffer.Serialize.binary(png.chunks)
+  end
+
+  def puts(%__MODULE__{} = png) do
+    :ok = Exiffer.Serialize.puts(png.chunks)
+  end
+
+  def write(%__MODULE__{} = png, io_device) do
+    Logger.info "Exiffer.PNG writing binary"
+    :ok = IO.binwrite(io_device, @magic)
+    :ok = Exiffer.Serialize.write(png.chunks, io_device)
+  end
+
+  defimpl Exiffer.Serialize do
+    alias Exiffer.PNG
+
+    def write(%PNG{} = png, io_device) do
+      PNG.write(png, io_device)
+    end
+
+    def binary(png) do
+      PNG.binary(png)
+    end
+
+    def puts(%PNG{} = png) do
+      PNG.puts(png)
+    end
+  end
 end

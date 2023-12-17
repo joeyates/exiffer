@@ -58,4 +58,13 @@ defmodule Exiffer.Chunk do
     Logger.debug("Reading unknown chunk")
     %Unknown{type: type, data: data}
   end
+
+  def binary(type, value) do
+    alias Exiffer.PNG.CRC
+
+    length = byte_size(value)
+    length_binary = Exiffer.Binary.int32u_to_big_endian(length)
+    crc_binary = CRC.crc(<<type::binary, value::binary>>)
+    <<length_binary::binary, type::binary, value::binary, crc_binary::binary>>
+  end
 end
