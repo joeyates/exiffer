@@ -6,7 +6,6 @@ defmodule Exiffer.JPEG do
   require Logger
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   alias Exiffer.JPEG.Header.{APP1, APP4, COM, Data, JFIF, SOF0, SOS}
   import Exiffer.Logging, only: [integer: 1]
 
@@ -30,8 +29,8 @@ defmodule Exiffer.JPEG do
 
   def magic, do: @magic
 
-  def new(%Buffer{data: <<@magic, _rest::binary>>} = buffer) do
-    buffer = Buffer.skip(buffer, 2)
+  def new(%{data: <<@magic, _rest::binary>>} = buffer) do
+    buffer = Exiffer.Buffer.skip(buffer, 2)
     Logger.debug "JPEG.new/1 - setting initial byte order to :big"
     Binary.set_byte_order(:big)
     {%{} = buffer, headers} = headers(buffer, [])

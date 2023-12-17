@@ -17,11 +17,11 @@ defmodule Exiffer do
     metadata
   end
 
-  def parse(%Buffer{data: <<@jpeg_magic, _rest::binary>>} = buffer) do
+  def parse(%{data: <<@jpeg_magic, _rest::binary>>} = buffer) do
     {%JPEG{}, _buffer} = JPEG.new(buffer)
   end
 
-  def parse(%Buffer{data: <<@png_magic, _rest::binary>>} = buffer) do
+  def parse(%{data: <<@png_magic, _rest::binary>>} = buffer) do
     {%PNG{}, _buffer} = PNG.new(buffer)
   end
 

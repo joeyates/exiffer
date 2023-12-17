@@ -4,7 +4,6 @@ defmodule Exiffer.JPEG.Header.Data do
   """
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(type data)a
@@ -51,7 +50,7 @@ defmodule Exiffer.JPEG.Header.Data do
   @magic Enum.into(@data_type, %{}, fn {magic, %{key: key}} -> {key, magic} end)
 
   def new(%{} = buffer) do
-    {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} = Buffer.consume(buffer, 4)
+    {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 4)
     type = @data_type[magic]
     if !type do
       position = buffer.position
@@ -59,7 +58,7 @@ defmodule Exiffer.JPEG.Header.Data do
     end
     # TODO: is this really always big endian?
     length = Binary.big_endian_to_integer(length_binary)
-    {data, buffer} = Buffer.consume(buffer, length - 2)
+    {data, buffer} = Exiffer.Buffer.consume(buffer, length - 2)
     header = %__MODULE__{type: type.key, data: data}
     {header, buffer}
   end

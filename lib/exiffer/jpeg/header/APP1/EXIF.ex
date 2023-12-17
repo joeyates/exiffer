@@ -32,11 +32,11 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
   end
 
   def new(%{data: <<length_bytes::binary-size(2), @exif_header::binary, _rest::binary>>} = buffer) do
-    exif_start = Buffer.tell(buffer)
-    buffer = Buffer.skip(buffer, 2 + String.length(@exif_header))
+    exif_start = Exiffer.Buffer.tell(buffer)
+    buffer = Exiffer.Buffer.skip(buffer, 2 + String.length(@exif_header))
     length = Binary.big_endian_to_integer(length_bytes)
     Logger.debug("APP1 - length: #{length}")
-    {byte_order_marker, buffer} = Buffer.consume(buffer, 2)
+    {byte_order_marker, buffer} = Exiffer.Buffer.consume(buffer, 2)
     Logger.debug("EXIF.new - byte order marker: #{byte_order_marker}")
     byte_order = case byte_order_marker do
        @big_endian_marker -> :big
@@ -47,14 +47,14 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
     previous_byte_order = Binary.byte_order()
     Binary.set_byte_order(byte_order)
     tiff_header_marker = Binary.big_endian_to_current(@tiff_header_marker)
-    {<<^tiff_header_marker::binary-size(2), ifd_header_offset_binary::binary-size(4)>>, buffer} = Buffer.consume(buffer, 6)
+    {<<^tiff_header_marker::binary-size(2), ifd_header_offset_binary::binary-size(4)>>, buffer} = Exiffer.Buffer.consume(buffer, 6)
     ifd_header_offset = Binary.to_integer(ifd_header_offset_binary)
     offset = exif_start + ifd_header_offset
     {ifd_block, buffer} = IFDBlock.new(buffer, offset)
     exif = %__MODULE__{byte_order: byte_order, ifd_block: ifd_block}
     exif_end = exif_start + length
     Logger.debug "APP1 read completed, seeking to #{integer(exif_end)}"
-    buffer = Buffer.seek(buffer, exif_end)
+    buffer = Exiffer.Buffer.seek(buffer, exif_end)
     Logger.debug "EXIF.new - resetting byte order to previous value: :#{previous_byte_order}"
     Binary.set_byte_order(previous_byte_order)
     {exif, buffer}

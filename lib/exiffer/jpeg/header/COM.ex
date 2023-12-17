@@ -4,7 +4,6 @@ defmodule Exiffer.JPEG.Header.COM do
   """
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(comment)a
@@ -24,11 +23,11 @@ defmodule Exiffer.JPEG.Header.COM do
   end
 
   def new(%{data: <<0xff, 0xfe, length_binary::binary-size(2), _rest::binary>>} = buffer) do
-    buffer = Buffer.skip(buffer, 4)
+    buffer = Exiffer.Buffer.skip(buffer, 4)
     length = Binary.big_endian_to_integer(length_binary)
     # Remove 2 bytes for length
     text_length = length - 2
-    {comment, buffer} = Buffer.consume(buffer, text_length)
+    {comment, buffer} = Exiffer.Buffer.consume(buffer, text_length)
     if :binary.last(comment) == 0 do
       :binary.part(comment, {0, text_length - 1})
     else

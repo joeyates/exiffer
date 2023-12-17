@@ -6,7 +6,6 @@ defmodule Exiffer.JPEG.Header.JFIF do
   """
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w()a
@@ -45,15 +44,15 @@ defmodule Exiffer.JPEG.Header.JFIF do
         %{data: <<0xFF, 0xE0, _length_binary::binary-size(2), "JFIF", 0x00, _rest::binary>>} =
           buffer
       ) do
-    buffer = Buffer.skip(buffer, 9)
-    {<<version::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)
+    buffer = Exiffer.Buffer.skip(buffer, 9)
+    {<<version::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 2)
 
     {<<resolution_units::binary-size(1), x_resolution::binary-size(2),
-       y_resolution::binary-size(2)>>, buffer} = Buffer.consume(buffer, 5)
+       y_resolution::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 5)
 
-    {<<thumbnail_width, thumbnail_height>>, buffer} = Buffer.consume(buffer, 2)
+    {<<thumbnail_width, thumbnail_height>>, buffer} = Exiffer.Buffer.consume(buffer, 2)
     thumbnail_bytes = 3 * thumbnail_width * thumbnail_height
-    {thumbnail, buffer} = Buffer.consume(buffer, thumbnail_bytes)
+    {thumbnail, buffer} = Exiffer.Buffer.consume(buffer, thumbnail_bytes)
 
     jfif = %__MODULE__{
       version: version,
