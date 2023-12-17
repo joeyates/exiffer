@@ -1,6 +1,6 @@
-defmodule Exiffer.Header.APP4 do
+defmodule Exiffer.JPEG.Header.APP4 do
   @moduledoc """
-  Documentation for `Exiffer.Header.APP4`.
+  Documentation for `Exiffer.JPEG.Header.APP4`.
   """
 
   alias Exiffer.Binary
@@ -11,11 +11,11 @@ defmodule Exiffer.Header.APP4 do
   defstruct ~w(value)a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.APP4{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.APP4{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Jason.Encode.map(
         %{
-          module: "Exiffer.Header.APP4",
+          module: "Exiffer.JPEG.Header.APP4",
           value: "(#{byte_size(entry.value)} bytes)",
         },
         opts
@@ -52,16 +52,18 @@ defmodule Exiffer.Header.APP4 do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.JPEG.Header.APP4
+
     def binary(data) do
-      Exiffer.Header.APP4.binary(data)
+      APP4.binary(data)
     end
 
     def puts(data) do
-      Exiffer.Header.APP4.puts(data)
+      APP4.puts(data)
     end
 
     def write(data, io_device) do
-      Exiffer.Header.APP4.write(data, io_device)
+      APP4.write(data, io_device)
     end
   end
 end

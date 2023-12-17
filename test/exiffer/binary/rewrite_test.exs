@@ -12,14 +12,14 @@ defmodule Exiffer.Binary.RewriteTest do
   end
 
   def gps_info(metadata) do
-    exif = Enum.find(metadata.headers, fn h -> h.__struct__ == Exiffer.Header.APP1.EXIF end)
+    exif = Enum.find(metadata.headers, fn h -> h.__struct__ == Exiffer.JPEG.Header.APP1.EXIF end)
     ifds = exif.ifd_block.ifds
     Enum.find_value(ifds, fn ifd ->
       Enum.find(ifd.entries, fn e -> e.type == :gps_info end)
     end)
   end
 
-  def entry_by_type(%Exiffer.Entry{type: :gps_info} = gps_info, type) do
+  def entry_by_type(%Exiffer.JPEG.Entry{type: :gps_info} = gps_info, type) do
     Enum.find(gps_info.value.entries, fn e -> e.type == type end)
   end
 

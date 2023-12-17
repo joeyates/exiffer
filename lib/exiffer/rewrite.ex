@@ -5,12 +5,12 @@ defmodule Exiffer.Rewrite do
 
   require Logger
 
-  alias Exiffer.{Entry, IFD, IFDBlock}
-  alias Exiffer.Header.APP1.EXIF
+  alias Exiffer.GPS
+  alias Exiffer.JPEG.{Entry, IFD, IFDBlock}
+  alias Exiffer.JPEG.Header.APP1.EXIF
 
-  def set_gps(%{} = input, gps) do
+  def set_gps(%{} = input, %GPS{} = gps) do
     Logger.info "Exiffer.Rewrite.set_gps/2"
-    Logger.info "Parsing image"
     {image, remainder} = Exiffer.parse(input)
     Logger.info "Parsing complete"
 

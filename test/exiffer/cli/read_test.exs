@@ -35,4 +35,12 @@ defmodule Exiffer.CLI.ReadTest do
              end) =~ "Comment: Created with GIMP\n"
     end
   end
+
+  describe "PNG" do
+    test "it reads PNG files" do
+      assert capture_io(fn ->
+               Read.run(%{filename: "test/support/fixtures/exiffer_code.png"})
+             end) =~ "IHDR\n"
+    end
+  end
 end

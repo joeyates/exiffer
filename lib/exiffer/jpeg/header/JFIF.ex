@@ -1,12 +1,11 @@
-defmodule Exiffer.Header.JFIF do
+defmodule Exiffer.JPEG.Header.JFIF do
   @moduledoc """
-  Documentation for `Exiffer.Header.JFIF`.
+  Documentation for `Exiffer.JPEG.Header.JFIF`.
 
   JFIF is the "JPEG File Interchange Format"
   """
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w()a
@@ -21,12 +20,12 @@ defmodule Exiffer.Header.JFIF do
   )a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.JFIF{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.JFIF{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Logger.debug("Encoding JFIF")
       Jason.Encode.map(
         %{
-          module: "Exiffer.Header.JFIF",
+          module: "Exiffer.JPEG.Header.JFIF",
           version: entry.version,
           resolution_units: entry.resolution_units,
           x_resolution: entry.x_resolution,
@@ -45,15 +44,15 @@ defmodule Exiffer.Header.JFIF do
         %{data: <<0xFF, 0xE0, _length_binary::binary-size(2), "JFIF", 0x00, _rest::binary>>} =
           buffer
       ) do
-    buffer = Buffer.skip(buffer, 9)
-    {<<version::binary-size(2)>>, buffer} = Buffer.consume(buffer, 2)
+    buffer = Exiffer.Buffer.skip(buffer, 9)
+    {<<version::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 2)
 
     {<<resolution_units::binary-size(1), x_resolution::binary-size(2),
-       y_resolution::binary-size(2)>>, buffer} = Buffer.consume(buffer, 5)
+       y_resolution::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 5)
 
-    {<<thumbnail_width, thumbnail_height>>, buffer} = Buffer.consume(buffer, 2)
+    {<<thumbnail_width, thumbnail_height>>, buffer} = Exiffer.Buffer.consume(buffer, 2)
     thumbnail_bytes = 3 * thumbnail_width * thumbnail_height
-    {thumbnail, buffer} = Buffer.consume(buffer, thumbnail_bytes)
+    {thumbnail, buffer} = Exiffer.Buffer.consume(buffer, thumbnail_bytes)
 
     jfif = %__MODULE__{
       version: version,
@@ -112,16 +111,18 @@ defmodule Exiffer.Header.JFIF do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.JPEG.Header.JFIF
+
     def write(jfif, io_device) do
-      Exiffer.Header.JFIF.write(jfif, io_device)
+      JFIF.write(jfif, io_device)
     end
 
     def binary(jfif) do
-      Exiffer.Header.JFIF.binary(jfif)
+      JFIF.binary(jfif)
     end
 
     def puts(jfif) do
-      Exiffer.Header.JFIF.puts(jfif)
+      JFIF.puts(jfif)
     end
   end
 end

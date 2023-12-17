@@ -1,22 +1,21 @@
-defmodule Exiffer.Header.Data do
+defmodule Exiffer.JPEG.Header.Data do
   @moduledoc """
-  Documentation for `Exiffer.Header.Data`.
+  Documentation for `Exiffer.JPEG.Header.Data`.
   """
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
   require Logger
 
   @enforce_keys ~w(type data)a
   defstruct ~w(type data)a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.Data{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.Data{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Logger.debug("Encoding Data")
       Jason.Encode.map(
         %{
-          module: "Exiffer.Header.Data",
+          module: "Exiffer.JPEG.Header.Data",
           type: entry.type,
           data: "(#{byte_size(entry.data)} bytes)",
         },
@@ -51,7 +50,7 @@ defmodule Exiffer.Header.Data do
   @magic Enum.into(@data_type, %{}, fn {magic, %{key: key}} -> {key, magic} end)
 
   def new(%{} = buffer) do
-    {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} = Buffer.consume(buffer, 4)
+    {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 4)
     type = @data_type[magic]
     if !type do
       position = buffer.position
@@ -59,7 +58,7 @@ defmodule Exiffer.Header.Data do
     end
     # TODO: is this really always big endian?
     length = Binary.big_endian_to_integer(length_binary)
-    {data, buffer} = Buffer.consume(buffer, length - 2)
+    {data, buffer} = Exiffer.Buffer.consume(buffer, length - 2)
     header = %__MODULE__{type: type.key, data: data}
     {header, buffer}
   end
@@ -93,16 +92,18 @@ defmodule Exiffer.Header.Data do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.JPEG.Header.Data
+
     def write(data, io_device) do
-      Exiffer.Header.Data.write(data, io_device)
+      Data.write(data, io_device)
     end
 
     def binary(data) do
-      Exiffer.Header.Data.binary(data)
+      Data.binary(data)
     end
 
     def puts(data) do
-      Exiffer.Header.Data.puts(data)
+      Data.puts(data)
     end
   end
 end

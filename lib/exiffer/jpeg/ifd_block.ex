@@ -1,21 +1,23 @@
-defmodule Exiffer.IFDBlock do
+defmodule Exiffer.JPEG.IFDBlock do
   @moduledoc """
-  Documentation for `Exiffer.IFDBlock`.
+  Documentation for `Exiffer.JPEG.IFDBlock`.
   """
 
-  alias Exiffer.{Binary, IFD}
-  alias Exiffer.IO.Buffer
   require Logger
+
+  alias Exiffer.Binary
+  alias Exiffer.IO.Buffer
+  alias Exiffer.JPEG.IFD
 
   @enforce_keys ~w(ifds)a
   defstruct ~w(ifds)a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.IFDBlock{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.IFDBlock{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Jason.Encode.map(
         %{
-          module: "Exiffer.IFDBlock",
+          module: "Exiffer.JPEG.IFDBlock",
           ifds: entry.ifds
         },
         opts

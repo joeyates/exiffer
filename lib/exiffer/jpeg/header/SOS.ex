@@ -1,6 +1,6 @@
-defmodule Exiffer.Header.SOS do
+defmodule Exiffer.JPEG.Header.SOS do
   @moduledoc """
-  Documentation for `Exiffer.Header.SOS`.
+  Documentation for `Exiffer.JPEG.Header.SOS`.
   """
 
   alias Exiffer.Buffer
@@ -9,10 +9,10 @@ defmodule Exiffer.Header.SOS do
   defstruct ~w()a
 
   defimpl Jason.Encoder  do
-    @spec encode(%Exiffer.Header.SOS{}, Jason.Encode.opts()) :: String.t()
+    @spec encode(%Exiffer.JPEG.Header.SOS{}, Jason.Encode.opts()) :: String.t()
     def encode(_entry, opts) do
       Jason.Encode.map(
-        %{module: "Exiffer.Header.SOS"},
+        %{module: "Exiffer.JPEG.Header.SOS"},
         opts
       )
     end
@@ -38,16 +38,18 @@ defmodule Exiffer.Header.SOS do
   end
 
   defimpl Exiffer.Serialize do
+    alias Exiffer.JPEG.Header.SOS
+
     def binary(data) do
-      Exiffer.Header.SOS.binary(data)
+      SOS.binary(data)
     end
 
     def puts(data) do
-      Exiffer.Header.SOS.puts(data)
+      SOS.puts(data)
     end
 
     def write(data, io_device) do
-      Exiffer.Header.SOS.write(data, io_device)
+      SOS.write(data, io_device)
     end
   end
 end
