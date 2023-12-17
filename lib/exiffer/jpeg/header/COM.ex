@@ -57,7 +57,7 @@ defmodule Exiffer.JPEG.Header.COM do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Header.COM
+    alias Exiffer.JPEG.Header.COM
 
     def write(com, io_device) do
       COM.write(com, io_device)

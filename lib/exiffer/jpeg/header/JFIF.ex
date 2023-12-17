@@ -112,7 +112,7 @@ defmodule Exiffer.JPEG.Header.JFIF do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Header.JFIF
+    alias Exiffer.JPEG.Header.JFIF
 
     def write(jfif, io_device) do
       JFIF.write(jfif, io_device)

@@ -12,7 +12,7 @@ defmodule Exiffer.Binary.RewriteTest do
   end
 
   def gps_info(metadata) do
-    exif = Enum.find(metadata.headers, fn h -> h.__struct__ == Exiffer.Header.APP1.EXIF end)
+    exif = Enum.find(metadata.headers, fn h -> h.__struct__ == Exiffer.JPEG.Header.APP1.EXIF end)
     ifds = exif.ifd_block.ifds
     Enum.find_value(ifds, fn ifd ->
       Enum.find(ifd.entries, fn e -> e.type == :gps_info end)

@@ -5,7 +5,8 @@ defmodule Exiffer.JPEG.Entry do
 
   require Logger
 
-  alias Exiffer.{Binary, IFD}
+  alias Exiffer.Binary
+  alias Exiffer.JPEG.IFD
   alias Exiffer.IO.Buffer
   alias Exiffer.JPEG.Entry.MakerNotes
   import Exiffer.Logging, only: [integer: 1, pair: 1]

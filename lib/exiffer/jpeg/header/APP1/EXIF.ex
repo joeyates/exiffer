@@ -6,8 +6,7 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
   require Logger
 
   alias Exiffer.Binary
-  alias Exiffer.IO.Buffer
-  alias Exiffer.IFDBlock
+  alias Exiffer.JPEG.IFDBlock
   import Exiffer.Logging, only: [integer: 1]
 
   @exif_header "Exif\0\0"

@@ -38,7 +38,7 @@ defmodule Exiffer.JPEG.Header.SOS do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Header.SOS
+    alias Exiffer.JPEG.Header.SOS
 
     def binary(data) do
       SOS.binary(data)
