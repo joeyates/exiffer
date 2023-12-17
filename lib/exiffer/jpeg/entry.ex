@@ -883,6 +883,10 @@ defmodule Exiffer.JPEG.Entry do
   end
 
   # TODO: handle negatives
+  def text(%__MODULE__{format: :rational_64s, value: {_numerator, 0}} = entry) do
+    [{entry.label, 0}]
+  end
+
   def text(%__MODULE__{format: :rational_64s} = entry) do
     {numerator, denominator} = entry.value
     value = numerator / denominator
