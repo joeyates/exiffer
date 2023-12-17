@@ -5,7 +5,8 @@ defmodule Exiffer.PNG do
 
   require Logger
 
-  alias Exiffer.{Binary, Buffer, Chunk}
+  alias Exiffer.{Binary, Buffer}
+  alias Exiffer.PNG.Chunk
   import Exiffer.Logging, only: [integer: 1]
 
   @enforce_keys ~w(chunks)a

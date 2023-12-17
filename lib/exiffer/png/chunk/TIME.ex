@@ -1,4 +1,4 @@
-defmodule Exiffer.Chunk.TIME do
+defmodule Exiffer.PNG.Chunk.TIME do
   defstruct ~w(year month day hour minute second)a
 
   alias Exiffer.Binary
@@ -24,7 +24,7 @@ defmodule Exiffer.Chunk.TIME do
       time.minute,
       time.second
     >>
-    Exiffer.Chunk.binary("tIME", value)
+    Exiffer.PNG.Chunk.binary("tIME", value)
   end
 
   def puts(time) do
@@ -46,7 +46,7 @@ defmodule Exiffer.Chunk.TIME do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Chunk.TIME
+    alias Exiffer.PNG.Chunk.TIME
 
     def binary(time) do
       TIME.binary(time)

@@ -1,13 +1,13 @@
-defmodule Exiffer.Chunk do
+defmodule Exiffer.PNG.Chunk do
   @moduledoc """
-  Documentation for `Exiffer.Chunk`.
+  Documentation for `Exiffer.PNG.Chunk`.
 
   http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html
   """
 
   require Logger
 
-  alias Exiffer.Chunk.{BKGD, ICCP, IDAT, IEND, IHDR, PHYS, PLTE, TEXT, TIME, Unknown}
+  alias Exiffer.PNG.Chunk.{BKGD, ICCP, IDAT, IEND, IHDR, PHYS, PLTE, TEXT, TIME, Unknown}
 
   def new("bKGD", data) do
     Logger.debug("Reading bKGD chunk")

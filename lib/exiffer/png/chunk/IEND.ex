@@ -1,8 +1,8 @@
-defmodule Exiffer.Chunk.IEND do
+defmodule Exiffer.PNG.Chunk.IEND do
   defstruct []
 
   def binary(_iend) do
-    Exiffer.Chunk.binary("IEND", <<>>)
+    Exiffer.PNG.Chunk.binary("IEND", <<>>)
   end
 
   def puts(_iend) do
@@ -18,7 +18,7 @@ defmodule Exiffer.Chunk.IEND do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Chunk.IEND
+    alias Exiffer.PNG.Chunk.IEND
 
     def binary(iend) do
       IEND.binary(iend)

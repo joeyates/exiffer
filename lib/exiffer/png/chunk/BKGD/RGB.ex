@@ -1,11 +1,11 @@
-defmodule Exiffer.Chunk.BKGD.RGB do
+defmodule Exiffer.PNG.Chunk.BKGD.RGB do
   defstruct ~w(r g b)a
 
   require Logger
 
   def binary(%__MODULE__{r: r, g: g, b: b}) do
     value = <<r, g, b>>
-    Exiffer.Chunk.binary("BKGD", value)
+    Exiffer.PNG.Chunk.binary("BKGD", value)
   end
 
   def puts(%__MODULE__{r: r, g: g, b: b}) do
@@ -25,19 +25,16 @@ defmodule Exiffer.Chunk.BKGD.RGB do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Chunk.BKGD.RGB
+    alias Exiffer.PNG.Chunk.BKGD.RGB
 
-    @spec binary(%Exiffer.Chunk.BKGD.RGB{}) :: binary
     def binary(rgb) do
       RGB.binary(rgb)
     end
 
-    @spec puts(%Exiffer.Chunk.BKGD.RGB{}) :: nil
     def puts(rgb) do
       RGB.puts(rgb)
     end
 
-    @spec write(%Exiffer.Chunk.BKGD.RGB{}, any) :: nil
     def write(rgb, io_device) do
       RGB.write(rgb, io_device)
     end

@@ -1,5 +1,5 @@
-defmodule Exiffer.Chunk.BKGD do
-  alias Exiffer.Chunk.BKGD.{PaletteIndex, Gray, RGB}
+defmodule Exiffer.PNG.Chunk.BKGD do
+  alias Exiffer.PNG.Chunk.BKGD.{PaletteIndex, Gray, RGB}
 
   def new(<<data::binary-size(1)>>) do
     %PaletteIndex{index: data}

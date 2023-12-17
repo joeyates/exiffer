@@ -1,4 +1,4 @@
-defmodule Exiffer.Chunk.PHYS do
+defmodule Exiffer.PNG.Chunk.PHYS do
   defstruct ~w(x_pixels_per_unit y_pixels_per_unit unit)a
 
   alias Exiffer.Binary
@@ -24,7 +24,7 @@ defmodule Exiffer.Chunk.PHYS do
       int32u_to_big_endian(phys.y_pixels_per_unit),
       phys.unit
     >>
-    Exiffer.Chunk.binary("pHYS", value)
+    Exiffer.PNG.Chunk.binary("pHYS", value)
   end
 
   def puts(%__MODULE__{} = phys) do
@@ -44,7 +44,7 @@ defmodule Exiffer.Chunk.PHYS do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Chunk.PHYS
+    alias Exiffer.PNG.Chunk.PHYS
 
     def binary(phys) do
       PHYS.binary(phys)

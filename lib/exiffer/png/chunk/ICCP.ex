@@ -1,6 +1,6 @@
 # http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html#C.iCCP
 
-defmodule Exiffer.Chunk.ICCP do
+defmodule Exiffer.PNG.Chunk.ICCP do
   @keys ~w(name compression_method compressed_profile)a
   @enforce_keys @keys
   defstruct @keys
@@ -11,7 +11,7 @@ defmodule Exiffer.Chunk.ICCP do
     %__MODULE__{name: name, compression_method: compression_method, compressed_profile: compressed_profile}
   end
 
-  @spec binary(%Exiffer.Chunk.ICCP{
+  @spec binary(%Exiffer.PNG.Chunk.ICCP{
           :compressed_profile => binary,
           :compression_method => integer,
           :name => integer()
@@ -23,10 +23,10 @@ defmodule Exiffer.Chunk.ICCP do
       iccp.compression_method,
       iccp.compressed_profile
     >>
-    Exiffer.Chunk.binary("iCCP", value)
+    Exiffer.PNG.Chunk.binary("iCCP", value)
   end
 
-  @spec puts(%Exiffer.Chunk.ICCP{
+  @spec puts(%Exiffer.PNG.Chunk.ICCP{
           :compressed_profile => binary,
           :compression_method => integer,
           :name => String.t()
@@ -47,21 +47,18 @@ defmodule Exiffer.Chunk.ICCP do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Chunk.ICCP
+    alias Exiffer.PNG.Chunk.ICCP
 
     require Logger
 
-    @spec binary(%Exiffer.Chunk.ICCP{}) :: binary
     def binary(iccp) do
       ICCP.binary(iccp)
     end
 
-    @spec puts(%Exiffer.Chunk.ICCP{}) :: nil
     def puts(iccp) do
       ICCP.puts(iccp)
     end
 
-    @spec write(%Exiffer.Chunk.ICCP{}, any) :: nil
     def write(iccp, io_device) do
       Logger.debug "Writing iCCP header"
       ICCP.write(iccp, io_device)

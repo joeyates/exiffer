@@ -1,4 +1,4 @@
-defmodule Exiffer.Chunk.TEXT do
+defmodule Exiffer.PNG.Chunk.TEXT do
   defstruct ~w(keyword text)a
 
   def new(data) do
@@ -12,7 +12,7 @@ defmodule Exiffer.Chunk.TEXT do
       0,
       text.text
     >>
-    Exiffer.Chunk.binary("tEXt", value)
+    Exiffer.PNG.Chunk.binary("tEXt", value)
   end
 
   def puts(%__MODULE__{} = text) do
@@ -30,7 +30,7 @@ defmodule Exiffer.Chunk.TEXT do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Chunk.TEXT
+    alias Exiffer.PNG.Chunk.TEXT
 
     def binary(text) do
       TEXT.binary(text)

@@ -1,4 +1,4 @@
-defmodule Exiffer.Chunk.IHDR do
+defmodule Exiffer.PNG.Chunk.IHDR do
   defstruct ~w(
     width
     height
@@ -39,7 +39,7 @@ defmodule Exiffer.Chunk.IHDR do
       ihdr.filter_method,
       ihdr.interlace_method
     >>
-    Exiffer.Chunk.binary("IHDR", value)
+    Exiffer.PNG.Chunk.binary("IHDR", value)
   end
 
   def puts(%__MODULE__{} = ihdr) do
@@ -63,7 +63,8 @@ defmodule Exiffer.Chunk.IHDR do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Chunk.IHDR
+    alias Exiffer.PNG.Chunk.IHDR
+
     def binary(data) do
       IHDR.binary(data)
     end

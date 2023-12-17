@@ -1,8 +1,8 @@
-defmodule Exiffer.Chunk.IDAT do
+defmodule Exiffer.PNG.Chunk.IDAT do
   defstruct ~w(data)a
 
   def binary(%__MODULE__{} = idat) do
-    Exiffer.Chunk.binary("IDAT", idat.data)
+    Exiffer.PNG.Chunk.binary("IDAT", idat.data)
   end
 
   def puts(%__MODULE__{} = idat) do
@@ -19,7 +19,7 @@ defmodule Exiffer.Chunk.IDAT do
   end
 
   defimpl Exiffer.Serialize do
-    alias Exiffer.Chunk.IDAT
+    alias Exiffer.PNG.Chunk.IDAT
 
     def binary(idat) do
       IDAT.binary(idat)
