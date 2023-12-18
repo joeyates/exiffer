@@ -57,7 +57,6 @@ defmodule Exiffer.Rewrite do
         create_date_index,
         create_date
       )
-      |> IO.inspect(label: "headers")
 
     {:ok, headers, remainder}
   end
