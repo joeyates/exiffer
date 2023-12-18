@@ -234,15 +234,4 @@ defmodule Exiffer.Binary do
   def to_signed_rational(<<rational::binary-size(8), rest::binary>>) do
     [to_signed_rational(rational) | to_signed_rational(rest)]
   end
-
-  @doc """
-  Read bytes from binary data up until, but excluding, a specific byte value.
-  """
-  def consume_until(match, <<match, _rest::binary>> = binary, consumed) do
-    {binary, consumed}
-  end
-
-  def consume_until(match, <<byte, rest::binary>>, consumed) do
-    consume_until(match, rest, <<consumed::binary, byte>>)
-  end
 end
