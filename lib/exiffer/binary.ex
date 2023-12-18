@@ -8,24 +8,29 @@ defmodule Exiffer.Binary do
 
   @table :exiffer
 
+  @spec optionally_create_ets_table() :: :ok
   def optionally_create_ets_table() do
     ref = :ets.whereis(@table)
     if ref == :undefined do
       Logger.debug "Initializing ETS table #{@table}"
       _name = :ets.new(@table, [:set, :public, :named_table])
     end
+    :ok
   end
 
+  @spec set_byte_order(:big | :little) :: true
   def set_byte_order(byte_order) do
     optionally_create_ets_table()
     :ets.insert(@table, {:byte_order, byte_order})
   end
 
+  @spec byte_order() :: :big | :little
   def byte_order() do
     [byte_order: byte_order] = :ets.lookup(@table, :byte_order)
     byte_order
   end
 
+  @spec to_integer(binary) :: non_neg_integer()
   @doc """
   Convert binary bytes to decimal based on endianness.
   """
@@ -36,6 +41,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec big_endian(binary) :: binary
   @doc """
   Force big endian byte order
   """
@@ -48,6 +54,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec big_endian_to_current(binary) :: binary
   @doc """
   Convert big endian to the currently selected byte order
   """
@@ -60,6 +67,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec int16u_to_current(integer) :: <<_::16>>
   @doc """
   Convert a 16-bit integer to binary bytes in current byte order.
   """
@@ -72,6 +80,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec int32u_to_current(integer) :: <<_::32>>
   @doc """
   Convert a 32-bit integer to binary bytes in current byte order.
   """
@@ -84,6 +93,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec reverse(binary) :: binary
   @doc """
   Reverse the given binary bytes
   """
@@ -94,6 +104,7 @@ defmodule Exiffer.Binary do
     |> :binary.list_to_bin()
   end
 
+  @spec big_endian_to_integer(binary) :: non_neg_integer()
   @doc """
   Convert big-endian binary bytes to an integer.
   """
@@ -105,6 +116,7 @@ defmodule Exiffer.Binary do
     0x1000000 * b0 + 0x10000 * b1 + 0x100 * b2 + b3
   end
 
+  @spec little_endian_to_integer(binary) :: non_neg_integer()
   @doc """
   Convert little-endian binary bytes to integer.
   """
@@ -116,6 +128,7 @@ defmodule Exiffer.Binary do
     b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
   end
 
+  @spec int16u_to_big_endian(integer) :: <<_::16>>
   @doc """
   Convert a 16-bit integer to big-endian binary bytes.
   """
@@ -126,6 +139,7 @@ defmodule Exiffer.Binary do
     >>
   end
 
+  @spec int16u_to_little_endian(integer) :: <<_::16>>
   @doc """
   Convert a 16-bit integer to little-endian binary bytes.
   """
@@ -136,6 +150,7 @@ defmodule Exiffer.Binary do
     >>
   end
 
+  @spec int32u_to_big_endian(integer) :: <<_::32>>
   @doc """
   Convert a 32-bit integer to big-endian binary bytes.
   """
@@ -148,6 +163,7 @@ defmodule Exiffer.Binary do
     >>
   end
 
+  @spec int32u_to_little_endian(integer) :: <<_::32>>
   @doc """
   Convert a 32-bit integer to little-endian binary bytes.
   """
