@@ -47,8 +47,8 @@ defmodule Exiffer.JPEG.Header.JFIF do
     buffer = Exiffer.Buffer.skip(buffer, 9)
     {<<version::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 2)
 
-    {<<resolution_units::binary-size(1), x_resolution::binary-size(2),
-       y_resolution::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 5)
+    {<<resolution_units, x_resolution::binary-size(2), y_resolution::binary-size(2)>>, buffer} =
+      Exiffer.Buffer.consume(buffer, 5)
 
     {<<thumbnail_width, thumbnail_height>>, buffer} = Exiffer.Buffer.consume(buffer, 2)
     thumbnail_bytes = 3 * thumbnail_width * thumbnail_height
