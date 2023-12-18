@@ -19,10 +19,11 @@ defmodule Exiffer.JPEG.Header.JFIF do
     thumbnail
   )a
 
-  defimpl Jason.Encoder  do
+  defimpl Jason.Encoder do
     @spec encode(%Exiffer.JPEG.Header.JFIF{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Logger.debug("Encoding JFIF")
+
       Jason.Encode.map(
         %{
           module: "Exiffer.JPEG.Header.JFIF",
@@ -32,13 +33,12 @@ defmodule Exiffer.JPEG.Header.JFIF do
           y_resolution: entry.y_resolution,
           thumbnail_width: entry.thumbnail_width,
           thumbnail_height: entry.thumbnail_height,
-          thumbnail: "(#{byte_size(entry.thumbnail)} bytes)",
+          thumbnail: "(#{byte_size(entry.thumbnail)} bytes)"
         },
         opts
       )
     end
   end
-
 
   def new(
         %{data: <<0xFF, 0xE0, _length_binary::binary-size(2), "JFIF", 0x00, _rest::binary>>} =
