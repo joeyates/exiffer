@@ -877,8 +877,7 @@ defmodule Exiffer.JPEG.Entry do
   end
 
   def text(%__MODULE__{format: :raw_bytes} = entry) do
-    # TODO
-    [{entry.label, entry.value}]
+    [{entry.label, inspect(entry.value, base: :hex)}]
   end
 
   # TODO: handle negatives
