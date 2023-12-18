@@ -10,8 +10,7 @@ defmodule Exiffer.JPEG.IFD do
   alias Exiffer.JPEG.Entry
   import Exiffer.Logging, only: [integer: 1]
 
-  @enforce_keys ~w(entries)a
-  defstruct ~w(entries)a
+  defstruct [entries: []]
 
   defimpl Jason.Encoder  do
     @spec encode(%Exiffer.JPEG.IFD{}, Jason.Encode.opts()) :: String.t()
