@@ -5,7 +5,7 @@ if Code.ensure_loaded?(Bakeware.Script) do
   defmodule Exiffer.CLI do
     use Bakeware.Script
 
-    alias Exiffer.CLI.{Read, SetGPS}
+    alias Exiffer.CLI.{Read, SetDateTime, SetGPS}
 
     @impl Bakeware.Script
     @spec main([String.t()]) :: 0 | 1
@@ -13,6 +13,29 @@ if Code.ensure_loaded?(Bakeware.Script) do
       IO.puts(:stderr, "Please supply a command")
       list_top_level_commands()
       1
+    end
+
+    @set_date_time_switches [
+      source: %{type: :string, required: true, short: :s, description: "Source image"},
+      destination: %{type: :string, required: true, short: :d, description: "Destination image"},
+      year: %{type: :integer, required: true, short: :t, description: "Year"},
+      month: %{type: :integer, short: :m, description: "Month"},
+      day: %{type: :integer, short: :d, description: "Day"},
+      hour: %{type: :integer, short: :H, description: "Hour"},
+      minute: %{type: :integer, short: :M, description: "Minute"},
+      second: %{type: :integer, short: :S, description: "Second"}
+    ]
+    def main(["set-date-time" | rest]) do
+      case HelpfulOptions.parse(rest, switches: @set_date_time_switches) do
+        {:ok, args, []} ->
+          SetDateTime.run(args)
+          0
+
+        {:error, error} ->
+          IO.puts(:stderr, error)
+          list_top_level_commands()
+          1
+      end
     end
 
     @set_gps_switches [
@@ -93,7 +116,7 @@ if Code.ensure_loaded?(Bakeware.Script) do
     end
 
     defp list_top_level_commands do
-      IO.puts("exiffer read|set-gps")
+      IO.puts("exiffer read|set-date-time|set-gps")
     end
   end
 end
