@@ -19,8 +19,8 @@ defmodule Exiffer.JPEG.Entry do
       values =
         entry
         |> Exiffer.JPEG.Entry.text()
-        |> Enum.map(fn {_k, value} -> value end)
         |> Enum.map(&present/1)
+        |> Enum.into(%{})
 
       Jason.Encode.map(
         %{
@@ -34,19 +34,18 @@ defmodule Exiffer.JPEG.Entry do
       )
     end
 
-    defp present(value)
+    defp present(pair)
 
-    defp present(nil), do: nil
-
-    defp present(value) when is_integer(value), do: value
-
-    defp present(value) when is_binary(value) do
+    defp present({key, value}) when is_binary(value) do
       if String.printable?(value) do
         value
       else
         Base.encode16(value)
       end
+      |> then(& {key, &1})
     end
+
+    defp present({key, value}), do: {key, value}
   end
 
   # Binaries are big endian
