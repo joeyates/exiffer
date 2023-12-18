@@ -22,8 +22,8 @@ defmodule Exiffer.Rewrite do
     end
 
     Logger.info "Adding/updating GPS entry"
-    entry = build_entry(gps)
-    {:ok, metadata} = apply_gps(metadata, entry)
+    entry = build_gps_entry(gps)
+    {:ok, metadata} = set_exif_ifd_entry(metadata, :gps_info, entry)
 
     Logger.info "Exiffer.Rewrite.set_gps/2 - complete"
     {:ok, metadata, remainder}
@@ -38,7 +38,7 @@ defmodule Exiffer.Rewrite do
     %EXIF{byte_order: :little, ifd_block: ifd_block}
   end
 
-  defp build_entry(gps) do
+  defp build_gps_entry(gps) do
     latitude_ref = if gps.latitude >= 0, do: "N", else: "S"
     longitude_ref = if gps.longitude >= 0, do: "E", else: "W"
     latitude = gps.latitude |> float_to_dms() |> dms_to_rational()
@@ -73,68 +73,68 @@ defmodule Exiffer.Rewrite do
     [{d, 1}, {m, 1}, {mus, 1_000_000}]
   end
 
-  defp apply_gps(headers, entry) do
-    {:ok, headers} = remove_gps(headers)
-    {:ok, _headers} = add_gps(headers, entry)
+  defp set_exif_ifd_entry(headers, type, entry) do
+    {:ok, headers} = remove_exif_ifd_entry(headers, type)
+    {:ok, _headers} = add_exif_ifd_entry(headers, entry)
   end
 
-  defp add_gps(headers, entry) when is_list(headers) do
-    headers = Enum.map(headers, &(add_gps(&1, entry)))
+  defp add_exif_ifd_entry(headers, entry) when is_list(headers) do
+    headers = Enum.map(headers, &(add_exif_ifd_entry(&1, entry)))
     {:ok, headers}
   end
 
-  defp add_gps(%EXIF{} = exif, entry) do
-    ifd_block = add_gps(exif.ifd_block, entry)
+  defp add_exif_ifd_entry(%EXIF{} = exif, entry) do
+    ifd_block = add_exif_ifd_entry(exif.ifd_block, entry)
     struct!(exif, ifd_block: ifd_block)
   end
 
-  defp add_gps(%IFDBlock{ifds: []} = ifd_block, entry) do
+  defp add_exif_ifd_entry(%IFDBlock{ifds: []} = ifd_block, entry) do
     ifd = %IFD{entries: []}
-    ifd = add_gps(ifd, entry)
+    ifd = add_exif_ifd_entry(ifd, entry)
     struct!(ifd_block, ifds: [ifd])
   end
 
-  defp add_gps(%IFDBlock{} = ifd_block, entry) do
+  defp add_exif_ifd_entry(%IFDBlock{} = ifd_block, entry) do
     [ifd | others] = ifd_block.ifds
-    ifd = add_gps(ifd, entry)
+    ifd = add_exif_ifd_entry(ifd, entry)
     struct!(ifd_block, ifds: [ifd | others])
   end
 
-  defp add_gps(%IFD{} = ifd, entry) do
+  defp add_exif_ifd_entry(%IFD{} = ifd, entry) do
     entries = Enum.reverse([entry | Enum.reverse(ifd.entries)])
     struct!(ifd, entries: entries)
   end
 
-  defp add_gps(item, _entry), do: item
+  defp add_exif_ifd_entry(item, _entry), do: item
 
-  defp remove_gps(headers) when is_list(headers) do
-    headers = Enum.map(headers, &(remove_gps(&1)))
+  defp remove_exif_ifd_entry(headers, type) when is_list(headers) do
+    headers = Enum.map(headers, &(remove_exif_ifd_entry(&1, type)))
     {:ok, headers}
   end
 
-  defp remove_gps(%EXIF{} = exif) do
-    ifd_block = remove_gps(exif.ifd_block)
+  defp remove_exif_ifd_entry(%EXIF{} = exif, type) do
+    ifd_block = remove_exif_ifd_entry(exif.ifd_block, type)
     struct!(exif, ifd_block: ifd_block)
   end
 
-  defp remove_gps(%IFDBlock{} = ifd_block) do
-    ifds = Enum.map(ifd_block.ifds, &(remove_gps(&1)))
+  defp remove_exif_ifd_entry(%IFDBlock{} = ifd_block, type) do
+    ifds = Enum.map(ifd_block.ifds, &(remove_exif_ifd_entry(&1, type)))
     struct!(ifd_block, ifds: ifds)
   end
 
-  defp remove_gps(%IFD{} = ifd) do
+  defp remove_exif_ifd_entry(%IFD{} = ifd, type) do
     entries =
       ifd.entries
-      |> Enum.map(&(remove_gps(&1)))
+      |> Enum.map(&(remove_exif_ifd_entry(&1, type)))
       |> Enum.filter(&(&1))
     struct!(ifd, entries: entries)
   end
 
-  defp remove_gps(%Entry{type: :gps_info}) do
+  defp remove_exif_ifd_entry(%Entry{type: type}, type) do
     nil
   end
 
-  defp remove_gps(item) do
+  defp remove_exif_ifd_entry(item, _type) do
     item
   end
 end
