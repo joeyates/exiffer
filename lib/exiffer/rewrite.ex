@@ -17,12 +17,7 @@ defmodule Exiffer.Rewrite do
     {headers, exif_index} = ensure_exif(jpeg.headers)
     {headers, gps_index} = ensure_entry(headers, exif_index, :gps_info)
     entry = build_gps_entry(gps)
-    headers =
-      headers
-      |> update_in(
-        entries_path(exif_index) ++ [Access.at(gps_index)],
-        fn _existing -> entry end
-      )
+    headers = update_entry(headers, exif_index, gps_index, entry)
 
     {:ok, headers, remainder}
   end
@@ -62,6 +57,14 @@ defmodule Exiffer.Rewrite do
 
       {headers, 0}
     end
+  end
+
+  defp update_entry(headers, exif_index, entry_index, entry) do
+    headers
+    |> update_in(
+      entries_path(exif_index) ++ [Access.at(entry_index)],
+      fn _existing -> entry end
+    )
   end
 
   defp entry_index(headers, exif_index, type) do
