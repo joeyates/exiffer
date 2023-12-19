@@ -5,14 +5,13 @@ defmodule Exiffer.JPEG.IFD do
 
   require Logger
 
-
   alias Exiffer.Binary
   alias Exiffer.JPEG.Entry
   import Exiffer.Logging, only: [integer: 1]
 
-  defstruct [entries: []]
+  defstruct entries: []
 
-  defimpl Jason.Encoder  do
+  defimpl Jason.Encoder do
     @spec encode(%Exiffer.JPEG.IFD{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Jason.Encode.map(
@@ -28,15 +27,19 @@ defmodule Exiffer.JPEG.IFD do
   def read(%{} = buffer, opts \\ []) do
     {entry_count_bytes, buffer} = Exiffer.Buffer.consume(buffer, 2)
     entry_count = Binary.to_integer(entry_count_bytes)
-    Logger.debug "IFD reading #{integer(entry_count)} entries"
+    Logger.debug("IFD reading #{integer(entry_count)} entries")
     {entries, buffer} = read_entry(buffer, entry_count, [], opts)
     Logger.debug("IFD read #{length(entries)} entries")
     ifd = %__MODULE__{entries: Enum.reverse(entries)}
     read_entries = length(entries)
+
     if read_entries == entry_count do
       {:ok, ifd, buffer}
     else
-      Logger.debug("IFD.read returning error as #{read_entries} entries were found, expected #{entry_count}")
+      Logger.debug(
+        "IFD.read returning error as #{read_entries} entries were found, expected #{entry_count}"
+      )
+
       {:error, ifd, buffer}
     end
   end
@@ -125,16 +128,21 @@ defmodule Exiffer.JPEG.IFD do
     nth = length(entries)
     position = Exiffer.Buffer.tell(buffer)
     offset = buffer.offset
-    Logger.debug "Reading Entry #{nth} at buffer position #{integer(position)}, (absolute #{integer(offset + position)})"
+
+    Logger.debug(
+      "Reading Entry #{nth} at buffer position #{integer(position)}, (absolute #{integer(offset + position)})"
+    )
+
     {entry, buffer} = Entry.new(buffer, opts)
+
     if entry do
       format = Entry.format_name(entry)
       content = Entry.text(entry)
-      Logger.debug "#{format} Entry #{nth} read: #{inspect(content)}"
+      Logger.debug("#{format} Entry #{nth} read: #{inspect(content)}")
 
       read_entry(buffer, count - 1, [entry | entries], opts)
     else
-      Logger.debug "Entry #{nth} not read"
+      Logger.debug("Entry #{nth} not read")
       read_entry(buffer, 0, entries, opts)
     end
   end
@@ -144,14 +152,17 @@ defmodule Exiffer.JPEG.IFD do
       {thumbnail_offset, thumbnail_length} ->
         thumbnail = Exiffer.Buffer.random(buffer, thumbnail_offset, thumbnail_length)
         # Replace thumbnail offset with the thumbnail binary
-        entries = Enum.map(entries, fn entry ->
-          if entry.type == :thumbnail_offset do
-            struct!(entry, value: thumbnail)
-          else
-            entry
-          end
-        end)
+        entries =
+          Enum.map(entries, fn entry ->
+            if entry.type == :thumbnail_offset do
+              struct!(entry, value: thumbnail)
+            else
+              entry
+            end
+          end)
+
         {entries, buffer}
+
       _ ->
         {entries, buffer}
     end
@@ -160,6 +171,7 @@ defmodule Exiffer.JPEG.IFD do
   defp thumbnail_entries(entries) do
     thumbnail_offset = find_entry_value(entries, :thumbnail_offset)
     thumbnail_length = find_entry_value(entries, :thumbnail_length)
+
     if thumbnail_offset && thumbnail_length do
       {thumbnail_offset, thumbnail_length}
     end

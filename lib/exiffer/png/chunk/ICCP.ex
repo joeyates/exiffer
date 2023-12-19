@@ -8,7 +8,12 @@ defmodule Exiffer.PNG.Chunk.ICCP do
   def new(data) do
     [name, rest] = String.split(data, <<0>>, parts: 2)
     <<compression_method, compressed_profile::binary>> = rest
-    %__MODULE__{name: name, compression_method: compression_method, compressed_profile: compressed_profile}
+
+    %__MODULE__{
+      name: name,
+      compression_method: compression_method,
+      compressed_profile: compressed_profile
+    }
   end
 
   @spec binary(%Exiffer.PNG.Chunk.ICCP{
