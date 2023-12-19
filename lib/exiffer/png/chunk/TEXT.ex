@@ -15,8 +15,8 @@ defmodule Exiffer.PNG.Chunk.TEXT do
     Exiffer.PNG.Chunk.binary("tEXt", value)
   end
 
-  def puts(%__MODULE__{} = text) do
-    IO.puts """
+  def text(%__MODULE__{} = text) do
+    """
     tEXt
     ----
     Keyword: #{text.keyword}
@@ -36,8 +36,8 @@ defmodule Exiffer.PNG.Chunk.TEXT do
       TEXT.binary(text)
     end
 
-    def puts(text) do
-      TEXT.puts(text)
+    def text(text) do
+      TEXT.text(text)
     end
 
     def write(text, io_device) do

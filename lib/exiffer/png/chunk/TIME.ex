@@ -27,8 +27,8 @@ defmodule Exiffer.PNG.Chunk.TIME do
     Exiffer.PNG.Chunk.binary("tIME", value)
   end
 
-  def puts(time) do
-    IO.puts """
+  def text(time) do
+    """
     tIME
     ----
     Year: #{time.year}
@@ -52,8 +52,8 @@ defmodule Exiffer.PNG.Chunk.TIME do
       TIME.binary(time)
     end
 
-    def puts(time) do
-      TIME.puts(time)
+    def text(time) do
+      TIME.text(time)
     end
 
     def write(time, io_device) do

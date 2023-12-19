@@ -37,11 +37,13 @@ defmodule Exiffer.JPEG.Header.APP4 do
     <<0xff, 0xe4, length_binary::binary, value::binary>>
   end
 
-  def puts(%__MODULE__{value: value}) do
+  def text(%__MODULE__{value: value}) do
     length = byte_size(value)
-    IO.puts "APP4"
-    IO.puts "----"
-    IO.puts "value: #{length} bytes"
+    """
+    APP4
+    ----
+    value: #{length} bytes
+    """
   end
 
   def write(%__MODULE__{} = data, io_device) do
@@ -57,8 +59,8 @@ defmodule Exiffer.JPEG.Header.APP4 do
       APP4.binary(data)
     end
 
-    def puts(data) do
-      APP4.puts(data)
+    def text(data) do
+      APP4.text(data)
     end
 
     def write(data, io_device) do

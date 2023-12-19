@@ -27,9 +27,9 @@ defmodule Exiffer.PNG.Chunk.PHYS do
     Exiffer.PNG.Chunk.binary("pHYS", value)
   end
 
-  def puts(%__MODULE__{} = phys) do
+  def text(%__MODULE__{} = phys) do
     unit = if phys.unit == 0, do: "Unknown", else: "meters"
-    IO.puts """
+    """
     pHYs
     ----
     X-axis pixels per unit: #{phys.x_pixels_per_unit}
@@ -50,8 +50,8 @@ defmodule Exiffer.PNG.Chunk.PHYS do
       PHYS.binary(phys)
     end
 
-    def puts(phys) do
-      PHYS.puts(phys)
+    def text(phys) do
+      PHYS.text(phys)
     end
 
     def write(phys, io_device) do

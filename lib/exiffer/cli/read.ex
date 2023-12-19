@@ -16,7 +16,7 @@ defmodule Exiffer.CLI.Read do
 
     case format do
       "text" ->
-        :ok = Exiffer.Serialize.puts(metadata)
+        IO.puts(Exiffer.Serialize.text(metadata))
 
       "json" ->
         IO.puts(Jason.encode!(metadata, pretty: true))

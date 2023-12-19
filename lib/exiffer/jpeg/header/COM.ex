@@ -37,10 +37,12 @@ defmodule Exiffer.JPEG.Header.COM do
     {com, buffer}
   end
 
-  def puts(%__MODULE__{} = com) do
-    IO.puts "Comment"
-    IO.puts "-------"
-    IO.puts "Comment: #{com.comment}"
+  def text(%__MODULE__{} = com) do
+    """
+    Comment
+    -------
+    Comment: #{com.comment}
+    """
   end
 
   def binary(%__MODULE__{} = com) do
@@ -66,8 +68,8 @@ defmodule Exiffer.JPEG.Header.COM do
       COM.binary(com)
     end
 
-    def puts(com) do
-      COM.puts(com)
+    def text(com) do
+      COM.text(com)
     end
   end
 end

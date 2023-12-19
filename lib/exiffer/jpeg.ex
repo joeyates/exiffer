@@ -37,13 +37,13 @@ defmodule Exiffer.JPEG do
     {%__MODULE__{headers: headers}, buffer}
   end
 
-  def puts(%__MODULE__{} = jpeg) do
-    :ok = Exiffer.Serialize.puts(jpeg.headers)
-  end
-
   def binary(%__MODULE__{} = jpeg) do
     Logger.info "Exiffer.JPEG creating binary"
     Exiffer.Serialize.binary(jpeg.headers)
+  end
+
+  def text(%__MODULE__{} = jpeg) do
+    Exiffer.Serialize.text(jpeg.headers)
   end
 
   def write(%__MODULE__{} = jpeg, io_device) do
@@ -107,8 +107,8 @@ defmodule Exiffer.JPEG do
       Exiffer.JPEG.binary(jpeg)
     end
 
-    def puts(%Exiffer.JPEG{} = jpeg) do
-      Exiffer.JPEG.puts(jpeg)
+    def text(%Exiffer.JPEG{} = jpeg) do
+      Exiffer.JPEG.text(jpeg)
     end
   end
 end

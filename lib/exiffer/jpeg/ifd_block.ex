@@ -52,18 +52,20 @@ defmodule Exiffer.JPEG.IFDBlock do
     binary
   end
 
-  def puts(%__MODULE__{} = ifd_block) do
+  def text(%__MODULE__{} = ifd_block) do
     ifd_block.ifds
     |> Enum.with_index()
-    |> Enum.each(fn {ifd, i} ->
+    |> Enum.map(fn {ifd, i} ->
       if i == 1 do
-        IO.puts "Thumbnail"
-        IO.puts "---------"
+        """
+        Thumbnail
+        ---------
+        """ <> IFD.text(ifd)
+      else
+        IFD.text(ifd)
       end
-      IFD.puts(ifd)
     end)
-
-    :ok
+    |> Enum.join("\n")
   end
 
   defp read(%{} = buffer, ifds) do

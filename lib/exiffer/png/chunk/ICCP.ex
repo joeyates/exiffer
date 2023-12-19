@@ -23,16 +23,17 @@ defmodule Exiffer.PNG.Chunk.ICCP do
       iccp.compression_method,
       iccp.compressed_profile
     >>
+
     Exiffer.PNG.Chunk.binary("iCCP", value)
   end
 
-  @spec puts(%Exiffer.PNG.Chunk.ICCP{
+  @spec text(%Exiffer.PNG.Chunk.ICCP{
           :compressed_profile => binary,
           :compression_method => integer,
           :name => String.t()
-        }) :: :ok
-  def puts(%__MODULE__{} = iccp) do
-    IO.puts """
+        }) :: String.t()
+  def text(%__MODULE__{} = iccp) do
+    """
     iCCP
     ----
     name: #{iccp.name}
@@ -55,13 +56,13 @@ defmodule Exiffer.PNG.Chunk.ICCP do
       ICCP.binary(iccp)
     end
 
-    def puts(iccp) do
-      ICCP.puts(iccp)
+    def write(iccp, io_device) do
+      Logger.debug("Writing iCCP header")
+      ICCP.write(iccp, io_device)
     end
 
-    def write(iccp, io_device) do
-      Logger.debug "Writing iCCP header"
-      ICCP.write(iccp, io_device)
+    def text(iccp) do
+      ICCP.text(iccp)
     end
   end
 end

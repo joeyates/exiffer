@@ -5,8 +5,8 @@ defmodule Exiffer.PNG.Chunk.IEND do
     Exiffer.PNG.Chunk.binary("IEND", <<>>)
   end
 
-  def puts(_iend) do
-    IO.puts """
+  def text(_iend) do
+    """
     IEND
     ----
     """
@@ -24,8 +24,8 @@ defmodule Exiffer.PNG.Chunk.IEND do
       IEND.binary(iend)
     end
 
-    def puts(iend) do
-      IEND.puts(iend)
+    def text(iend) do
+      IEND.text(iend)
     end
 
     def write(iend, io_device) do

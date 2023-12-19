@@ -42,8 +42,8 @@ defmodule Exiffer.PNG.Chunk.IHDR do
     Exiffer.PNG.Chunk.binary("IHDR", value)
   end
 
-  def puts(%__MODULE__{} = ihdr) do
-    IO.puts """
+  def text(%__MODULE__{} = ihdr) do
+    """
     IHDR
     ----
     width: #{ihdr.width}
@@ -69,8 +69,8 @@ defmodule Exiffer.PNG.Chunk.IHDR do
       IHDR.binary(data)
     end
 
-    def puts(data) do
-      IHDR.puts(data)
+    def text(data) do
+      IHDR.text(data)
     end
 
     def write(data, io_device) do

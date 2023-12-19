@@ -73,12 +73,14 @@ defmodule Exiffer.JPEG.Header.Data do
     >>
   end
 
-  def puts(%__MODULE__{type: type, data: data}) do
+  def text(%__MODULE__{type: type, data: data}) do
     length = byte_size(data)
-    IO.puts "Data"
-    IO.puts "----"
-    IO.puts "type: #{type}"
-    IO.puts "data: #{length} bytes"
+    """
+    Data
+    ----
+    type: #{type}
+    data: #{length} bytes
+    """
   end
 
   def write(%__MODULE__{type: type, data: data}, io_device) do
@@ -102,8 +104,8 @@ defmodule Exiffer.JPEG.Header.Data do
       Data.binary(data)
     end
 
-    def puts(data) do
-      Data.puts(data)
+    def text(data) do
+      Data.text(data)
     end
   end
 end

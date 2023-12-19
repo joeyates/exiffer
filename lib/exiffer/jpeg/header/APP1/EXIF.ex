@@ -83,15 +83,18 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
     >>
   end
 
-  def puts(%__MODULE__{} = exif) do
-    IO.puts "File"
-    IO.puts "----"
+  def text(%__MODULE__{} = exif) do
     byte_order = if exif.byte_order == :big, do: "Big endian", else: "Little endian"
-    IO.puts "Byte order: #{byte_order}"
-    IO.puts "General"
-    IO.puts "-------"
-    IFDBlock.puts(exif.ifd_block)
-    :ok
+
+    """
+    File
+    ----
+    Byte order: #{byte_order}
+
+    APP1.EXIF
+    ---------
+    #{IFDBlock.text(exif.ifd_block)}
+    """
   end
 
   def write(%__MODULE__{} = exif, io_device) do
@@ -111,8 +114,8 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
       EXIF.binary(exif)
     end
 
-    def puts(exif) do
-      EXIF.puts(exif)
+    def text(exif) do
+      EXIF.text(exif)
     end
   end
 end

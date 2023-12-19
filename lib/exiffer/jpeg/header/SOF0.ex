@@ -72,19 +72,24 @@ defmodule Exiffer.JPEG.Header.SOF0 do
     {sof0, buffer}
   end
 
-  def puts(%__MODULE__{} = sof0) do
-    IO.puts("Start of Frame 0 - Baseline DCT")
-    IO.puts("-------------------------------")
-    IO.puts("Bits per sample: #{sof0.bits_per_sample}")
-    IO.puts("Width: #{sof0.width}")
-    IO.puts("Height: #{sof0.height}")
-    IO.puts("Color components: #{sof0.color_components_count}")
-    IO.puts("Encoding process: #{sof0.encoding_process}")
-
+  def text(%__MODULE__{} = sof0) do
+    sub =
     if sof0.y_cb_cr_sub_sampling do
       {sub1, sub2} = sof0.y_cb_cr_sub_sampling
-      IO.puts("Y Cb Cr Sub Sampling: #{sub1} #{sub2}")
+      "\nY Cb Cr Sub Sampling: #{sub1} #{sub2}"
+    else
+      ""
     end
+
+    """
+    Start of Frame 0 - Baseline DCT
+    -------------------------------
+    Bits per sample: #{sof0.bits_per_sample}
+    Width: #{sof0.width}
+    Height: #{sof0.height}
+    Color components: #{sof0.color_components_count}
+    Encoding process: #{sof0.encoding_process}#{sub}
+    """
   end
 
   def binary(sof0) do
@@ -121,8 +126,8 @@ defmodule Exiffer.JPEG.Header.SOF0 do
       SOF0.binary(sof0)
     end
 
-    def puts(sof0) do
-      SOF0.puts(sof0)
+    def text(sof0) do
+      SOF0.text(sof0)
     end
   end
 end

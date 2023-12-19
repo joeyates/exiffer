@@ -34,11 +34,12 @@ defmodule Exiffer.JPEG.Header.APP1.XMPExtension do
     {xmp, buffer}
   end
 
-  def puts(%__MODULE__{} = xmp) do
-    IO.puts "XMPExtension"
-    IO.puts "------------"
-    IO.puts "#{byte_size(xmp.xpacket)} bytes"
-    :ok
+  def text(%__MODULE__{} = xmp) do
+    """
+    XMPExtension
+    ------------
+    #{byte_size(xmp.xpacket)} bytes
+    """
   end
 
   def binary(%__MODULE__{xpacket: xpacket}), do: xpacket
@@ -56,8 +57,8 @@ defmodule Exiffer.JPEG.Header.APP1.XMPExtension do
       XMPExtension.binary(xmp)
     end
 
-    def puts(xmp) do
-      XMPExtension.puts(xmp)
+    def text(xmp) do
+      XMPExtension.text(xmp)
     end
 
     def write(xmp, io_device) do

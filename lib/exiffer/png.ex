@@ -41,8 +41,8 @@ defmodule Exiffer.PNG do
     Exiffer.Serialize.binary(png.chunks)
   end
 
-  def puts(%__MODULE__{} = png) do
-    :ok = Exiffer.Serialize.puts(png.chunks)
+  def text(%__MODULE__{} = png) do
+    Exiffer.Serialize.text(png.chunks)
   end
 
   def write(%__MODULE__{} = png, io_device) do
@@ -62,8 +62,8 @@ defmodule Exiffer.PNG do
       PNG.binary(png)
     end
 
-    def puts(%PNG{} = png) do
-      PNG.puts(png)
+    def text(%PNG{} = png) do
+      PNG.text(png)
     end
   end
 end

@@ -52,60 +52,68 @@ defmodule Exiffer.JPEG.IFD do
     is_last = Keyword.get(opts, :is_last, true)
     count = length(entries)
     next_ifd_pointer_offset = offset + 2 + count * 12
-    {end_of_block, headers, extras} = Enum.reduce(
-      entries,
-      {next_ifd_pointer_offset + 4, [], []},
-      fn entry, {end_of_block, headers, extras} ->
-        format = Entry.format_name(entry)
-        content = Entry.text(entry)
-        Logger.debug "Creating binary for #{format} Entry, value: #{inspect(content)}"
-        {header, extra} = Entry.binary(entry, end_of_block)
-        {
-          end_of_block + byte_size(extra),
-          [header | headers],
-          [extra | extras]
-        }
-      end
-    )
+
+    {end_of_block, headers, extras} =
+      Enum.reduce(
+        entries,
+        {next_ifd_pointer_offset + 4, [], []},
+        fn entry, {end_of_block, headers, extras} ->
+          format = Entry.format_name(entry)
+          content = Entry.text(entry)
+          Logger.debug("Creating binary for #{format} Entry, value: #{inspect(content)}")
+          {header, extra} = Entry.binary(entry, end_of_block)
+
+          {
+            end_of_block + byte_size(extra),
+            [header | headers],
+            [extra | extras]
+          }
+        end
+      )
+
     count_binary = Binary.int16u_to_current(count)
     headers_binary = headers |> Enum.reverse() |> Enum.join()
     next_ifd_offset = if is_last, do: 0, else: end_of_block
     next_ifd_binary = Binary.int32u_to_current(next_ifd_offset)
     extras_binary = extras |> Enum.reverse() |> Enum.join()
-    <<count_binary::binary, headers_binary::binary, next_ifd_binary::binary, extras_binary::binary>>
+
+    <<count_binary::binary, headers_binary::binary, next_ifd_binary::binary,
+      extras_binary::binary>>
   end
 
-  def puts(%__MODULE__{} = ifd) do
+  def text(%__MODULE__{} = ifd) do
     ifd.entries
-    |> Enum.flat_map(&(Entry.text(&1)))
-    |> puts_texts()
+    |> Enum.flat_map(&Entry.text(&1))
+    |> texts()
+    |> Enum.join("\n")
   end
 
-  defp puts_texts([]), do: :ok
+  defp texts([]), do: []
 
-  defp puts_texts(texts) do
+  defp texts(texts) do
     longest_label =
       texts
       |> Enum.map(fn {key, _value} -> String.length(key) end)
       |> Enum.max()
 
     texts
-    |> Enum.each(fn {label, value} ->
+    |> Enum.map(fn {label, value} ->
       if value do
-        IO.write String.pad_trailing("#{label}:", longest_label + 2)
-        try do
-          IO.puts value
-        rescue _e ->
-          IO.puts "???"
-        end
+        start = String.pad_trailing("#{label}:", longest_label + 2)
+
+        rest =
+          try do
+            "#{value}"
+          rescue
+            _e ->
+              "???"
+          end
+        "#{start} #{rest}"
       else
         # If there's no label, it's a subtitle
-        IO.puts label
-        IO.puts String.duplicate("-", String.length(label))
+        "#{label}\n#{String.duplicate("-", String.length(label))}"
       end
     end)
-
-    :ok
   end
 
   defp read_entry(buffer, 0, entries, _opts) do

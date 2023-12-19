@@ -3,18 +3,20 @@ defmodule Exiffer.PNG.Chunk.BKGD.RGB do
 
   require Logger
 
+  alias Exiffer.Binary
+
   def binary(%__MODULE__{r: r, g: g, b: b}) do
     value = <<r, g, b>>
     Exiffer.PNG.Chunk.binary("BKGD", value)
   end
 
-  def puts(%__MODULE__{r: r, g: g, b: b}) do
+  def text(%__MODULE__{r: r, g: g, b: b}) do
     """
     BKGD
     ----
-    red: #{r}
-    green: #{g}
-    blue: #{b}
+    red: #{Binary.to_integer(r)}
+    green: #{Binary.to_integer(g)}
+    blue: #{Binary.to_integer(b)}
     """
   end
 
@@ -31,8 +33,8 @@ defmodule Exiffer.PNG.Chunk.BKGD.RGB do
       RGB.binary(rgb)
     end
 
-    def puts(rgb) do
-      RGB.puts(rgb)
+    def text(rgb) do
+      RGB.text(rgb)
     end
 
     def write(rgb, io_device) do

@@ -5,8 +5,8 @@ defmodule Exiffer.PNG.Chunk.IDAT do
     Exiffer.PNG.Chunk.binary("IDAT", idat.data)
   end
 
-  def puts(%__MODULE__{} = idat) do
-    IO.puts """
+  def text(%__MODULE__{} = idat) do
+    """
     IDAT
     ----
     Data: #{byte_size(idat.data)} bytes
@@ -25,8 +25,8 @@ defmodule Exiffer.PNG.Chunk.IDAT do
       IDAT.binary(idat)
     end
 
-    def puts(idat) do
-      IDAT.puts(idat)
+    def text(idat) do
+      IDAT.text(idat)
     end
 
     def write(idat, io_device) do

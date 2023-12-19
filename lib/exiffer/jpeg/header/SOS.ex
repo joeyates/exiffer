@@ -26,9 +26,11 @@ defmodule Exiffer.JPEG.Header.SOS do
 
   def binary(%__MODULE__{}), do: <<0xff, 0xda>>
 
-  def puts(%__MODULE__{}) do
-    IO.puts "SOS"
-    IO.puts "---"
+  def text(%__MODULE__{}) do
+    """
+    SOS
+    ---
+    """
   end
 
   def write(%__MODULE__{} = data, io_device) do
@@ -44,8 +46,8 @@ defmodule Exiffer.JPEG.Header.SOS do
       SOS.binary(data)
     end
 
-    def puts(data) do
-      SOS.puts(data)
+    def text(data) do
+      SOS.text(data)
     end
 
     def write(data, io_device) do

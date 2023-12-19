@@ -67,15 +67,17 @@ defmodule Exiffer.JPEG.Header.JFIF do
     {jfif, buffer}
   end
 
-  def puts(%__MODULE__{} = jfif) do
-    IO.puts("JPEG File Interchange Format")
-    IO.puts("----------------------------")
-    IO.puts("Version: #{version(jfif)}")
-    IO.puts("Resolution units: #{jfif.resolution_units}")
-    IO.puts("X Resolution: #{jfif.x_resolution}")
-    IO.puts("Y Resolution: #{jfif.y_resolution}")
-    IO.puts("Thumbnail width: #{jfif.thumbnail_width}")
-    IO.puts("Thumbnail height: #{jfif.thumbnail_height}")
+  def text(%__MODULE__{} = jfif) do
+    """
+    JPEG File Interchange Format
+    ----------------------------
+    Version: #{version(jfif)}
+    Resolution units: #{jfif.resolution_units}
+    X Resolution: #{jfif.x_resolution}
+    Y Resolution: #{jfif.y_resolution}
+    Thumbnail width: #{jfif.thumbnail_width}
+    Thumbnail height: #{jfif.thumbnail_height}
+    """
   end
 
   def version(jfif) do
@@ -121,8 +123,8 @@ defmodule Exiffer.JPEG.Header.JFIF do
       JFIF.binary(jfif)
     end
 
-    def puts(jfif) do
-      JFIF.puts(jfif)
+    def text(jfif) do
+      JFIF.text(jfif)
     end
   end
 end
