@@ -93,7 +93,7 @@ defmodule Exiffer.JPEG.Header.JFIF do
       "JFIF"::binary,
       0x00,
       jfif.version::binary,
-      jfif.resolution_units::binary,
+      jfif.resolution_units,
       x_resolution::binary,
       y_resolution::binary,
       jfif.thumbnail_width,
