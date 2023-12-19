@@ -83,8 +83,7 @@ defmodule Exiffer.Rewrite do
     if index do
       {headers, index}
     else
-      length = length(headers)
-      {headers ++ [blank_exif()], length}
+      {List.insert_at(headers, 1, blank_exif()), 1}
     end
   end
 
