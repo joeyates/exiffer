@@ -19,7 +19,21 @@ if length(argv) != 1 do
 end
 
 defmodule DateSetter do
-  @modification_date_match ~r"Modification Date:\s+(?<year>\d{4})[-:](?<month>\d{2})[-:](?<day>\d{2}) (?<hour>\d{2}):(?<minute>\d{2}):(?<second>\d{2})"
+  @modification_date_match ~r"""
+  Modification Date:
+  \s+
+  (?<year>\d{4})
+  [-:]
+  (?<month>\d{2})
+  [-:]
+  (?<day>\d{2})
+  \s+
+  (?<hour>\d{2})
+  :
+  (?<minute>\d{2})
+  :
+  (?<second>\d{2})
+  """x
 
   def modification_date(filename) do
     metadata = Exiffer.parse(filename)
