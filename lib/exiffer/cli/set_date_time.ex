@@ -3,9 +3,9 @@ defmodule Exiffer.CLI.SetDateTime do
   Documentation for `Exiffer.CLI.SetDateTime`.
   """
 
-  alias Exiffer.{Binary, JPEG, Rewrite}
-  alias Exiffer.IO.Buffer
   require Logger
+
+  alias Exiffer.Rewrite
 
   @spec run(map) :: {:ok}
   @doc """
@@ -23,22 +23,7 @@ defmodule Exiffer.CLI.SetDateTime do
     second = Map.get(opts, :second, 0)
 
     date_time = NaiveDateTime.new!(year, month, day, hour, minute, second)
-    input = Buffer.new(source)
 
-    {:ok, metadata, input} = Rewrite.set_date_time(input, date_time)
-
-    Logger.debug "Setting initial byte order to :big"
-    Binary.set_byte_order(:big)
-
-    output = Buffer.new(destination, direction: :write)
-    Buffer.write(output, JPEG.magic())
-    :ok = Exiffer.Serialize.write(metadata, output.io_device)
-
-    Buffer.copy(input, output)
-
-    :ok = Buffer.close(input)
-    :ok = Buffer.close(output)
-
-    {:ok}
+    {:ok} = Rewrite.set_date_time(source, destination, date_time)
   end
 end

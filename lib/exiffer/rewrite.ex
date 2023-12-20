@@ -5,16 +5,18 @@ defmodule Exiffer.Rewrite do
 
   require Logger
 
-  alias Exiffer.GPS
+  alias Exiffer.{Binary, GPS, JPEG}
+  alias Exiffer.IO.Buffer
   alias Exiffer.JPEG.{Entry, IFD, IFDBlock}
   alias Exiffer.JPEG.Header.APP1.EXIF
 
-  def set_date_time(%{} = input, %DateTime{} = date_time) do
-    set_date_time(input, DateTime.to_naive(date_time))
+  def set_date_time(source, destination, %DateTime{} = date_time) do
+    set_date_time(source, destination, DateTime.to_naive(date_time))
   end
 
-  def set_date_time(%{} = input, %NaiveDateTime{} = date_time) do
-    Logger.info("Exiffer.Rewrite.set_date_time/2")
+  def set_date_time(source, destination, %NaiveDateTime{} = date_time) do
+    Logger.info("Exiffer.Rewrite.set_date_time/3")
+    input = Buffer.new(source)
     {jpeg, remainder} = Exiffer.parse(input)
     date_time_text = NaiveDateTime.to_string(date_time)
 
@@ -58,11 +60,24 @@ defmodule Exiffer.Rewrite do
         create_date
       )
 
-    {:ok, headers, remainder}
+    Logger.debug "Setting initial byte order to :big"
+    Binary.set_byte_order(:big)
+
+    output = Buffer.new(destination, direction: :write)
+    Buffer.write(output, JPEG.magic())
+    :ok = Exiffer.Serialize.write(headers, output.io_device)
+
+    Buffer.copy(remainder, output)
+
+    :ok = Buffer.close(input)
+    :ok = Buffer.close(output)
+
+    {:ok}
   end
 
-  def set_gps(%{} = input, %GPS{} = gps) do
+  def set_gps(source, destination, %GPS{} = gps) do
     Logger.info("Exiffer.Rewrite.set_gps/2")
+    input = Buffer.new(source)
     {jpeg, remainder} = Exiffer.parse(input)
 
     Logger.debug("Adding/updating GPS entry")
@@ -71,7 +86,26 @@ defmodule Exiffer.Rewrite do
     entry = build_gps_entry(gps)
     headers = update_entry(headers, exif_index, gps_index, entry)
 
-    {:ok, headers, remainder}
+    Logger.debug "Setting initial byte order to :big"
+    Binary.set_byte_order(:big)
+
+    output = Buffer.new(destination, direction: :write)
+    Buffer.write(output, JPEG.magic())
+    :ok = Exiffer.Serialize.write(headers, output.io_device)
+
+    Buffer.copy(remainder, output)
+
+    :ok = Buffer.close(input)
+    :ok = Buffer.close(output)
+
+    {:ok}
+  end
+
+  def set_gps(%JPEG{} = jpeg, %GPS{} = gps) do
+    {headers, exif_index} = ensure_exif(jpeg.headers)
+    {headers, gps_index} = ensure_entry(headers, exif_index, :gps_info)
+    entry = build_gps_entry(gps)
+    update_entry(headers, exif_index, gps_index, entry)
   end
 
   ###################

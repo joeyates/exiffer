@@ -1,6 +1,6 @@
 defmodule Exiffer.Binary.Rewrite do
   @moduledoc """
-  Rewrite an image file, adding and removing arbitrary metadata
+  Rewrite an image file in memory
   """
 
   alias Exiffer.Binary.Buffer
@@ -8,14 +8,15 @@ defmodule Exiffer.Binary.Rewrite do
 
   def set_gps(source, %{longitude: longitude, latitude: latitude, altitude: altitude}) when is_binary(source) do
     input = Buffer.new(source)
+    {jpeg, input} = Exiffer.parse(input)
 
     gps = %GPS{longitude: longitude, latitude: latitude, altitude: altitude}
 
-    {:ok, metadata, input} = Rewrite.set_gps(input, gps)
-
-    header_binary = Exiffer.Serialize.binary(metadata)
+    headers = Rewrite.set_gps(jpeg, gps)
+    header_binary = Exiffer.Serialize.binary(headers)
     remainder = input.size - input.position
-    <<_before::binary-size(input.position), rest::binary-size(remainder)>> = input.original
+    {rest, input} = Buffer.consume(input, remainder)
+    :ok = Buffer.close(input)
 
     <<
       JPEG.magic()::binary,
