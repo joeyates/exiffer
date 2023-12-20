@@ -104,15 +104,12 @@ defmodule DateSetter do
         value
     end
   end
-
-  # Exiffer.CLI.SetDateTime.run(%{source: "pop.jpg", destination: "pop-time.jpg", year: 1953, month: 9})
 end
 
 root = hd(argv)
 glob = Path.join(root, "**/*.{jpg,jpeg}")
 
 Path.wildcard(glob)
-|> Enum.take(5)
 |> Enum.map(fn file ->
   relative = Path.relative_to(file, root)
   IO.puts("Processing #{relative}")
