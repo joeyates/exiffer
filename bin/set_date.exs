@@ -20,7 +20,7 @@ end
 
 defmodule DateSetter do
   @modification_date_match ~r"""
-  Modification Date:
+  Modification\sDate:
   \s+
   (?<year>\d{4})
   [-:]
