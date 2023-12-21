@@ -1052,8 +1052,9 @@ defmodule Exiffer.JPEG.Entry do
         ""
 
       length <= 4 and format == :string ->
+        # Ignore the trailing zero byte
         length = length - 1
-        <<value::binary-size(length - 1), _rest::binary>> = value_binary
+        <<value::binary-size(length), _rest::binary>> = value_binary
         value
 
       length <= 4 ->
