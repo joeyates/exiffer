@@ -28,7 +28,7 @@ defmodule Exiffer.JPEG.Header.APP4 do
     length = Binary.big_endian_to_integer(length_bytes)
     {value, buffer} = Exiffer.Buffer.consume(buffer, length - 2)
     app4 = %__MODULE__{value: value}
-    {app4, buffer}
+    {:ok, app4, buffer}
   end
 
   def binary(%__MODULE__{value: value}) do

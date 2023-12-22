@@ -41,7 +41,7 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
     byte_order = case byte_order_marker do
        @big_endian_marker -> :big
        @little_endian_marker -> :little
-       _ -> raise "Unknown byte order marker: #{byte_order_marker}"
+       _ -> {:error, "Unknown byte order marker: #{byte_order_marker}"}
     end
     Logger.debug "EXIF.new - setting byte order to :#{byte_order}"
     previous_byte_order = Binary.byte_order()
@@ -57,7 +57,7 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
     buffer = Exiffer.Buffer.seek(buffer, exif_end)
     Logger.debug "EXIF.new - resetting byte order to previous value: :#{previous_byte_order}"
     Binary.set_byte_order(previous_byte_order)
-    {exif, buffer}
+    {:ok, exif, buffer}
   end
 
   def binary(%__MODULE__{} = exif) do

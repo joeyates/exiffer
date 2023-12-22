@@ -21,7 +21,7 @@ defmodule Exiffer.JPEG.Header.SOS do
   def new(%{data: <<0xff, 0xda, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     sos = %__MODULE__{}
-    {sos, buffer}
+    {:ok, sos, buffer}
   end
 
   def binary(%__MODULE__{}), do: <<0xff, 0xda>>

@@ -31,7 +31,7 @@ defmodule Exiffer.JPEG.Header.APP1.XMPExtension do
     xpacket_length = length - 2 - header_length
     {xpacket, buffer} = Exiffer.Buffer.consume(buffer, xpacket_length)
     xmp = %__MODULE__{xpacket: xpacket}
-    {xmp, buffer}
+    {:ok, xmp, buffer}
   end
 
   def text(%__MODULE__{} = xmp) do

@@ -69,7 +69,7 @@ defmodule Exiffer.JPEG.Header.SOF0 do
       y_cb_cr_sub_sampling: y_cb_cr_sub_sampling
     }
 
-    {sof0, buffer}
+    {:ok, sof0, buffer}
   end
 
   def text(%__MODULE__{} = sof0) do

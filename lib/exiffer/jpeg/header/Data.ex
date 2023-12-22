@@ -55,14 +55,16 @@ defmodule Exiffer.JPEG.Header.Data do
     position = buffer.position
     {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 4)
     type = @data_type[magic]
-    if !type do
-      raise "Unknown header magic #{inspect(magic, [base: :hex])} found at #{integer(position)}"
+
+    if type do
+      # TODO: is this really always big endian?
+      length = Binary.big_endian_to_integer(length_binary)
+      {data, buffer} = Exiffer.Buffer.consume(buffer, length - 2)
+      header = %__MODULE__{type: type.key, data: data}
+      {:ok, header, buffer}
+    else
+      {:error, "Unknown header magic #{inspect(magic, base: :hex)} found at #{integer(position)}"}
     end
-    # TODO: is this really always big endian?
-    length = Binary.big_endian_to_integer(length_binary)
-    {data, buffer} = Exiffer.Buffer.consume(buffer, length - 2)
-    header = %__MODULE__{type: type.key, data: data}
-    {header, buffer}
   end
 
   def binary(%__MODULE__{type: type, data: data}) do

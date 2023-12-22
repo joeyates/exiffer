@@ -24,7 +24,7 @@ defmodule Exiffer.JPEG.Header.APP1 do
         XMPExtension.new(buffer)
       _ ->
         chunk = Exiffer.Buffer.random(buffer, buffer.position + 2, 32)
-        raise "Unknown APP1 segment at #{integer(buffer.position)}. Header: #{inspect(chunk, hex: true)}"
+        {:error, "Unknown APP1 segment at #{integer(buffer.position)}. Header: #{inspect(chunk, hex: true)}"}
     end
   end
 end

@@ -56,43 +56,43 @@ defmodule Exiffer.JPEG do
 
   defp headers(%{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading APP1 header at #{Integer.to_string(buffer.position, 16)}"
-    {app1, buffer} = APP1.new(buffer)
+    {:ok, app1, buffer} = APP1.new(buffer)
     headers(buffer, [app1 | headers])
   end
 
   defp headers(%{data: <<0xff, 0xe4, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading APP4 header at #{Integer.to_string(buffer.position, 16)}"
-    {app4, buffer} = APP4.new(buffer)
+    {:ok, app4, buffer} = APP4.new(buffer)
     headers(buffer, [app4 | headers])
   end
 
   defp headers(%{data: <<0xff, 0xfe, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading COM header at #{Integer.to_string(buffer.position, 16)}"
-    {comment, buffer} = COM.new(buffer)
+    {:ok, comment, buffer} = COM.new(buffer)
     headers(buffer, [comment | headers])
   end
 
   defp headers(%{data: <<0xff, 0xe0, _length::binary-size(2), "JFIF", 0x00, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading JFIF header at #{integer(buffer.position)}"
-    {jfif, buffer} = JFIF.new(buffer)
+    {:ok, jfif, buffer} = JFIF.new(buffer)
     headers(buffer, [jfif | headers])
   end
 
   defp headers(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading SOF0 header at #{Integer.to_string(buffer.position, 16)}"
-    {sof0, buffer} = SOF0.new(buffer)
+    {:ok, sof0, buffer} = SOF0.new(buffer)
     {buffer, [sof0 | headers]}
   end
 
   defp headers(%{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading SOS header at #{Integer.to_string(buffer.position, 16)}"
-    {sos, buffer} = SOS.new(buffer)
+    {:ok, sos, buffer} = SOS.new(buffer)
     {buffer, [sos | headers]}
   end
 
   defp headers(%{} = buffer, headers) do
     Logger.debug "Reading generic data header at #{integer(buffer.position)}"
-    {header, buffer} = Data.new(buffer)
+    {:ok, header, buffer} = Data.new(buffer)
     headers(buffer, [header | headers])
   end
 

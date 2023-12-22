@@ -34,7 +34,7 @@ defmodule Exiffer.JPEG.Header.COM do
       comment
     end
     com = %__MODULE__{comment: comment}
-    {com, buffer}
+    {:ok, com, buffer}
   end
 
   def text(%__MODULE__{} = com) do

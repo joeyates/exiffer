@@ -64,7 +64,7 @@ defmodule Exiffer.JPEG.Header.JFIF do
       thumbnail: thumbnail
     }
 
-    {jfif, buffer}
+    {:ok, jfif, buffer}
   end
 
   def text(%__MODULE__{} = jfif) do
