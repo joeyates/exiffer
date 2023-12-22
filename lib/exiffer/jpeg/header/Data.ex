@@ -11,15 +11,16 @@ defmodule Exiffer.JPEG.Header.Data do
   @enforce_keys ~w(type data)a
   defstruct ~w(type data)a
 
-  defimpl Jason.Encoder  do
+  defimpl Jason.Encoder do
     @spec encode(%Exiffer.JPEG.Header.Data{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Logger.debug("Encoding Data")
+
       Jason.Encode.map(
         %{
           module: "Exiffer.JPEG.Header.Data",
           type: entry.type,
-          data: "(#{byte_size(entry.data)} bytes)",
+          data: "(#{byte_size(entry.data)} bytes)"
         },
         opts
       )
@@ -27,33 +28,37 @@ defmodule Exiffer.JPEG.Header.Data do
   end
 
   @data_type %{
-    <<0xff, 0xc0>> => %{key: :jpeg_sof0, name: "JPEG SOF0"},
-    <<0xff, 0xc2>> => %{key: :jpeg_sof2, name: "JPEG SOF2"},
-    <<0xff, 0xc4>> => %{key: :jpeg_dht, name: "JPEG DHT"},
-    <<0xff, 0xdd>> => %{key: :jpeg_dri, name: "JPEG DRI"}, # Define Restart Interval
-    <<0xff, 0xdb>> => %{key: :jpeg_dqt, name: "JPEG DQT"},
-    <<0xff, 0xe0>> => %{key: :jpeg_jfxx, name: "JPEG JFXX"},
-    <<0xff, 0xe2>> => %{key: :jpeg_app2, name: "JPEG APP2"},
-    <<0xff, 0xe3>> => %{key: :jpeg_app3, name: "JPEG APP3"},
-    <<0xff, 0xe5>> => %{key: :jpeg_app5, name: "JPEG APP5"},
-    <<0xff, 0xe6>> => %{key: :jpeg_app6, name: "JPEG APP6"},
-    <<0xff, 0xe7>> => %{key: :jpeg_app7, name: "JPEG APP7"},
-    <<0xff, 0xe8>> => %{key: :jpeg_app8, name: "JPEG APP8"},
-    <<0xff, 0xe9>> => %{key: :jpeg_app9, name: "JPEG APP9"},
-    <<0xff, 0xea>> => %{key: :jpeg_app10, name: "JPEG APP10"},
-    <<0xff, 0xeb>> => %{key: :jpeg_app11, name: "JPEG APP11"},
-    <<0xff, 0xec>> => %{key: :jpeg_app12, name: "JPEG APP12"},
-    <<0xff, 0xed>> => %{key: :jpeg_app13, name: "JPEG APP13"},
-    <<0xff, 0xee>> => %{key: :jpeg_app14, name: "JPEG APP14"},
-    <<0xff, 0xef>> => %{key: :jpeg_app15, name: "JPEG APP15"},
-    <<0xff, 0xfe>> => %{key: :jpeg_comment, name: "JPEG COM Comment"}
+    <<0xFF, 0xC0>> => %{key: :jpeg_sof0, name: "JPEG SOF0"},
+    <<0xFF, 0xC2>> => %{key: :jpeg_sof2, name: "JPEG SOF2"},
+    <<0xFF, 0xC4>> => %{key: :jpeg_dht, name: "JPEG DHT"},
+    # Define Restart Interval
+    <<0xFF, 0xDD>> => %{key: :jpeg_dri, name: "JPEG DRI"},
+    <<0xFF, 0xDB>> => %{key: :jpeg_dqt, name: "JPEG DQT"},
+    <<0xFF, 0xE0>> => %{key: :jpeg_jfxx, name: "JPEG JFXX"},
+    <<0xFF, 0xE2>> => %{key: :jpeg_app2, name: "JPEG APP2"},
+    <<0xFF, 0xE3>> => %{key: :jpeg_app3, name: "JPEG APP3"},
+    <<0xFF, 0xE5>> => %{key: :jpeg_app5, name: "JPEG APP5"},
+    <<0xFF, 0xE6>> => %{key: :jpeg_app6, name: "JPEG APP6"},
+    <<0xFF, 0xE7>> => %{key: :jpeg_app7, name: "JPEG APP7"},
+    <<0xFF, 0xE8>> => %{key: :jpeg_app8, name: "JPEG APP8"},
+    <<0xFF, 0xE9>> => %{key: :jpeg_app9, name: "JPEG APP9"},
+    <<0xFF, 0xEA>> => %{key: :jpeg_app10, name: "JPEG APP10"},
+    <<0xFF, 0xEB>> => %{key: :jpeg_app11, name: "JPEG APP11"},
+    <<0xFF, 0xEC>> => %{key: :jpeg_app12, name: "JPEG APP12"},
+    <<0xFF, 0xED>> => %{key: :jpeg_app13, name: "JPEG APP13"},
+    <<0xFF, 0xEE>> => %{key: :jpeg_app14, name: "JPEG APP14"},
+    <<0xFF, 0xEF>> => %{key: :jpeg_app15, name: "JPEG APP15"},
+    <<0xFF, 0xFE>> => %{key: :jpeg_comment, name: "JPEG COM Comment"}
   }
 
   @magic Enum.into(@data_type, %{}, fn {magic, %{key: key}} -> {key, magic} end)
 
   def new(%{} = buffer) do
     position = buffer.position
-    {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 4)
+
+    {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} =
+      Exiffer.Buffer.consume(buffer, 4)
+
     type = @data_type[magic]
 
     if type do
@@ -70,15 +75,17 @@ defmodule Exiffer.JPEG.Header.Data do
   def binary(%__MODULE__{type: type, data: data}) do
     length = 2 + byte_size(data)
     binary_length = Binary.int16u_to_big_endian(length)
+
     <<
-    @magic[type]::binary,
-    binary_length::binary,
-    data::binary
+      @magic[type]::binary,
+      binary_length::binary,
+      data::binary
     >>
   end
 
   def text(%__MODULE__{type: type, data: data}) do
     length = byte_size(data)
+
     """
     Data
     ----
@@ -88,7 +95,7 @@ defmodule Exiffer.JPEG.Header.Data do
   end
 
   def write(%__MODULE__{type: type, data: data}, io_device) do
-    Logger.debug "Writing generic data header, type: #{type}"
+    Logger.debug("Writing generic data header, type: #{type}")
     magic = @magic[type]
     IO.binwrite(io_device, magic)
     length = 2 + byte_size(data)
