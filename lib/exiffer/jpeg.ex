@@ -54,24 +54,6 @@ defmodule Exiffer.JPEG do
 
   defp headers(buffer, headers)
 
-  defp headers(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading SOF0 header at #{Integer.to_string(buffer.position, 16)}"
-    {sof0, buffer} = SOF0.new(buffer)
-    {buffer, [sof0 | headers]}
-  end
-
-  defp headers(%{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading SOS header at #{Integer.to_string(buffer.position, 16)}"
-    {sos, buffer} = SOS.new(buffer)
-    {buffer, [sos | headers]}
-  end
-
-  defp headers(%{data: <<0xff, 0xe0, _length::binary-size(2), "JFIF", 0x00, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading JFIF header at #{integer(buffer.position)}"
-    {jfif, buffer} = JFIF.new(buffer)
-    headers(buffer, [jfif | headers])
-  end
-
   defp headers(%{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading APP1 header at #{Integer.to_string(buffer.position, 16)}"
     {app1, buffer} = APP1.new(buffer)
@@ -88,6 +70,24 @@ defmodule Exiffer.JPEG do
     Logger.debug "Reading COM header at #{Integer.to_string(buffer.position, 16)}"
     {comment, buffer} = COM.new(buffer)
     headers(buffer, [comment | headers])
+  end
+
+  defp headers(%{data: <<0xff, 0xe0, _length::binary-size(2), "JFIF", 0x00, _rest::binary>>} = buffer, headers) do
+    Logger.debug "Reading JFIF header at #{integer(buffer.position)}"
+    {jfif, buffer} = JFIF.new(buffer)
+    headers(buffer, [jfif | headers])
+  end
+
+  defp headers(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer, headers) do
+    Logger.debug "Reading SOF0 header at #{Integer.to_string(buffer.position, 16)}"
+    {sof0, buffer} = SOF0.new(buffer)
+    {buffer, [sof0 | headers]}
+  end
+
+  defp headers(%{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
+    Logger.debug "Reading SOS header at #{Integer.to_string(buffer.position, 16)}"
+    {sos, buffer} = SOS.new(buffer)
+    {buffer, [sos | headers]}
   end
 
   defp headers(%{} = buffer, headers) do
