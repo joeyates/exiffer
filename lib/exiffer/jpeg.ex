@@ -34,7 +34,7 @@ defmodule Exiffer.JPEG do
     Logger.debug "JPEG.new/1 - setting initial byte order to :big"
     Binary.set_byte_order(:big)
     {%{} = buffer, headers} = headers(buffer, [])
-    {%__MODULE__{headers: headers}, buffer}
+    {%__MODULE__{headers: Enum.reverse(headers)}, buffer}
   end
 
   def binary(%__MODULE__{} = jpeg) do
@@ -57,15 +57,13 @@ defmodule Exiffer.JPEG do
   defp headers(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading SOF0 header at #{Integer.to_string(buffer.position, 16)}"
     {sof0, buffer} = SOF0.new(buffer)
-    headers = Enum.reverse([sof0 | headers])
-    {buffer, headers}
+    {buffer, [sof0 | headers]}
   end
 
   defp headers(%{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading SOS header at #{Integer.to_string(buffer.position, 16)}"
     {sos, buffer} = SOS.new(buffer)
-    headers = Enum.reverse([sos | headers])
-    {buffer, headers}
+    {buffer, [sos | headers]}
   end
 
   defp headers(%{data: <<0xff, 0xe0, _length::binary-size(2), "JFIF", 0x00, _rest::binary>>} = buffer, headers) do
