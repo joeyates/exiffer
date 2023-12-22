@@ -81,13 +81,13 @@ defmodule Exiffer.JPEG do
   defp headers(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading SOF0 header at #{integer(buffer.position)}"
     {:ok, sof0, buffer} = SOF0.new(buffer)
-    {buffer, [sof0 | headers]}
+    headers(buffer, [sof0 | headers])
   end
 
   defp headers(%{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
     Logger.debug "Reading SOS header at #{integer(buffer.position)}"
     {:ok, sos, buffer} = SOS.new(buffer)
-    {buffer, [sos | headers]}
+    headers(buffer, [sos | headers])
   end
 
   defp headers(%{} = buffer, headers) do
