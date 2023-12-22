@@ -55,19 +55,19 @@ defmodule Exiffer.JPEG do
   defp headers(buffer, headers)
 
   defp headers(%{data: <<0xff, 0xe1, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading APP1 header at #{Integer.to_string(buffer.position, 16)}"
+    Logger.debug "Reading APP1 header at #{integer(buffer.position)}"
     {:ok, app1, buffer} = APP1.new(buffer)
     headers(buffer, [app1 | headers])
   end
 
   defp headers(%{data: <<0xff, 0xe4, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading APP4 header at #{Integer.to_string(buffer.position, 16)}"
+    Logger.debug "Reading APP4 header at #{integer(buffer.position)}"
     {:ok, app4, buffer} = APP4.new(buffer)
     headers(buffer, [app4 | headers])
   end
 
   defp headers(%{data: <<0xff, 0xfe, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading COM header at #{Integer.to_string(buffer.position, 16)}"
+    Logger.debug "Reading COM header at #{integer(buffer.position)}"
     {:ok, comment, buffer} = COM.new(buffer)
     headers(buffer, [comment | headers])
   end
@@ -79,13 +79,13 @@ defmodule Exiffer.JPEG do
   end
 
   defp headers(%{data: <<0xff, 0xc0, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading SOF0 header at #{Integer.to_string(buffer.position, 16)}"
+    Logger.debug "Reading SOF0 header at #{integer(buffer.position)}"
     {:ok, sof0, buffer} = SOF0.new(buffer)
     {buffer, [sof0 | headers]}
   end
 
   defp headers(%{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
-    Logger.debug "Reading SOS header at #{Integer.to_string(buffer.position, 16)}"
+    Logger.debug "Reading SOS header at #{integer(buffer.position)}"
     {:ok, sos, buffer} = SOS.new(buffer)
     {buffer, [sos | headers]}
   end
