@@ -6,6 +6,7 @@ defmodule Exiffer.JPEG.Header.APP1 do
   require Logger
 
   alias Exiffer.JPEG.Header.APP1.{EXIF, XMP, XMPExtension}
+  import Exiffer.Logging, only: [integer: 1]
 
   @exif_header "Exif\0\0"
   @adobe_xmp_header "http://ns.adobe.com/xap/1.0/\0"
@@ -23,7 +24,7 @@ defmodule Exiffer.JPEG.Header.APP1 do
         XMPExtension.new(buffer)
       _ ->
         chunk = Exiffer.Buffer.random(buffer, buffer.position + 2, 32)
-        raise "Unknown APP1 segment at #{Integer.to_string(buffer.position, 16)}. Header: #{inspect(chunk, hex: true)}"
+        raise "Unknown APP1 segment at #{integer(buffer.position)}. Header: #{inspect(chunk, hex: true)}"
     end
   end
 end
