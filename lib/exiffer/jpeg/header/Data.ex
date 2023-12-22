@@ -3,8 +3,10 @@ defmodule Exiffer.JPEG.Header.Data do
   Documentation for `Exiffer.JPEG.Header.Data`.
   """
 
-  alias Exiffer.Binary
   require Logger
+
+  alias Exiffer.Binary
+  import Exiffer.Logging, only: [integer: 1]
 
   @enforce_keys ~w(type data)a
   defstruct ~w(type data)a
@@ -50,11 +52,11 @@ defmodule Exiffer.JPEG.Header.Data do
   @magic Enum.into(@data_type, %{}, fn {magic, %{key: key}} -> {key, magic} end)
 
   def new(%{} = buffer) do
+    position = buffer.position
     {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} = Exiffer.Buffer.consume(buffer, 4)
     type = @data_type[magic]
     if !type do
-      position = buffer.position
-      raise "Unknown header magic #{inspect(magic, [base: :hex])} found at 0x#{Integer.to_string(position, 16)}"
+      raise "Unknown header magic #{inspect(magic, [base: :hex])} found at #{integer(position)}"
     end
     # TODO: is this really always big endian?
     length = Binary.big_endian_to_integer(length_binary)

@@ -91,7 +91,7 @@ defmodule Exiffer.JPEG do
   end
 
   defp headers(%{} = buffer, headers) do
-    Logger.debug "Reading generic data header at #{Integer.to_string(buffer.position, 16)}"
+    Logger.debug "Reading generic data header at #{integer(buffer.position)}"
     {header, buffer} = Data.new(buffer)
     headers(buffer, [header | headers])
   end
