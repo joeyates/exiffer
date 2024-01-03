@@ -60,22 +60,24 @@ defmodule DateSetter do
 
   @path_match ~r"""
     ^
-    \d{4}s
-    /
-    (?<year>\d{4})
+    (?<decade>\d{4})s
     (
       /
-      \d{4}(?<month>\d{2})
+      (?<year>\d{4})
       (
         /
-        \d{6}(?<day>\d{2})
+        \d{4}(?<month>\d{2})
         (
           /
-          (?<hour>\d{2})
-          (?<minute>\d{2})
-          (?<second>\d{2})
-          \.
-          (jpg|jpeg)
+          \d{6}(?<day>\d{2})
+          (
+            /
+            (?<hour>\d{2})
+            (?<minute>\d{2})
+            (?<second>\d{2})
+            \.
+            (jpg|jpeg)
+          )?
         )?
       )?
     )?
@@ -88,7 +90,7 @@ defmodule DateSetter do
         {
           :ok,
           NaiveDateTime.new!(
-            int(match["year"]),
+            int(match["year"]) || int(match["decade"]),
             int(match["month"]) || 1,
             int(match["day"]) || 1,
             int(match["hour"]) || 0,
