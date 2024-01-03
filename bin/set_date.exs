@@ -128,16 +128,30 @@ glob = Path.join(root, "**/*.{jpg,jpeg}")
 Path.wildcard(glob)
 |> Enum.map(fn file ->
   relative = Path.relative_to(file, root)
-  IO.puts("Processing #{relative}")
-  {_, modification_date} = DateSetter.modification_date(file)
-  {_, path_date} = DateSetter.parse_path(relative)
-  cond do
-    path_date == nil ->
-      IO.puts "No path date"
-    modification_date ->
-      IO.puts "Modification date already set: #{modification_date}"
-    true ->
-      IO.puts "Setting #{path_date}"
-      DateSetter.set(file, path_date)
+  Logger.info(relative)
+
+  try do
+    {_, modification_date} = DateSetter.modification_date(file)
+    {_, path_date} = DateSetter.parse_path(relative)
+
+    cond do
+      path_date == nil ->
+        Logger.warning("#{relative} - no path date")
+
+      modification_date ->
+        Logger.debug("#{relative} - modification date already set: #{modification_date}")
+        diff = NaiveDateTime.diff(modification_date, path_date, :day)
+        if abs(diff) > 0 do
+          Logger.info("#{relative} - wrong date: set #{modification_date}, path #{path_date}, difference #{inspect(diff)} days")
+          DateSetter.set(file, path_date)
+        end
+
+      true ->
+        Logger.info("#{relative} - will set #{path_date}")
+        DateSetter.set(file, path_date)
+    end
+  rescue
+    error ->
+      Logger.error("#{relative} - #{inspect(error)}")
   end
 end)
