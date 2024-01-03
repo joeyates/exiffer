@@ -9,7 +9,7 @@ require Logger
 
 alias Exiffer.Rewrite
 
-Logger.configure(level: :none)
+Logger.configure(level: :info)
 
 argv = System.argv()
 
