@@ -121,7 +121,19 @@ defmodule DateSetter do
     File.rename(destination, filename)
   end
 
+  @ext4_earliest ~N[1901-12-14 00:00:00]
+
+  def clamp_date_time_to_ext4_range(date_time) do
+    case NaiveDateTime.compare(date_time, @ext4_earliest) do
+    :lt ->
+      @ext4_earliest
+    _ ->
+      date_time
+    end
+  end
+
   def set_file_modification_date(filename, date_time) do
+    date_time = clamp_date_time_to_ext4_range(date_time)
     erl_date = date_time |> NaiveDateTime.to_date() |> Date.to_erl()
     erl_time = date_time |> NaiveDateTime.to_time() |> Time.to_erl()
     :ok = File.touch(filename, {erl_date, erl_time})
@@ -164,8 +176,9 @@ Path.wildcard(glob)
       DateSetter.set_exif(file, path_date)
     end
 
-    file_diff = NaiveDateTime.diff(file_modification_date, path_date, :day)
-    if abs(file_diff) > 0 do
+    clamped_path_date = DateSetter.clamp_date_time_to_ext4_range(path_date)
+    file_diff = NaiveDateTime.diff(file_modification_date, clamped_path_date, :day)
+    if abs(file_diff) > 365 do
       Logger.info("#{relative} - wrong file modification date: set #{file_modification_date}, path #{path_date}, difference #{inspect(file_diff)} days")
       DateSetter.set_file_modification_date(file, path_date)
     end
