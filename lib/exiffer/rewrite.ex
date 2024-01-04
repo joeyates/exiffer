@@ -117,15 +117,20 @@ defmodule Exiffer.Rewrite do
     if index do
       {headers, index}
     else
-      {List.insert_at(headers, 1, blank_exif()), 1}
+      {List.insert_at(headers, 1, default_exif()), 1}
     end
   end
 
-  defp blank_exif do
+  defp default_exif do
+    entries = [
+      Entry.new_by_type(:x_resolution, {72, 1}),
+      Entry.new_by_type(:y_resolution, {72, 1}),
+      Entry.new_by_type(:resolution_unit, 2)
+    ]
     %EXIF{
       byte_order: :little,
       ifd_block: %IFDBlock{
-        ifds: [%IFD{entries: []}]
+        ifds: [%IFD{entries: entries}]
       }
     }
   end
