@@ -12,12 +12,14 @@ defmodule Exiffer.JPEG.IFD do
   defstruct entries: []
 
   defimpl Jason.Encoder do
-    @spec encode(%Exiffer.JPEG.IFD{}, Jason.Encode.opts()) :: String.t()
-    def encode(entry, opts) do
+    alias Exiffer.JPEG.IFD
+
+    @spec encode(%IFD{}, Jason.Encode.opts()) :: String.t()
+    def encode(ifd, opts) do
       Jason.Encode.map(
         %{
           module: "Exiffer.JPEG.IFD",
-          entries: entry.entries
+          entries: IFD.sorted(ifd.entries)
         },
         opts
       )
@@ -30,7 +32,8 @@ defmodule Exiffer.JPEG.IFD do
     Logger.debug("IFD reading #{integer(entry_count)} entries")
     {entries, buffer} = read_entry(buffer, entry_count, [], opts)
     Logger.debug("IFD read #{length(entries)} entries")
-    ifd = %__MODULE__{entries: Enum.reverse(entries)}
+    entries = sorted(entries)
+    ifd = %__MODULE__{entries: entries}
     read_entries = length(entries)
 
     if read_entries == entry_count do
@@ -57,8 +60,9 @@ defmodule Exiffer.JPEG.IFD do
     next_ifd_pointer_offset = offset + 2 + count * 12
 
     {end_of_block, headers, extras} =
-      Enum.reduce(
-        entries,
+      entries
+      |> sorted()
+      |> Enum.reduce(
         {next_ifd_pointer_offset + 4, [], []},
         fn entry, {end_of_block, headers, extras} ->
           format = Entry.format_name(entry)
@@ -84,8 +88,9 @@ defmodule Exiffer.JPEG.IFD do
       extras_binary::binary>>
   end
 
-  def text(%__MODULE__{} = ifd) do
-    ifd.entries
+  def text(%__MODULE__{entries: entries}) do
+    entries
+    |> sorted()
     |> Enum.flat_map(&Entry.text(&1))
     |> texts()
     |> Enum.join("\n")
@@ -182,5 +187,9 @@ defmodule Exiffer.JPEG.IFD do
       nil -> nil
       entry -> entry.value
     end
+  end
+
+  def sorted(entries) do
+    Enum.sort(entries, &(&1.magic < &2.magic))
   end
 end
