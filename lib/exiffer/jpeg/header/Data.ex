@@ -64,6 +64,7 @@ defmodule Exiffer.JPEG.Header.Data do
     if type do
       # TODO: is this really always big endian?
       length = Binary.big_endian_to_integer(length_binary)
+      Logger.debug("Reading #{type.name} header at #{integer(position)}, length #{integer(length)}")
       {data, buffer} = Exiffer.Buffer.consume(buffer, length - 2)
       header = %__MODULE__{type: type.key, data: data}
       {:ok, header, buffer}
