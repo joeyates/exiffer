@@ -35,7 +35,7 @@ defmodule DateSetter do
   (?<second>\d{2})
   """x
 
-  def modification_date(filename) do
+  def exif_modification_date(filename) do
     metadata = Exiffer.parse(filename)
     text = Exiffer.Serialize.text(metadata)
 
@@ -83,7 +83,7 @@ defmodule DateSetter do
     )?
   """x
 
-  def parse_path(text) do
+  def path_date(text) do
     Regex.named_captures(@path_match, text)
     |> then(fn match ->
       if match do
@@ -104,11 +104,27 @@ defmodule DateSetter do
     end)
   end
 
-  def set(filename, date_time) do
+  def file_modification_date(filename) do
+    with {:ok, stat} <- File.stat(filename),
+         {:ok, naive} <- NaiveDateTime.from_erl(stat.mtime) do
+      {:ok, naive}
+    else
+      _any ->
+        {:error, nil}
+    end
+  end
+
+  def set_exif(filename, date_time) do
     destination = "#{filename}.tmp"
     {:ok} = Rewrite.set_date_time(filename, destination, date_time)
     File.rm(filename)
     File.rename(destination, filename)
+  end
+
+  def set_file_modification_date(filename, date_time) do
+    erl_date = date_time |> NaiveDateTime.to_date() |> Date.to_erl()
+    erl_time = date_time |> NaiveDateTime.to_time() |> Time.to_erl()
+    :ok = File.touch(filename, {erl_date, erl_time})
   end
 
   defp int(text) do
@@ -130,25 +146,28 @@ Path.wildcard(glob)
   relative = Path.relative_to(file, root)
   Logger.info(relative)
 
+  {:ok, path_date} = DateSetter.path_date(relative)
+
   try do
-    {_, modification_date} = DateSetter.modification_date(file)
-    {_, path_date} = DateSetter.parse_path(relative)
+    {_, exif_modification_date} = DateSetter.exif_modification_date(file)
+    {_, file_modification_date} = DateSetter.file_modification_date(file)
 
-    cond do
-      path_date == nil ->
-        Logger.warning("#{relative} - no path date")
+    if exif_modification_date do
+      Logger.debug("#{relative} - modification date already set: #{exif_modification_date}")
+      exif_diff = NaiveDateTime.diff(exif_modification_date, path_date, :day)
+      if abs(exif_diff) > 0 do
+        Logger.info("#{relative} - wrong date: set #{exif_modification_date}, path #{path_date}, difference #{inspect(exif_diff)} days")
+        DateSetter.set_exif(file, path_date)
+      end
+    else
+      Logger.info("#{relative} - will set #{path_date}")
+      DateSetter.set_exif(file, path_date)
+    end
 
-      modification_date ->
-        Logger.debug("#{relative} - modification date already set: #{modification_date}")
-        diff = NaiveDateTime.diff(modification_date, path_date, :day)
-        if abs(diff) > 0 do
-          Logger.info("#{relative} - wrong date: set #{modification_date}, path #{path_date}, difference #{inspect(diff)} days")
-          DateSetter.set(file, path_date)
-        end
-
-      true ->
-        Logger.info("#{relative} - will set #{path_date}")
-        DateSetter.set(file, path_date)
+    file_diff = NaiveDateTime.diff(file_modification_date, path_date, :day)
+    if abs(file_diff) > 0 do
+      Logger.info("#{relative} - wrong file modification date: set #{file_modification_date}, path #{path_date}, difference #{inspect(file_diff)} days")
+      DateSetter.set_file_modification_date(file, path_date)
     end
   rescue
     error ->
