@@ -26,6 +26,10 @@ defmodule Exiffer.Binary.RewriteTest do
     Enum.find(gps_info.value.entries, fn e -> e.type == type end)
   end
 
+  setup do
+    Logger.configure(level: :none)
+  end
+
   describe ".set_gps" do
     setup do
       {:ok, binary} = File.read("test/support/fixtures/exiffer_code.jpg")
