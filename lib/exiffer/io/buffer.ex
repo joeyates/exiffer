@@ -11,7 +11,13 @@ defmodule Exiffer.IO.Buffer do
   require Logger
 
   @enforce_keys ~w(io_device)a
-  defstruct [:io_device, data: <<>>, position: 0, remaining: 0, read_ahead: 1000]
+  defstruct [
+    :io_device,
+    data: <<>>,
+    position: 0,
+    remaining: 0,
+    read_ahead: 1000
+  ]
 
   def offset_buffer(buffer, offset) do
     Exiffer.OffsetBuffer.new(buffer, offset)
