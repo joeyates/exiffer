@@ -17,11 +17,31 @@ defmodule Exiffer.Rewrite do
   def set_date_time(source, destination, %NaiveDateTime{} = date_time) do
     Logger.info("Exiffer.Rewrite.set_date_time/3")
     input = Buffer.new(source)
-    {jpeg, remainder} = Exiffer.parse(input)
+    {jpeg, input} = Exiffer.parse(input)
+    headers = internal_set_date_time(jpeg.headers, date_time)
+
+    Logger.debug "Setting initial byte order to :big"
+    Binary.set_byte_order(:big)
+
+    output = Buffer.new(destination, direction: :write)
+    Buffer.write(output, JPEG.magic())
+    :ok = Exiffer.Serialize.write(headers, output.io_device)
+
+    :ok = Buffer.close(input)
+    :ok = Buffer.close(output)
+
+    {:ok}
+  end
+
+  def set_date_time(%JPEG{} = jpeg, %NaiveDateTime{} = date_time) do
+    internal_set_date_time(jpeg.headers, date_time)
+  end
+
+  defp internal_set_date_time(headers, date_time) do
     date_time_text = NaiveDateTime.to_string(date_time)
 
     Logger.debug("Adding/updating date/time original entry")
-    {headers, exif_index} = ensure_exif(jpeg.headers)
+    {headers, exif_index} = ensure_exif(headers)
 
     # Modification Date
     {headers, modification_date_index} = ensure_entry(headers, exif_index, :modification_date)
@@ -51,34 +71,19 @@ defmodule Exiffer.Rewrite do
 
     create_date = Entry.new_by_type(:create_date, date_time_text)
 
-    headers =
-      update_exif_block_entry(
-        headers,
-        exif_index,
-        exif_block_index,
-        create_date_index,
-        create_date
-      )
-
-    Logger.debug "Setting initial byte order to :big"
-    Binary.set_byte_order(:big)
-
-    output = Buffer.new(destination, direction: :write)
-    Buffer.write(output, JPEG.magic())
-    :ok = Exiffer.Serialize.write(headers, output.io_device)
-
-    Buffer.copy(remainder, output)
-
-    :ok = Buffer.close(input)
-    :ok = Buffer.close(output)
-
-    {:ok}
+    update_exif_block_entry(
+      headers,
+      exif_index,
+      exif_block_index,
+      create_date_index,
+      create_date
+    )
   end
 
   def set_gps(source, destination, %GPS{} = gps) do
     Logger.info("Exiffer.Rewrite.set_gps/2")
     input = Buffer.new(source)
-    {jpeg, remainder} = Exiffer.parse(input)
+    {jpeg, input} = Exiffer.parse(input)
 
     Logger.debug("Adding/updating GPS entry")
     {headers, exif_index} = ensure_exif(jpeg.headers)
@@ -92,8 +97,6 @@ defmodule Exiffer.Rewrite do
     output = Buffer.new(destination, direction: :write)
     Buffer.write(output, JPEG.magic())
     :ok = Exiffer.Serialize.write(headers, output.io_device)
-
-    Buffer.copy(remainder, output)
 
     :ok = Buffer.close(input)
     :ok = Buffer.close(output)
@@ -117,15 +120,20 @@ defmodule Exiffer.Rewrite do
     if index do
       {headers, index}
     else
-      {List.insert_at(headers, 1, blank_exif()), 1}
+      {List.insert_at(headers, 1, default_exif()), 1}
     end
   end
 
-  defp blank_exif do
+  defp default_exif do
+    entries = [
+      Entry.new_by_type(:x_resolution, {72, 1}),
+      Entry.new_by_type(:y_resolution, {72, 1}),
+      Entry.new_by_type(:resolution_unit, 2)
+    ]
     %EXIF{
       byte_order: :little,
       ifd_block: %IFDBlock{
-        ifds: [%IFD{entries: []}]
+        ifds: [%IFD{entries: entries}]
       }
     }
   end

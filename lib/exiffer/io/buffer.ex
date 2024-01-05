@@ -11,20 +11,38 @@ defmodule Exiffer.IO.Buffer do
   require Logger
 
   @enforce_keys ~w(io_device)a
-  defstruct [:io_device, data: <<>>, position: 0, remaining: 0, read_ahead: 1000]
+  defstruct [
+    :io_device,
+    data: <<>>,
+    position: 0,
+    remaining: 0,
+    read_ahead: 1000,
+    status: :ok
+  ]
 
   def offset_buffer(buffer, offset) do
     Exiffer.OffsetBuffer.new(buffer, offset)
   end
 
+  def new_from_binary(binary, opts \\ []) do
+    direction = Keyword.get(opts, :direction, :read)
+    {:ok, fd} = :file.open(binary, [:ram, :binary, direction])
+
+    initialize(fd, opts)
+  end
+
   def new(filename, opts \\ []) do
-    read_ahead = Keyword.get(opts, :read_ahead, 1000)
     direction = Keyword.get(opts, :direction, :read)
     open_opts = [:binary, direction]
-    {:ok, io_device} = File.open(filename, open_opts)
+    {:ok, fd} = File.open(filename, open_opts)
 
-    buffer = %__MODULE__{io_device: io_device, read_ahead: read_ahead}
+    initialize(fd, opts)
+  end
 
+  defp initialize(fd, opts) do
+    direction = Keyword.get(opts, :direction, :read)
+    read_ahead = Keyword.get(opts, :read_ahead, 1000)
+    buffer = %__MODULE__{io_device: fd, read_ahead: read_ahead}
     if direction == :read do
       ensure(buffer, read_ahead)
     else
@@ -137,10 +155,12 @@ defmodule Exiffer.IO.Buffer do
     :ok = File.close(io_device)
   end
 
-  defp ensure(%__MODULE__{remaining: remaining} = buffer, amount) when remaining > amount,
-    do: buffer
+  def ensure(%__MODULE__{remaining: remaining} = buffer, amount)
+  when remaining > amount do
+    buffer
+  end
 
-  defp ensure(%__MODULE__{remaining: remaining, read_ahead: read_ahead} = buffer, amount) do
+  def ensure(%__MODULE__{remaining: remaining, read_ahead: read_ahead} = buffer, amount) do
     new_length = max(amount, read_ahead)
     needed = new_length - remaining
     read(buffer, needed)
@@ -150,7 +170,7 @@ defmodule Exiffer.IO.Buffer do
     case IO.binread(io_device, amount) do
       :eof ->
         Logger.debug("Buffer.read EOF")
-        buffer
+        struct!(buffer, status: :eof)
 
       chunk ->
         bytes_read = byte_size(chunk)
