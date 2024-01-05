@@ -6,7 +6,7 @@ defmodule Exiffer.JPEG do
   require Logger
 
   alias Exiffer.Binary
-  alias Exiffer.JPEG.Header.{APP1, APP4, COM, Data, JFIF, SOF0, SOS}
+  alias Exiffer.JPEG.Header.{APP1, APP4, COM, Data, EOI, JFIF, SOF0, SOS}
   import Exiffer.Logging, only: [integer: 1]
 
   @enforce_keys ~w(headers)a
@@ -82,6 +82,12 @@ defmodule Exiffer.JPEG do
     Logger.debug "Reading SOF0 header at #{integer(buffer.position)}"
     {:ok, sof0, buffer} = SOF0.new(buffer)
     headers(buffer, [sof0 | headers])
+  end
+
+  defp headers(%{data: <<0xff, 0xd9, _rest::binary>>} = buffer, headers) do
+    Logger.debug "Reading EOI header at #{integer(buffer.position)}"
+    {:ok, eoi, buffer} = EOI.new(buffer)
+    {buffer, [eoi | headers]}
   end
 
   defp headers(%{data: <<0xff, 0xda, _rest::binary>>} = buffer, headers) do
