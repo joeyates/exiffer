@@ -1,11 +1,14 @@
 defmodule Exiffer.Binary.RewriteTest do
   use ExUnit.Case, async: false
 
-  alias Exiffer.Binary.{Buffer, Rewrite}
+  require Logger
+  alias Exiffer.Binary.Rewrite
+  alias Exiffer.IO.Buffer
 
   def extract(binary, type) do
-    buffer = Buffer.new(binary)
-    {metadata, _buffer} = Exiffer.parse(buffer)
+    buffer = Buffer.new_from_binary(binary)
+    {metadata, buffer} = Exiffer.parse(buffer)
+    Buffer.close(buffer)
     metadata
     |> gps_info()
     |> entry_by_type(type)
