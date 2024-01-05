@@ -155,10 +155,12 @@ defmodule Exiffer.IO.Buffer do
     :ok = File.close(io_device)
   end
 
-  defp ensure(%__MODULE__{remaining: remaining} = buffer, amount) when remaining > amount,
-    do: buffer
+  def ensure(%__MODULE__{remaining: remaining} = buffer, amount)
+  when remaining > amount do
+    buffer
+  end
 
-  defp ensure(%__MODULE__{remaining: remaining, read_ahead: read_ahead} = buffer, amount) do
+  def ensure(%__MODULE__{remaining: remaining, read_ahead: read_ahead} = buffer, amount) do
     new_length = max(amount, read_ahead)
     needed = new_length - remaining
     read(buffer, needed)
