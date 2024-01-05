@@ -18,10 +18,30 @@ defmodule Exiffer.Rewrite do
     Logger.info("Exiffer.Rewrite.set_date_time/3")
     input = Buffer.new(source)
     {jpeg, input} = Exiffer.parse(input)
+    headers = internal_set_date_time(jpeg.headers, date_time)
+
+    Logger.debug "Setting initial byte order to :big"
+    Binary.set_byte_order(:big)
+
+    output = Buffer.new(destination, direction: :write)
+    Buffer.write(output, JPEG.magic())
+    :ok = Exiffer.Serialize.write(headers, output.io_device)
+
+    :ok = Buffer.close(input)
+    :ok = Buffer.close(output)
+
+    {:ok}
+  end
+
+  def set_date_time(%JPEG{} = jpeg, %NaiveDateTime{} = date_time) do
+    internal_set_date_time(jpeg.headers, date_time)
+  end
+
+  defp internal_set_date_time(headers, date_time) do
     date_time_text = NaiveDateTime.to_string(date_time)
 
     Logger.debug("Adding/updating date/time original entry")
-    {headers, exif_index} = ensure_exif(jpeg.headers)
+    {headers, exif_index} = ensure_exif(headers)
 
     # Modification Date
     {headers, modification_date_index} = ensure_entry(headers, exif_index, :modification_date)
@@ -51,26 +71,13 @@ defmodule Exiffer.Rewrite do
 
     create_date = Entry.new_by_type(:create_date, date_time_text)
 
-    headers =
-      update_exif_block_entry(
-        headers,
-        exif_index,
-        exif_block_index,
-        create_date_index,
-        create_date
-      )
-
-    Logger.debug "Setting initial byte order to :big"
-    Binary.set_byte_order(:big)
-
-    output = Buffer.new(destination, direction: :write)
-    Buffer.write(output, JPEG.magic())
-    :ok = Exiffer.Serialize.write(headers, output.io_device)
-
-    :ok = Buffer.close(input)
-    :ok = Buffer.close(output)
-
-    {:ok}
+    update_exif_block_entry(
+      headers,
+      exif_index,
+      exif_block_index,
+      create_date_index,
+      create_date
+    )
   end
 
   def set_gps(source, destination, %GPS{} = gps) do
