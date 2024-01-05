@@ -16,7 +16,8 @@ defmodule Exiffer.IO.Buffer do
     data: <<>>,
     position: 0,
     remaining: 0,
-    read_ahead: 1000
+    read_ahead: 1000,
+    status: :ok
   ]
 
   def offset_buffer(buffer, offset) do
@@ -167,7 +168,7 @@ defmodule Exiffer.IO.Buffer do
     case IO.binread(io_device, amount) do
       :eof ->
         Logger.debug("Buffer.read EOF")
-        buffer
+        struct!(buffer, status: :eof)
 
       chunk ->
         bytes_read = byte_size(chunk)
