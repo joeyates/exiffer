@@ -6,7 +6,7 @@ defmodule Exiffer.JPEG.Header.SOS do
   alias Exiffer.Buffer
   require Logger
 
-  defstruct ~w()a
+  defstruct ~w(data)a
 
   defimpl Jason.Encoder  do
     @spec encode(%Exiffer.JPEG.Header.SOS{}, Jason.Encode.opts()) :: String.t()
@@ -20,11 +20,14 @@ defmodule Exiffer.JPEG.Header.SOS do
 
   def new(%{data: <<0xff, 0xda, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
-    sos = %__MODULE__{}
+    {data, buffer} = read_data(<<>>, buffer)
+    sos = %__MODULE__{data: data}
     {:ok, sos, buffer}
   end
 
-  def binary(%__MODULE__{}), do: <<0xff, 0xda>>
+  def binary(%__MODULE__{} = sos) do
+    <<0xff, 0xda, sos.data::binary>>
+  end
 
   def text(%__MODULE__{}) do
     """
@@ -37,6 +40,23 @@ defmodule Exiffer.JPEG.Header.SOS do
     Logger.debug "Writing SOS header"
     binary = binary(data)
     :ok = IO.binwrite(io_device, binary)
+  end
+
+  defp read_data(data, buffer) do
+    case :binary.match(buffer.data, [<<0xff, 0xd9>>]) do
+      {start, _length} ->
+        {chunk, buffer} = Buffer.consume(buffer, start)
+        data = <<data::binary, chunk::binary>>
+        {data, buffer}
+      :nomatch ->
+        if buffer.status == :eof do
+          {data, buffer}
+        else
+          {chunk, buffer} = Buffer.consume(buffer, buffer.remaining)
+          data = <<data::binary, chunk::binary>>
+          read_data(data, buffer)
+        end
+    end
   end
 
   defimpl Exiffer.Serialize do

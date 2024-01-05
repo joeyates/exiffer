@@ -17,7 +17,7 @@ defmodule Exiffer.Rewrite do
   def set_date_time(source, destination, %NaiveDateTime{} = date_time) do
     Logger.info("Exiffer.Rewrite.set_date_time/3")
     input = Buffer.new(source)
-    {jpeg, remainder} = Exiffer.parse(input)
+    {jpeg, input} = Exiffer.parse(input)
     date_time_text = NaiveDateTime.to_string(date_time)
 
     Logger.debug("Adding/updating date/time original entry")
@@ -67,8 +67,6 @@ defmodule Exiffer.Rewrite do
     Buffer.write(output, JPEG.magic())
     :ok = Exiffer.Serialize.write(headers, output.io_device)
 
-    Buffer.copy(remainder, output)
-
     :ok = Buffer.close(input)
     :ok = Buffer.close(output)
 
@@ -78,7 +76,7 @@ defmodule Exiffer.Rewrite do
   def set_gps(source, destination, %GPS{} = gps) do
     Logger.info("Exiffer.Rewrite.set_gps/2")
     input = Buffer.new(source)
-    {jpeg, remainder} = Exiffer.parse(input)
+    {jpeg, input} = Exiffer.parse(input)
 
     Logger.debug("Adding/updating GPS entry")
     {headers, exif_index} = ensure_exif(jpeg.headers)
@@ -92,8 +90,6 @@ defmodule Exiffer.Rewrite do
     output = Buffer.new(destination, direction: :write)
     Buffer.write(output, JPEG.magic())
     :ok = Exiffer.Serialize.write(headers, output.io_device)
-
-    Buffer.copy(remainder, output)
 
     :ok = Buffer.close(input)
     :ok = Buffer.close(output)
