@@ -60,18 +60,14 @@ defmodule DateSetter do
 
   @path_match ~r"""
     ^
-    (?<decade>\d{4})s
+    (?<decade>\d{3})0s/             # There *must* be the decade, at least
     (
-      /
-      (?<year>\d{4})
+      (?<year>\k<decade>\d)/        # Require the first 3 figures of the YYYY to match the decade
       (
-        /
-        \d{4}(?<month>\d{2})
+        \k<year>(?<month>\d{2})/    # Require the first 4 figures of the YYYYMM to match the year
         (
-          /
-          \d{6}(?<day>\d{2})
+          \k<year>\k<month>(?<day>\d{2})/
           (
-            /
             (?<hour>\d{2})
             (?<minute>\d{2})
             (?<second>\d{2})
@@ -90,7 +86,7 @@ defmodule DateSetter do
         {
           :ok,
           NaiveDateTime.new!(
-            int(match["year"]) || int(match["decade"]),
+            int(match["year"]) || int(match["decade"] <> "0"),
             int(match["month"]) || 1,
             int(match["day"]) || 1,
             int(match["hour"]) || 0,
