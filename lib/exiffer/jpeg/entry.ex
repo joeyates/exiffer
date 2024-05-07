@@ -442,6 +442,12 @@ defmodule Exiffer.JPEG.Entry do
       formats: [:string],
       label: "Sub Sec Time Digitized"
     },
+    xp_keywords: %{
+      type: :xp_keywords,
+      magic: <<0x9C, 0x9E>>,
+      formats: [:string],
+      label: "XPKeywords"
+    },
     flashpix_version: %{
       type: :flashpix_version,
       magic: <<0xA0, 0x00>>,
@@ -593,6 +599,13 @@ defmodule Exiffer.JPEG.Entry do
       magic: <<0xC6, 0xD2>>,
       formats: [:raw_bytes],
       label: "Panasonic Title"
+    },
+    padding: %{type: :padding, magic: <<0xEA, 0x1C>>, formats: [:raw_bytes], label: "Padding"},
+    offset_schema: %{
+      type: :offset_schema,
+      magic: <<0xEA, 0x1D>>,
+      formats: [:int32s],
+      label: "Offset Schema"
     }
   }
 
