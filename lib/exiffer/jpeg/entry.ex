@@ -1109,8 +1109,7 @@ defmodule Exiffer.JPEG.Entry do
     <<_length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> =
       buffer.buffer.data
 
-    # TODO: handle negative values
-    Binary.to_integer(value_binary)
+    Binary.to_signed(value_binary)
   end
 
   defp value(_type, :rational_64s, %{} = buffer) do

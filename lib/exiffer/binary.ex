@@ -197,9 +197,31 @@ defmodule Exiffer.Binary do
     <<int32u_to_current(numerator)::binary, int32u_to_current(denominator)::binary>>
   end
 
-  # TODO: handle negatives
-  def to_signed(<<b0, b1, b2, b3>>) do
-    b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
+  def to_signed(<<binary::binary-size(4)>>) do
+    case byte_order() do
+      :little -> little_endian_to_signed(binary)
+      :big -> big_endian_to_signed(binary)
+    end
+  end
+
+  def little_endian_to_signed(<<b0, b1, b2, b3>>) do
+    value = b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
+    negative = (b3 && 0x80) == 0x80
+    if negative do
+      -1 * (0x100000000 - value)
+    else
+      value
+    end
+  end
+
+  def big_endian_to_signed(<<b0, b1, b2, b3>>) do
+    value = 0x1000000 * b0 + 0x10000 * b1 + 0x100 * b2 + b3
+    negative = (b0 && 0x80) == 0x80
+    if negative do
+      -1 * (0x100000000 - value)
+    else
+      value
+    end
   end
 
   @doc """
