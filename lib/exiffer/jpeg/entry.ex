@@ -935,6 +935,11 @@ defmodule Exiffer.JPEG.Entry do
     {1, value, <<>>}
   end
 
+  defp data(%__MODULE__{format: :int32s} = entry, _end_of_block) do
+    value = Binary.int32s_to_current(entry.value)
+    {1, value, <<>>}
+  end
+
   defp data(%__MODULE__{format: format} = entry, end_of_block)
        when format in [:string, :raw_bytes] do
     size = byte_size(entry.value)

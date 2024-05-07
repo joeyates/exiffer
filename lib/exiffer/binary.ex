@@ -93,6 +93,15 @@ defmodule Exiffer.Binary do
     end
   end
 
+  def int32s_to_current(integer) do
+    case byte_order() do
+      :little ->
+        int32s_to_little_endian(integer)
+      :big ->
+        int32s_to_big_endian(integer)
+    end
+  end
+
   @spec reverse(binary) :: binary
   @doc """
   Reverse the given binary bytes
@@ -174,6 +183,32 @@ defmodule Exiffer.Binary do
     (integer &&& 0x00ff0000) >>> 16,
     (integer &&& 0xff000000) >>> 24
     >>
+  end
+
+  def int32s_to_big_endian(integer) when integer >= 0 do
+    <<
+    (integer &&& 0xff000000) >>> 24,
+    (integer &&& 0x00ff0000) >>> 16,
+    (integer &&& 0x0000ff00) >>> 8,
+    (integer &&& 0x000000ff)
+    >>
+  end
+
+  def int32s_to_big_endian(integer) when integer < 0 do
+    int32s_to_big_endian(0x100000000 + integer)
+  end
+
+  def int32s_to_little_endian(integer) when integer >= 0 do
+    <<
+    (integer &&& 0x000000ff),
+    (integer &&& 0x0000ff00) >>> 8,
+    (integer &&& 0x00ff0000) >>> 16,
+    (integer &&& 0xff000000) >>> 24
+    >>
+  end
+
+  def int32s_to_little_endian(integer) when integer < 0 do
+    int32s_to_little_endian(0x100000000 + integer)
   end
 
   def rational_to_current(rationals) when is_list(rationals) do
