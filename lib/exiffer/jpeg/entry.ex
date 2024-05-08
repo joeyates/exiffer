@@ -445,7 +445,7 @@ defmodule Exiffer.JPEG.Entry do
     xp_keywords: %{
       type: :xp_keywords,
       magic: <<0x9C, 0x9E>>,
-      formats: [:string],
+      formats: [:int8u],
       label: "XPKeywords"
     },
     flashpix_version: %{
@@ -920,6 +920,12 @@ defmodule Exiffer.JPEG.Entry do
     {1, value, extra}
   end
 
+  # Handle string entries, e.g. xp_keywords incorrectly labelled as ints
+  defp data(%__MODULE__{format: :int8u} = entry, end_of_block) when is_binary(entry.value) do
+    as_string = struct!(entry, format: :string)
+    data(as_string, end_of_block)
+  end
+
   defp data(%__MODULE__{format: :int8u} = entry, _end_of_block) do
     value = <<entry.value, 0x00, 0x00, 0x00>>
     {1, value, <<>>}
@@ -1089,6 +1095,10 @@ defmodule Exiffer.JPEG.Entry do
           string
         end
     end
+  end
+
+  defp value(:xp_keywords, :int8u, buffer) do
+    value(:xp_keywords, :string, buffer)
   end
 
   defp value(_type, :int8u, %{} = buffer) do
