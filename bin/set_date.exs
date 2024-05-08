@@ -181,5 +181,6 @@ Path.wildcard(glob)
   rescue
     error ->
       Logger.error("#{relative} - #{inspect(error)}")
+      raise error
   end
 end)
