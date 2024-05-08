@@ -42,7 +42,7 @@ defmodule Exiffer.JPEG.Entry do
       else
         Base.encode16(value)
       end
-      |> then(& {key, &1})
+      |> then(&{key, &1})
     end
 
     defp present({key, value}), do: {key, value}
