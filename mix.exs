@@ -8,6 +8,7 @@ defmodule Exiffer.MixProject do
       app: @app,
       version: "0.2.2",
       elixir: "~> 1.14",
+      elixirc_paths: elixirc_paths(Mix.env()),
       description: "Read and update image metadata",
       package: package(),
       start_permanent: Mix.env() == :prod,
@@ -39,6 +40,9 @@ defmodule Exiffer.MixProject do
       {:jason, ">= 0.0.0"}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp release do
     [
