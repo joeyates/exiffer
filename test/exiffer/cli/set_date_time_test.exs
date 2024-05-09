@@ -28,14 +28,22 @@ defmodule Exiffer.CLI.SetDateTimeTest do
 
       assert_file("result.jpg")
 
-      entries =
+      date =
         capture_io(fn -> Exiffer.CLI.Read.run(%{filename: "result.jpg", format: "json"}) end)
         |> Jason.decode!()
-        |> get_in(["headers", Access.at(0), "ifd_block", "ifds", Access.at(0), "entries"])
-      entry = Enum.find(entries, fn e -> e["type"] == "modification_date" end)
-      date = entry["value"]["Modification Date"]
+        |> get_in([
+          "headers",
+          Access.at(0),
+          "ifd_block",
+          "ifds",
+          Access.at(0),
+          "entries",
+          Access.filter(&(&1["type"] == "modification_date")),
+          "value",
+          "Modification Date"
+        ])
 
-      assert date == "2023-12-20 20:03:08"
+      assert date == ["2023-12-20 20:03:08"]
     end)
   end
 end
