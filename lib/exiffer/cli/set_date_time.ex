@@ -24,6 +24,6 @@ defmodule Exiffer.CLI.SetDateTime do
 
     date_time = NaiveDateTime.new!(year, month, day, hour, minute, second)
 
-    {:ok} = Rewrite.set_date_time(source, destination, date_time)
+    :ok = Rewrite.set_date_time(source, destination, date_time)
   end
 end

@@ -21,6 +21,6 @@ defmodule Exiffer.CLI.SetGPS do
 
     gps = %GPS{latitude: latitude, longitude: longitude, altitude: altitude}
 
-    {:ok} = Rewrite.set_gps(source, destination, gps)
+    :ok = Rewrite.set_gps(source, destination, gps)
   end
 end
