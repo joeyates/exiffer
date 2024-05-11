@@ -32,6 +32,11 @@ defmodule Exiffer.Rewrite do
     rewrite(source, destination, &internal_set_make_and_model(&1, make, model))
   end
 
+  def set_make_and_model(%JPEG{headers: headers}, make, model) do
+    Logger.info("Exiffer.Rewrite.set_make_and_model/3")
+    internal_set_make_and_model(headers, make, model)
+  end
+
   defp internal_set_make_and_model(headers, make, model) do
     Logger.debug("Adding/updating make & model original entry")
     {headers, exif_index} = ensure_exif(headers)
@@ -56,8 +61,8 @@ defmodule Exiffer.Rewrite do
     rewrite(source, destination, &internal_set_date_time(&1, date_time))
   end
 
-  def set_date_time(%JPEG{} = jpeg, %NaiveDateTime{} = date_time) do
-    internal_set_date_time(jpeg.headers, date_time)
+  def set_date_time(%JPEG{headers: headers}, %NaiveDateTime{} = date_time) do
+    internal_set_date_time(headers, date_time)
   end
 
   defp internal_set_date_time(headers, date_time) do
@@ -115,8 +120,8 @@ defmodule Exiffer.Rewrite do
     end)
   end
 
-  def set_gps(%JPEG{} = jpeg, %GPS{} = gps) do
-    {headers, exif_index} = ensure_exif(jpeg.headers)
+  def set_gps(%JPEG{headers: headers}, %GPS{} = gps) do
+    {headers, exif_index} = ensure_exif(headers)
     {headers, gps_index} = ensure_entry(headers, exif_index, :gps_info)
     entry = build_gps_entry(gps)
     update_entry(headers, exif_index, gps_index, entry)
@@ -126,7 +131,7 @@ defmodule Exiffer.Rewrite do
   # Top-level APP1 EXIF block
 
   defp ensure_exif(headers) do
-    index = Enum.find_index(headers, fn header -> header.__struct__ == EXIF end)
+    index = Enum.find_index(headers, &is_struct(&1, EXIF))
 
     if index do
       {headers, index}

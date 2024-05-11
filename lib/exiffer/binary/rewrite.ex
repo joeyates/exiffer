@@ -3,30 +3,29 @@ defmodule Exiffer.Binary.Rewrite do
   Rewrite an image file in memory
   """
 
-  alias Exiffer.IO.Buffer
   alias Exiffer.{GPS, JPEG, Rewrite}
 
-  def set_date_time(source, %NaiveDateTime{} = date_time) do
-    input = Buffer.new_from_binary(source)
-    {jpeg, input} = Exiffer.parse(input)
-
-    headers = Rewrite.set_date_time(jpeg, date_time)
-    header_binary = Exiffer.Serialize.binary(headers)
-    :ok = Buffer.close(input)
+  def rewrite(source, rewrite_fun) when is_function(rewrite_fun, 1) do
+    header_binary =
+      source
+      |> Exiffer.parse_binary()
+      |> rewrite_fun.()
+      |> Exiffer.Serialize.binary()
 
     <<JPEG.magic()::binary, header_binary::binary>>
   end
 
-  def set_gps(source, %{longitude: longitude, latitude: latitude, altitude: altitude}) when is_binary(source) do
-    input = Buffer.new_from_binary(source)
-    {jpeg, input} = Exiffer.parse(input)
+  def set_make_and_model(source, make, model) do
+    rewrite(source, &Rewrite.set_make_and_model(&1, make, model))
+  end
 
+  def set_date_time(source, %NaiveDateTime{} = date_time) do
+    rewrite(source, &Rewrite.set_date_time(&1, date_time))
+  end
+
+  def set_gps(source, %{longitude: longitude, latitude: latitude, altitude: altitude})
+      when is_binary(source) do
     gps = %GPS{longitude: longitude, latitude: latitude, altitude: altitude}
-
-    headers = Rewrite.set_gps(jpeg, gps)
-    header_binary = Exiffer.Serialize.binary(headers)
-    :ok = Buffer.close(input)
-
-    <<JPEG.magic()::binary, header_binary::binary>>
+    rewrite(source, &Rewrite.set_gps(&1, gps))
   end
 end
