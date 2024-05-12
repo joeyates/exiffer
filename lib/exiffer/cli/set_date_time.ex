@@ -7,7 +7,7 @@ defmodule Exiffer.CLI.SetDateTime do
 
   alias Exiffer.Rewrite
 
-  @spec run(map) :: {:ok}
+  @spec run(map) :: :ok
   @doc """
   Rewrite an image's creation metadata.
   """

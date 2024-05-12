@@ -7,7 +7,7 @@ defmodule Exiffer.CLI.SetGPS do
 
   alias Exiffer.{GPS, Rewrite}
 
-  @spec run(map) :: {:ok}
+  @spec run(map) :: :ok
   @doc """
   Rewrite an image's GPS metadata.
   """

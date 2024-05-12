@@ -8,6 +8,9 @@ defmodule Exiffer.Binary do
 
   @table :exiffer
 
+  @type rational() :: {non_neg_integer(), non_neg_integer()}
+  @type signed_rational() :: {integer(), integer()}
+
   @spec optionally_create_ets_table() :: :ok
   def optionally_create_ets_table() do
     ref = :ets.whereis(@table)
@@ -93,6 +96,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec int32s_to_current(integer()) :: <<_::32>>
   def int32s_to_current(integer) do
     case byte_order() do
       :little ->
@@ -185,6 +189,7 @@ defmodule Exiffer.Binary do
     >>
   end
 
+  @spec int32s_to_big_endian(integer) :: <<_::32>>
   def int32s_to_big_endian(integer) when integer >= 0 do
     <<
     (integer &&& 0xff000000) >>> 24,
@@ -198,6 +203,7 @@ defmodule Exiffer.Binary do
     int32s_to_big_endian(0x100000000 + integer)
   end
 
+  @spec int32s_to_little_endian(integer()) :: <<_::32>>
   def int32s_to_little_endian(integer) when integer >= 0 do
     <<
     (integer &&& 0x000000ff),
@@ -211,6 +217,7 @@ defmodule Exiffer.Binary do
     int32s_to_little_endian(0x100000000 + integer)
   end
 
+  @spec rational_to_current(rational() | [rational()]) :: binary() | [binary()]
   def rational_to_current(rationals) when is_list(rationals) do
     rationals
     |> Enum.map(&rational_to_current/1)
@@ -221,6 +228,7 @@ defmodule Exiffer.Binary do
     <<int32u_to_current(numerator)::binary, int32u_to_current(denominator)::binary>>
   end
 
+  @spec rational_to_current(signed_rational() | [signed_rational()]) :: binary() | [binary()]
   def signed_rational_to_current(rationals) when is_list(rationals) do
     rationals
     |> Enum.map(&signed_rational_to_current/1)
@@ -232,6 +240,7 @@ defmodule Exiffer.Binary do
     <<int32u_to_current(numerator)::binary, int32u_to_current(denominator)::binary>>
   end
 
+  @spec to_signed(<<_::32>>) :: integer()
   def to_signed(<<binary::binary-size(4)>>) do
     case byte_order() do
       :little -> little_endian_to_signed(binary)
@@ -239,6 +248,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec little_endian_to_signed(<<_::32>>) :: integer()
   def little_endian_to_signed(<<b0, b1, b2, b3>>) do
     value = b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
     negative = (b3 && 0x80) == 0x80
@@ -249,6 +259,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec big_endian_to_signed(<<_::32>>) :: integer()
   def big_endian_to_signed(<<b0, b1, b2, b3>>) do
     value = 0x1000000 * b0 + 0x10000 * b1 + 0x100 * b2 + b3
     negative = (b0 && 0x80) == 0x80
@@ -259,6 +270,7 @@ defmodule Exiffer.Binary do
     end
   end
 
+  @spec to_rational(binary()) :: rational() | [rational()]
   @doc """
   When given 8 bytes, returns a single {numerator, denominator} tuple.
   When given multiples of 8 bytes, returns a list of those tuples.
@@ -275,6 +287,7 @@ defmodule Exiffer.Binary do
     [to_rational(rational) | to_rational(rest)]
   end
 
+  @spec to_signed_rational(binary()) :: signed_rational() | [signed_rational()]
   @doc """
   When given 8 bytes, returns a single {numerator, denominator} tuple.
   When given multiples of 8 bytes, returns a list of those tuples.
