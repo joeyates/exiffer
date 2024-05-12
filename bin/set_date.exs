@@ -112,7 +112,7 @@ defmodule DateSetter do
 
   def set_exif(filename, date_time) do
     destination = "#{filename}.tmp"
-    {:ok} = Rewrite.set_date_time(filename, destination, date_time)
+    :ok = Rewrite.set_date_time(filename, destination, date_time)
     File.rm(filename)
     File.rename(destination, filename)
   end
