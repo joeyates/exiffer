@@ -3,7 +3,7 @@ defmodule Exiffer.JPEG.Header.SOS do
   Documentation for `Exiffer.JPEG.Header.SOS`.
   """
 
-  alias Exiffer.Buffer
+  alias Exiffer.IO.Buffer
   require Logger
 
   defstruct ~w(data)a
@@ -20,9 +20,8 @@ defmodule Exiffer.JPEG.Header.SOS do
 
   def new(%{data: <<0xff, 0xda, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
-    {data, buffer} = read_data(<<>>, buffer)
-    sos = %__MODULE__{data: data}
-    {:ok, sos, buffer}
+    {data, buffer} = read_data(buffer)
+    {:ok, %__MODULE__{data: data}, buffer}
   end
 
   def binary(%__MODULE__{} = sos) do
@@ -42,19 +41,22 @@ defmodule Exiffer.JPEG.Header.SOS do
     :ok = IO.binwrite(io_device, binary)
   end
 
-  defp read_data(data, buffer) do
-    case :binary.match(buffer.data, [<<0xff, 0xd9>>]) do
+  @chunk_size 4096
+
+  # Read into the buffer until we find the end of SOS marker
+  defp read_data(buffer, search_start \\ 0) do
+    search_length = buffer.remaining - search_start
+    case :binary.match(buffer.data, [<<0xff, 0xd9>>], scope: {search_start, search_length}) do
       {start, _length} ->
-        {chunk, buffer} = Buffer.consume(buffer, start)
-        data = <<data::binary, chunk::binary>>
-        {data, buffer}
+        Buffer.consume(buffer, start)
       :nomatch ->
         if buffer.status == :eof do
-          {data, buffer}
+          Buffer.consume(buffer, buffer.remaining)
         else
-          {chunk, buffer} = Buffer.consume(buffer, buffer.remaining)
-          data = <<data::binary, chunk::binary>>
-          read_data(data, buffer)
+          new_length = buffer.remaining + @chunk_size
+          new_start = buffer.remaining
+          buffer = Buffer.ensure(buffer, new_length)
+          read_data(buffer, new_start)
         end
     end
   end
