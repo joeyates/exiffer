@@ -2,7 +2,7 @@
 # so the executable depends on an older
 # (and more widely available GLibC version)
 
-FROM debian:buster-slim
+FROM docker.io/library/debian:buster-slim
 
 # Set up workspace
 WORKDIR /app
