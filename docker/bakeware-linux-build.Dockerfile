@@ -33,7 +33,7 @@ RUN apt install -y unzip locales
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
 RUN locale-gen
 RUN mkdir elixir
-RUN curl --output elixir/elixir-v1.15.1-otp-24.zip https://repo.hex.pm/builds/elixir/v1.15.1-otp-24.zip
+RUN curl --location --output elixir/elixir-v1.15.1-otp-24.zip https://builds.hex.pm/builds/elixir/v1.15.1-otp-24.zip
 RUN (cd elixir; unzip elixir-v1.15.1-otp-24.zip)
 ENV PATH="${PATH}:/app/elixir/bin"
 ENV LC_ALL=en_US.UTF-8
