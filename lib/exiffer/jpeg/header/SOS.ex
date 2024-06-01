@@ -56,7 +56,7 @@ defmodule Exiffer.JPEG.Header.SOS do
           new_length = buffer.remaining + @chunk_size
           new_start = buffer.remaining
           buffer = Buffer.ensure(buffer, new_length)
-          read_data(buffer, new_start)
+          read_data(buffer, new_start - 1)
         end
     end
   end
