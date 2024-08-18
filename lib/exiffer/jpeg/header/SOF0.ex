@@ -115,6 +115,10 @@ defmodule Exiffer.JPEG.Header.SOF0 do
     :ok = IO.binwrite(io_device, binary)
   end
 
+  def dimensions(%__MODULE__{width: width, height: height}) do
+    %{width: width, height: height}
+  end
+
   defimpl Exiffer.Serialize do
     alias Exiffer.JPEG.Header.SOF0
 

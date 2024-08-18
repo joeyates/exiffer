@@ -192,4 +192,16 @@ defmodule Exiffer.JPEG.IFD do
   def sorted(entries) do
     Enum.sort(entries, &(&1.magic < &2.magic))
   end
+
+  def dimensions(%__MODULE__{entries: entries}) do
+    entries
+    |> Enum.reduce(%{}, fn entry, dimensions ->
+      case entry.type do
+        :exif_image_width -> Map.put(dimensions, :width, entry.value)
+        :exif_image_height -> Map.put(dimensions, :height, entry.value)
+        _ -> dimensions
+      end
+    end)
+    |> then(& if Kernel.map_size(&1) == 2, do: &1, else: nil)
+  end
 end

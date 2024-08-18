@@ -7,6 +7,7 @@ defmodule Exiffer.JPEG do
 
   alias Exiffer.Binary
   alias Exiffer.JPEG.Header.{APP1, APP4, COM, Data, EOI, JFIF, SOF0, SOS}
+  alias Exiffer.JPEG.Header.APP1.EXIF
   import Exiffer.Logging, only: [integer: 1]
 
   @enforce_keys ~w(headers)a
@@ -100,6 +101,34 @@ defmodule Exiffer.JPEG do
     Logger.debug "Reading generic data header at #{integer(buffer.position)}"
     {:ok, header, buffer} = Data.new(buffer)
     headers(buffer, [header | headers])
+  end
+
+  def dimensions(%__MODULE__{} = jpeg) do
+    sof0_dimensions(jpeg) || exif_dimensions(jpeg)
+  end
+
+  defp sof0_dimensions(%__MODULE__{} = jpeg) do
+    case sof0(jpeg) do
+      nil -> nil
+      sof0 -> SOF0.dimensions(sof0)
+    end
+  end
+
+  defp exif_dimensions(%__MODULE__{} = jpeg) do
+    case exif(jpeg) do
+      nil -> nil
+      exif -> EXIF.dimensions(exif)
+    end
+  end
+
+  defp sof0(%__MODULE__{} = jpeg) do
+    jpeg.headers
+    |> Enum.find(& &1.__struct__ == SOF0)
+  end
+
+  defp exif(%__MODULE__{} = jpeg) do
+    jpeg.headers
+    |> Enum.find(& &1.__struct__ == EXIF)
   end
 
   defimpl Exiffer.Serialize do

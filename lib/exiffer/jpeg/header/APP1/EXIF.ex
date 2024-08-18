@@ -103,6 +103,10 @@ defmodule Exiffer.JPEG.Header.APP1.EXIF do
     :ok = IO.binwrite(io_device, binary)
   end
 
+  def dimensions(%__MODULE__{} = exif) do
+    IFDBlock.dimensions(exif.ifd_block)
+  end
+
   defimpl Exiffer.Serialize do
     alias Exiffer.JPEG.Header.APP1.EXIF
 
