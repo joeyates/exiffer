@@ -18,7 +18,7 @@ Migrate from Bakeware to Burrito for building standalone executable binaries. Bu
 
 # Refactor CLI to use HelpfulOptions.parse_commands/2
 
-Status: [ ]
+Status: [x]
 
 ## Description
 
