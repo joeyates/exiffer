@@ -10,12 +10,12 @@ Refactor `lib/exiffer/cli.ex` to use HelpfulOptions.parse_commands/2 instead of 
 
 ## Tasks
 
-- [ ] Define `@command_definitions` module attribute with all command specifications
-- [ ] Refactor `main/1` to call `parse_commands/2` with unified command definitions
-- [ ] Update command handlers to work with the new parse result structure
-- [ ] Replace manual help command implementations with `help_commands!/2`
-- [ ] Update error handling to work with parse_commands error tuples
-- [ ] Run existing tests to verify backward compatibility
+- [x] Define `@command_definitions` module attribute with all command specifications
+- [x] Refactor `main/1` to call `parse_commands/2` with unified command definitions
+- [x] Update command handlers to work with the new parse result structure
+- [x] Replace manual help command implementations with `help_commands!/2`
+- [x] Update error handling to work with parse_commands error tuples
+- [x] Run existing tests to verify backward compatibility
 - [ ] Address any additional implementation details that arise during development
 - [ ] Mark the plan as "done"
 
