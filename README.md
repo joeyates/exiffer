@@ -34,7 +34,7 @@ Build a standalone Linux x86_64 executable:
 MIX_ENV=prod mix release
 ```
 
-The `exiffer` executable will be built in `_build/prod/rel/burrito_out/`.
+The standalone `exiffer_linux` executable will be created in `burrito_out/`.
 
 # Debugging
 

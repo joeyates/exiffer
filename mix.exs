@@ -44,6 +44,7 @@ defmodule Exiffer.MixProject do
       cookie: "#{@app}_cookie",
       quiet: true,
       strip_beams: Mix.env() == :prod,
+      steps: [:assemble, &Burrito.wrap/1],
       burrito: [
         targets: [
           linux: [os: :linux, cpu: :x86_64]
