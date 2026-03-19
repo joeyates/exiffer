@@ -17,7 +17,7 @@ Refactor `lib/exiffer/cli.ex` to use HelpfulOptions.parse_commands/2 instead of 
 - [x] Update error handling to work with parse_commands error tuples
 - [x] Run existing tests to verify backward compatibility
 - [x] Address any additional implementation details that arise during development
-- [ ] Mark the plan as "done"
+- [x] Mark the plan as "done"
 
 ## Principal Files
 
