@@ -10,17 +10,17 @@ This plan involves replacing the Bakeware build system with Burrito for creating
 
 ## Tasks
 
-- [ ] Update `mix.exs` dependencies: replace `{:bakeware, ...}` with `{:burrito, "~> 1.0"}`
-- [ ] Refactor `mix.exs` application function to remove EXIFFER_BUILD_CLI environment variable check
-- [ ] Refactor `lib/exiffer/cli.ex` to remove conditional Bakeware.Script usage and implement standard application startup
-- [ ] Configure Burrito release in `mix.exs` with target `linux: [os: :linux, cpu: :x86_64]`
-- [ ] Run `mix deps.get` to fetch Burrito and update `mix.lock`
-- [ ] Create `.tool-versions` file with Zig 0.15.2
-- [ ] Remove `docker/` directory (no longer needed)
-- [ ] Remove `bin/build` script (builds done via mix task)
-- [ ] Check for and remove any other obsolete files related to Bakeware builds
-- [ ] Update build documentation in `README.md` to document asdf as a dependency, `asdf install` command, Zig and XZ requirements, and the simplified `MIX_ENV=prod mix release` process
-- [ ] Test local build with `MIX_ENV=prod mix release` to ensure executable is created successfully
+- [x] Update `mix.exs` dependencies: replace `{:bakeware, ...}` with `{:burrito, "~> 1.0"}`
+- [x] Refactor `mix.exs` application function to remove EXIFFER_BUILD_CLI environment variable check
+- [x] Refactor `lib/exiffer/cli.ex` to remove conditional Bakeware.Script usage and implement standard application startup
+- [x] Configure Burrito release in `mix.exs` with target `linux: [os: :linux, cpu: :x86_64]`
+- [x] Run `mix deps.get` to fetch Burrito and update `mix.lock`
+- [x] Create `.tool-versions` file with Zig 0.13.0
+- [x] Remove `docker/` directory (no longer needed)
+- [x] Remove `bin/build` script (builds done via mix task)
+- [x] Check for and remove any other obsolete files related to Bakeware builds
+- [x] Update build documentation in `README.md` to document asdf as a dependency, `asdf install` command, Zig and XZ requirements, and the simplified `MIX_ENV=prod mix release` process
+- [x] Test local build with `MIX_ENV=prod mix release` to ensure executable is created successfully
 - [ ] Verify executable runs correctly with test commands
 - [ ] Address any additional implementation details that arise during development
 - [ ] Mark the plan as "done"

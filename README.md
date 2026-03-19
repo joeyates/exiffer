@@ -10,14 +10,31 @@ Currently, only handles JPEGs.
 
 # Build
 
-Create a (reasonably) portable Linux build:
+## Prerequisites
+
+- [asdf](https://asdf-vm.com/) version manager
+- Zig (for cross-compilation)
+- XZ compression utility
+
+## Setup
+
+Install required tools:
 
 ```sh
-podman build --file docker/bakeware-linux-build.Dockerfile --tag exiffer:latest .
-podman run -v `pwd`:/app/_build/prod/rel/bakeware -e MIX_ENV=prod -ti exiffer:latest mix release
+asdf install
 ```
 
-The `exiffer` executable will be built in the project root.
+This will install Zig 0.13.0 as specified in `.tool-versions`.
+
+## Building a Standalone Executable
+
+Build a standalone Linux x86_64 executable:
+
+```sh
+MIX_ENV=prod mix release
+```
+
+The standalone `exiffer_linux` executable will be created in `burrito_out/`.
 
 # Debugging
 
