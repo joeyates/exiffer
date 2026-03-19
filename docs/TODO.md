@@ -1,6 +1,6 @@
 # Replace Bakeware with Burrito for Distributable Executables
 
-Status: [ ]
+Status: [x]
 
 ## Description
 
