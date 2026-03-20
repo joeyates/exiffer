@@ -123,7 +123,7 @@ defmodule Exiffer.JPEG.Entry do
     gps_altitude_ref: %Info{
       type: :gps_altitude_ref,
       magic: <<0x00, 0x05>>,
-      formats: [:int16u],
+      formats: [:int8u, :int16u],
       label: "GPS Altitude Ref"
     },
     gps_altitude: %Info{
