@@ -115,7 +115,7 @@ defmodule Exiffer.Rewrite do
       Logger.debug("Adding/updating GPS entry")
       {headers, exif_index} = ensure_exif(headers)
       {headers, gps_index} = ensure_entry(headers, exif_index, :gps_info)
-      entry = build_gps_entry(gps)
+      entry = GPS.to_entry(gps)
       update_entry(headers, exif_index, gps_index, entry)
     end)
   end
@@ -123,7 +123,7 @@ defmodule Exiffer.Rewrite do
   def set_gps(%JPEG{headers: headers}, %GPS{} = gps) do
     {headers, exif_index} = ensure_exif(headers)
     {headers, gps_index} = ensure_entry(headers, exif_index, :gps_info)
-    entry = build_gps_entry(gps)
+    entry = GPS.to_entry(gps)
     update_entry(headers, exif_index, gps_index, entry)
   end
 
@@ -264,27 +264,6 @@ defmodule Exiffer.Rewrite do
         Access.key(:value),
         Access.key(:entries)
       ]
-  end
-
-  defp build_gps_entry(gps) do
-    latitude_ref = if gps.latitude >= 0, do: "N", else: "S"
-    longitude_ref = if gps.longitude >= 0, do: "E", else: "W"
-    latitude = gps.latitude |> float_to_dms() |> dms_to_rational()
-    longitude = gps.longitude |> float_to_dms() |> dms_to_rational()
-    altitude = floor(gps.altitude)
-
-    value = %IFD{
-      entries: [
-        Entry.new_by_type(:gps_latitude_ref, latitude_ref),
-        Entry.new_by_type(:gps_latitude, latitude),
-        Entry.new_by_type(:gps_longitude_ref, longitude_ref),
-        Entry.new_by_type(:gps_longitude, longitude),
-        Entry.new_by_type(:gps_altitude_ref, 0),
-        Entry.new_by_type(:gps_altitude, {altitude, 1})
-      ]
-    }
-
-    Entry.new_by_type(:gps_info, value)
   end
 
   defp float_to_dms(f) do

@@ -25,7 +25,12 @@ defmodule Exiffer.Binary.Rewrite do
 
   def set_gps(source, %{longitude: longitude, latitude: latitude, altitude: altitude})
       when is_binary(source) do
-    gps = %GPS{longitude: longitude, latitude: latitude, altitude: altitude}
+    gps = %GPS{
+      latitude: latitude,
+      longitude: longitude,
+      altitude: altitude
+    }
+
     rewrite(source, &Rewrite.set_gps(&1, gps))
   end
 end
