@@ -300,19 +300,4 @@ defmodule Exiffer.Rewrite do
         Access.key(:entries)
       ]
   end
-
-  defp float_to_dms(f) do
-    abs = abs(f)
-    degrees = floor(abs)
-    degrees_remainder = abs - degrees
-    minutes = floor(60 * degrees_remainder)
-    minutes_remainder = degrees_remainder - minutes / 60
-    seconds = 3600 * minutes_remainder
-    {degrees, minutes, seconds}
-  end
-
-  defp dms_to_rational({d, m, s}) do
-    mus = floor(s * 1_000_000)
-    [{d, 1}, {m, 1}, {mus, 1_000_000}]
-  end
 end
