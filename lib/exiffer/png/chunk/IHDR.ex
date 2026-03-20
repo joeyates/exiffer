@@ -13,6 +13,16 @@ defmodule Exiffer.PNG.Chunk.IHDR do
 
   require Logger
 
+  @type t() :: %__MODULE__{
+          width: integer,
+          height: integer,
+          bits_per_sample: binary,
+          color_type: binary,
+          compression_method: binary,
+          filter_method: binary,
+          interlace_method: binary
+        }
+
   def new(data) do
     Logger.debug("Parsing IHDR")
 

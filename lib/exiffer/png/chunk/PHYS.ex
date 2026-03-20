@@ -3,6 +3,11 @@ defmodule Exiffer.PNG.Chunk.PHYS do
 
   alias Exiffer.Binary
 
+  @type t() :: %__MODULE__{
+          x_pixels_per_unit: integer,
+          y_pixels_per_unit: integer
+        }
+
   def new(<<x_binary::binary-size(4), y_binary::binary-size(4), unit_byte>>) do
     x = Binary.to_integer(x_binary)
     y = Binary.to_integer(y_binary)

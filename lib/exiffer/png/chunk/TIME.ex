@@ -1,6 +1,15 @@
 defmodule Exiffer.PNG.Chunk.TIME do
   defstruct ~w(year month day hour minute second)a
 
+  @type t() :: %__MODULE__{
+          year: integer,
+          month: integer,
+          day: integer,
+          hour: integer,
+          minute: integer,
+          second: integer
+        }
+
   alias Exiffer.Binary
 
   def new(<<
