@@ -3,15 +3,15 @@ defmodule Exiffer.JPEG.IFDBlock do
   Documentation for `Exiffer.JPEG.IFDBlock`.
   """
 
-  require Logger
-
   alias Exiffer.Binary
   alias Exiffer.JPEG.IFD
+
+  require Logger
 
   @enforce_keys ~w(ifds)a
   defstruct ~w(ifds)a
 
-  defimpl Jason.Encoder  do
+  defimpl Jason.Encoder do
     @spec encode(%Exiffer.JPEG.IFDBlock{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Jason.Encode.map(
@@ -39,6 +39,7 @@ defmodule Exiffer.JPEG.IFDBlock do
     tiff_header_length = 4
     offset = tiff_header_length + 4
     last_ifd_index = length(ifd_block.ifds) - 1
+
     {_offset, binary} =
       ifd_block.ifds
       |> Enum.with_index()
@@ -49,6 +50,7 @@ defmodule Exiffer.JPEG.IFDBlock do
         binary = <<binary::binary, ifd_binary::binary>>
         {offset, binary}
       end)
+
     binary
   end
 
@@ -71,18 +73,27 @@ defmodule Exiffer.JPEG.IFDBlock do
   defp read(%{} = buffer, ifds) do
     position = Exiffer.Buffer.tell(buffer) - 2
     offset = buffer.offset
-    Logger.debug "IFDBlock.do_read at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+
+    Logger.debug(
+      "IFDBlock.do_read at 0x#{Integer.to_string(position, 16)}, offset 0x#{Integer.to_string(offset, 16)}"
+    )
+
     case IFD.read(buffer) do
       {:ok, ifd, buffer} ->
         {next_ifd_bytes, buffer} = Exiffer.Buffer.consume(buffer, 4)
         next_ifd = Binary.to_integer(next_ifd_bytes)
+
         if next_ifd == 0 do
           {[ifd | ifds], buffer}
         else
-          Logger.debug "IFDBlock.do_read, reading next IFD at 0x#{Integer.to_string(next_ifd, 16)}"
+          Logger.debug(
+            "IFDBlock.do_read, reading next IFD at 0x#{Integer.to_string(next_ifd, 16)}"
+          )
+
           buffer = Exiffer.Buffer.seek(buffer, next_ifd)
           read(buffer, [ifd | ifds])
         end
+
       {:error, ifd, buffer} ->
         {[ifd | ifds], buffer}
     end

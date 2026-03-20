@@ -1,9 +1,9 @@
 defmodule Exiffer.PNG.Chunk.PLTE do
   defstruct ~w(colors)a
 
-  require Logger
-
   alias Exiffer.PNG.Chunk.PLTE.Color
+
+  require Logger
 
   @doc ~S"""
   Parse an PLTE PNG.chunk.
@@ -13,10 +13,12 @@ defmodule Exiffer.PNG.Chunk.PLTE do
   """
   def new(data) do
     Logger.debug("Parsing PLTE")
+
     colors =
       data
       |> stream()
       |> Enum.map(fn {r, g, b} -> %Color{r: r, g: g, b: b} end)
+
     %__MODULE__{colors: colors}
   end
 
@@ -26,6 +28,7 @@ defmodule Exiffer.PNG.Chunk.PLTE do
       fn
         <<>> ->
           {:halt, nil}
+
         <<r, g, b, rest::binary>> ->
           {[{r, g, b}], rest}
       end,

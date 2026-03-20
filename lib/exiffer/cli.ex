@@ -4,7 +4,7 @@ defmodule Exiffer.CLI do
   """
   use Application
 
-  alias Exiffer.CLI.{Read, SetDateTime, SetGPS}
+  alias __MODULE__.{Read, SetDateTime, SetGPS}
 
   @command_definitions [
     %{
@@ -96,7 +96,7 @@ defmodule Exiffer.CLI do
     end
   end
 
-  defp list_top_level_commands do
+  defp list_top_level_commands() do
     help = HelpfulOptions.help_commands!("exiffer", @command_definitions)
     IO.puts(help)
   end

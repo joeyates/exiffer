@@ -6,6 +6,7 @@ defmodule Exiffer.OffsetBuffer do
   """
 
   alias Exiffer.Buffer
+
   require Logger
 
   @enforce_keys ~w(buffer offset)a

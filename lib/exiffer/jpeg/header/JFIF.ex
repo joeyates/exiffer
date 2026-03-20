@@ -6,6 +6,7 @@ defmodule Exiffer.JPEG.Header.JFIF do
   """
 
   alias Exiffer.Binary
+
   require Logger
 
   @enforce_keys ~w()a

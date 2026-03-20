@@ -16,10 +16,10 @@ defmodule Exiffer.CLI.Read do
 
     case format do
       "text" ->
-        IO.puts(Exiffer.Serialize.text(metadata))
+        metadata |> Exiffer.Serialize.text() |> IO.puts()
 
       "json" ->
-        IO.puts(Jason.encode!(metadata, pretty: true))
+        metadata |> Jason.encode!(pretty: true) |> IO.puts()
 
       _ ->
         IO.puts("Unknown format: #{format}")

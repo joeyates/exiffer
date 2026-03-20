@@ -7,7 +7,7 @@ defmodule Exiffer.PNG.Chunk.ICCP do
 
   def new(data) do
     [name, rest] = String.split(data, <<0>>, parts: 2)
-    <<compression_method, compressed_profile::binary>> = rest
+    <<compression_method>> <> compressed_profile = rest
 
     %__MODULE__{
       name: name,
@@ -16,7 +16,7 @@ defmodule Exiffer.PNG.Chunk.ICCP do
     }
   end
 
-  @spec binary(%Exiffer.PNG.Chunk.ICCP{
+  @spec binary(%__MODULE__{
           :compressed_profile => binary,
           :compression_method => integer,
           :name => integer()
@@ -32,7 +32,7 @@ defmodule Exiffer.PNG.Chunk.ICCP do
     Exiffer.PNG.Chunk.binary("iCCP", value)
   end
 
-  @spec text(%Exiffer.PNG.Chunk.ICCP{
+  @spec text(%__MODULE__{
           :compressed_profile => binary,
           :compression_method => integer,
           :name => String.t()
@@ -54,7 +54,6 @@ defmodule Exiffer.PNG.Chunk.ICCP do
 
   defimpl Exiffer.Serialize do
     alias Exiffer.PNG.Chunk.ICCP
-
     require Logger
 
     def binary(iccp) do

@@ -3,16 +3,16 @@ defmodule Exiffer.CLI.SetDateTime do
   Documentation for `Exiffer.CLI.SetDateTime`.
   """
 
-  require Logger
-
   alias Exiffer.Rewrite
+
+  require Logger
 
   @spec run(map) :: :ok
   @doc """
   Rewrite an image's creation metadata.
   """
   def run(opts) do
-    Logger.info "Exiffer.CLI.SetDateTime.run/4"
+    Logger.info("Exiffer.CLI.SetDateTime.run/4")
     source = Map.fetch!(opts, :source)
     destination = Map.fetch!(opts, :destination)
     year = Map.fetch!(opts, :year)

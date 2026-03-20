@@ -3,12 +3,12 @@ defmodule Exiffer.Rewrite do
   Rewrite an image file, adding and removing arbitrary metadata
   """
 
-  require Logger
-
   alias Exiffer.{Binary, GPS, JPEG}
   alias Exiffer.IO.Buffer
   alias Exiffer.JPEG.{Entry, IFD, IFDBlock}
   alias Exiffer.JPEG.Header.APP1.EXIF
+
+  require Logger
 
   def rewrite(source, destination, rewrite_fun) when is_function(rewrite_fun, 1) do
     input = Buffer.new(source)
@@ -140,7 +140,7 @@ defmodule Exiffer.Rewrite do
     end
   end
 
-  defp default_exif do
+  defp default_exif() do
     entries = [
       Entry.new_by_type(:x_resolution, {72, 1}),
       Entry.new_by_type(:y_resolution, {72, 1}),
@@ -165,8 +165,8 @@ defmodule Exiffer.Rewrite do
       {headers, index}
     else
       headers =
-        headers
-        |> update_in(
+        update_in(
+          headers,
           ifd_entries_path(exif_index),
           fn entries -> [Entry.new_by_type(type, nil) | entries] end
         )
@@ -176,8 +176,8 @@ defmodule Exiffer.Rewrite do
   end
 
   defp update_entry(headers, exif_index, entry_index, entry) do
-    headers
-    |> update_in(
+    update_in(
+      headers,
       ifd_entries_path(exif_index) ++ [Access.at(entry_index)],
       fn _existing -> entry end
     )
@@ -213,8 +213,8 @@ defmodule Exiffer.Rewrite do
       {headers, index}
     else
       headers =
-        headers
-        |> update_in(
+        update_in(
+          headers,
           ifd_entries_path(exif_index),
           fn entries -> [Entry.new_by_type(:exif_offset, %IFD{}) | entries] end
         )
@@ -230,8 +230,8 @@ defmodule Exiffer.Rewrite do
       {headers, index}
     else
       headers =
-        headers
-        |> update_in(
+        update_in(
+          headers,
           exif_block_entries_path(exif_index, exif_block_index),
           fn entries -> [Entry.new_by_type(type, nil) | entries] end
         )
@@ -241,8 +241,8 @@ defmodule Exiffer.Rewrite do
   end
 
   defp update_exif_block_entry(headers, exif_index, exif_block_index, entry_index, entry) do
-    headers
-    |> update_in(
+    update_in(
+      headers,
       exif_block_entries_path(exif_index, exif_block_index) ++ [Access.at(entry_index)],
       fn _existing -> entry end
     )

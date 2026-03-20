@@ -10,18 +10,21 @@ defimpl Exiffer.Serialize, for: List do
     Enum.each(list, fn item ->
       Exiffer.Serialize.write(item, io_device)
     end)
+
     :ok
   end
 
   def binary(list) do
-    Enum.map(list, fn item ->
+    list
+    |> Enum.map(fn item ->
       Exiffer.Serialize.binary(item)
     end)
     |> Enum.join()
   end
 
   def text(list) do
-    Enum.map(list, fn item ->
+    list
+    |> Enum.map(fn item ->
       Exiffer.Serialize.text(item)
     end)
     |> Enum.join("\n")

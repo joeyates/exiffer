@@ -43,6 +43,7 @@ defmodule Exiffer.IO.Buffer do
     direction = Keyword.get(opts, :direction, :read)
     read_ahead = Keyword.get(opts, :read_ahead, 1000)
     buffer = %__MODULE__{io_device: fd, read_ahead: read_ahead}
+
     if direction == :read do
       ensure(buffer, read_ahead)
     else
@@ -56,7 +57,7 @@ defmodule Exiffer.IO.Buffer do
     {data, remaining} =
       if position >= buffer.position && position < finish do
         count = position - buffer.position
-        <<_skip::binary-size(count), rest::binary>> = buffer.data
+        <<_skip::binary-size(count)>> <> rest = buffer.data
         remaining = buffer.remaining - count
         correct_position = position + remaining
         {:ok, _position} = :file.position(io_device, correct_position)
@@ -66,7 +67,8 @@ defmodule Exiffer.IO.Buffer do
         {<<>>, 0}
       end
 
-    struct!(buffer, data: data, position: position, remaining: remaining)
+    buffer
+    |> struct!(data: data, position: position, remaining: remaining)
     |> ensure(buffer.read_ahead)
   end
 
@@ -75,11 +77,12 @@ defmodule Exiffer.IO.Buffer do
       buffer = ensure(buffer, count)
 
     available = if remaining >= count, do: count, else: remaining
-    <<consumed::binary-size(available), rest::binary>> = data
+    <<consumed::binary-size(available)>> <> rest = data
     new_position = position + available
 
     buffer =
-      struct!(buffer, data: rest, position: new_position, remaining: remaining - available)
+      buffer
+      |> struct!(data: rest, position: new_position, remaining: remaining - available)
       |> ensure(buffer.read_ahead)
 
     {consumed, buffer}
@@ -105,7 +108,7 @@ defmodule Exiffer.IO.Buffer do
       )
       when read_position > position and read_position + count < position + remaining do
     start = read_position - position
-    <<_before::binary-size(start), result::binary-size(count), _rest::binary>> = data
+    <<_before::binary-size(start), result::binary-size(count)>> <> _rest = data
     result
   end
 
@@ -156,7 +159,7 @@ defmodule Exiffer.IO.Buffer do
   end
 
   def ensure(%__MODULE__{remaining: remaining} = buffer, amount)
-  when remaining > amount do
+      when remaining > amount do
     buffer
   end
 

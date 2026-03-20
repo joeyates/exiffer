@@ -1,5 +1,6 @@
 defmodule Exiffer.CLI.ReadTest do
   use ExUnit.Case, async: true
+
   import ExUnit.CaptureIO
 
   alias Exiffer.CLI.Read

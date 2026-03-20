@@ -1,8 +1,9 @@
 defmodule Exiffer.Binary.RewriteTest do
   use ExUnit.Case, async: false
 
-  require Logger
   alias Exiffer.Binary.Rewrite
+
+  require Logger
 
   setup do
     Logger.configure(level: :none)
@@ -14,9 +15,9 @@ defmodule Exiffer.Binary.RewriteTest do
   test ".set_make_and_model", %{binary: binary} do
     result = Rewrite.set_make_and_model(binary, "Canon", "Canon EOS 90D")
     assert is_binary(result)
-    headers = result|> Exiffer.parse_binary()|> Map.get(:headers)
+    headers = result |> Exiffer.parse_binary() |> Map.get(:headers)
     exif_index = find_exif_index(headers)
-    ifd_entries = ifd_entries(headers,exif_index)
+    ifd_entries = ifd_entries(headers, exif_index)
 
     make_entry = Enum.find(ifd_entries, &(&1.type == :make))
     assert make_entry.value == "Canon"

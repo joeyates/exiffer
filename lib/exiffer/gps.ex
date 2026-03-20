@@ -4,9 +4,9 @@ defmodule Exiffer.GPS do
 
   def parse(gps) do
     case Regex.named_captures(
-      ~r/(?<latitude>\-?\d{1,3}(\.\d+)?),(?<longitude>\-?\d{1,3}(\.\d+)?),(?<altitude>\d+(\.\d+)?)/,
-      gps
-    ) do
+           ~r/(?<latitude>\-?\d{1,3}(\.\d+)?),(?<longitude>\-?\d{1,3}(\.\d+)?),(?<altitude>\d+(\.\d+)?)/,
+           gps
+         ) do
       %{"latitude" => latitude, "longitude" => longitude, "altitude" => altitude} ->
         {
           :ok,
@@ -16,6 +16,7 @@ defmodule Exiffer.GPS do
             altitude: to_f(altitude)
           }
         }
+
       _ ->
         {:error, :unparseable}
     end

@@ -3,12 +3,13 @@ defmodule Exiffer.JPEG.Entry do
   Documentation for `Exiffer.JPEG.Entry`.
   """
 
-  require Logger
+  import Exiffer.Logging, only: [integer: 1, pair: 1]
 
   alias Exiffer.Binary
   alias Exiffer.JPEG.IFD
   alias Exiffer.JPEG.Entry.MakerNotes
-  import Exiffer.Logging, only: [integer: 1, pair: 1]
+
+  require Logger
 
   @enforce_keys ~w(type format magic label value)a
   defstruct ~w(type format label magic value)a
@@ -738,7 +739,7 @@ defmodule Exiffer.JPEG.Entry do
 
             if format_type not in info.formats do
               offset = buffer.offset
-              expected = Enum.map(info.formats, &@format[&1].name) |> Enum.join(" or ")
+              expected = info.formats |> Enum.map(&@format[&1].name) |> Enum.join(" or ")
 
               Logger.warning(
                 "'#{info.label}' Entry, found format #{format_type} expected to be #{expected}, at #{integer(position)}, (offset #{integer(offset + position)})"
@@ -953,7 +954,7 @@ defmodule Exiffer.JPEG.Entry do
     if size <= 4 do
       pad_count = 4 - size
       reported_size = if size < 4, do: size + 1, else: size
-      <<padding::binary-size(pad_count), _rest::binary>> = <<0, 0, 0, 0>>
+      <<padding::binary-size(pad_count)>> <> _rest = <<0, 0, 0, 0>>
       {reported_size, <<entry.value::binary, padding::binary>>, <<>>}
     else
       # Always add a final NULL after strings added after the block
@@ -975,13 +976,13 @@ defmodule Exiffer.JPEG.Entry do
   defp data(%__MODULE__{format: :rational_64u} = entry, end_of_block) do
     value = Binary.int32u_to_current(end_of_block)
     extra = Binary.rational_to_current(entry.value)
-    size = div(byte_size(extra), 8)
+    size = extra |> byte_size() |> div(8)
     {size, value, extra}
   end
 
   defp data(%__MODULE__{format: :rational_64s} = entry, end_of_block) do
     extra = Binary.signed_rational_to_current(entry.value)
-    size = div(byte_size(extra), 8)
+    size = extra |> byte_size() |> div(8)
     value = Binary.int32u_to_current(end_of_block)
     {size, value, extra}
   end
@@ -1012,7 +1013,7 @@ defmodule Exiffer.JPEG.Entry do
   end
 
   defp value(:interop_offset, :int32u, %{} = buffer) do
-    <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> =
+    <<_size_binary::binary-size(4), offset_binary::binary-size(4)>> <> _rest =
       buffer.buffer.data
 
     offset = Binary.to_integer(offset_binary)
@@ -1020,7 +1021,7 @@ defmodule Exiffer.JPEG.Entry do
   end
 
   defp value(type, :int32u, %{} = buffer) when type in [:exif_offset, :gps_info] do
-    <<_size_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> =
+    <<_size_binary::binary-size(4), offset_binary::binary-size(4)>> <> _rest =
       buffer.buffer.data
 
     offset = Binary.to_integer(offset_binary)
@@ -1031,7 +1032,7 @@ defmodule Exiffer.JPEG.Entry do
     position = Exiffer.Buffer.tell(buffer)
     Logger.debug("Reading maker notes at #{integer(position)}")
 
-    <<length_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> =
+    <<length_binary::binary-size(4), offset_binary::binary-size(4)>> <> _rest =
       buffer.buffer.data
 
     # Maker notes have their own offset into the file
@@ -1046,7 +1047,8 @@ defmodule Exiffer.JPEG.Entry do
     result =
       try do
         notes_buffer =
-          Exiffer.Buffer.offset_buffer(buffer.buffer, notes_offset)
+          buffer.buffer
+          |> Exiffer.Buffer.offset_buffer(notes_offset)
           |> Exiffer.Buffer.seek(0)
 
         # Temporarily set process-local byte order
@@ -1066,7 +1068,7 @@ defmodule Exiffer.JPEG.Entry do
   end
 
   defp value(_type, format, %{} = buffer) when format in [:string, :raw_bytes] do
-    <<length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> =
+    <<length_binary::binary-size(4), value_binary::binary-size(4)>> <> _rest =
       buffer.buffer.data
 
     length = Binary.to_integer(length_binary)
@@ -1078,11 +1080,11 @@ defmodule Exiffer.JPEG.Entry do
       length <= 4 and format == :string ->
         # Ignore the trailing zero byte
         length = length - 1
-        <<value::binary-size(length), _rest::binary>> = value_binary
+        <<value::binary-size(length)>> <> _rest = value_binary
         value
 
       length <= 4 ->
-        <<value::binary-size(length), _rest::binary>> = value_binary
+        <<value::binary-size(length)>> <> _rest = value_binary
         value
 
       true ->
@@ -1102,51 +1104,53 @@ defmodule Exiffer.JPEG.Entry do
   end
 
   defp value(_type, :int8u, %{} = buffer) do
-    <<_length_binary::binary-size(4), value_binary::binary-size(2), _rest::binary>> =
+    <<_length_binary::binary-size(4), value_binary::binary-size(2)>> <> _rest =
       buffer.buffer.data
 
     Binary.to_integer(value_binary)
   end
 
   defp value(_type, :int16u, %{} = buffer) do
-    <<_length_binary::binary-size(4), value_binary::binary-size(2), _rest::binary>> =
+    <<_length_binary::binary-size(4), value_binary::binary-size(2)>> <> _rest =
       buffer.buffer.data
 
     Binary.to_integer(value_binary)
   end
 
   defp value(_type, :int32u, %{} = buffer) do
-    <<_length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> =
+    <<_length_binary::binary-size(4), value_binary::binary-size(4)>> <> _rest =
       buffer.buffer.data
 
     Binary.to_integer(value_binary)
   end
 
   defp value(_type, :rational_64u, %{} = buffer) do
-    <<count_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> =
+    <<count_binary::binary-size(4), offset_binary::binary-size(4)>> <> _rest =
       buffer.buffer.data
 
     rational_count = Binary.to_integer(count_binary)
     value_offset = Binary.to_integer(offset_binary)
 
-    Exiffer.Buffer.random(buffer, value_offset, rational_count * 8)
+    buffer
+    |> Exiffer.Buffer.random(value_offset, rational_count * 8)
     |> Binary.to_rational()
   end
 
   defp value(_type, :int32s, %{} = buffer) do
-    <<_length_binary::binary-size(4), value_binary::binary-size(4), _rest::binary>> =
+    <<_length_binary::binary-size(4), value_binary::binary-size(4)>> <> _rest =
       buffer.buffer.data
 
     Binary.to_signed(value_binary)
   end
 
   defp value(_type, :rational_64s, %{} = buffer) do
-    <<_count_binary::binary-size(4), offset_binary::binary-size(4), _rest::binary>> =
+    <<_count_binary::binary-size(4), offset_binary::binary-size(4)>> <> _rest =
       buffer.buffer.data
 
     value_offset = Binary.to_integer(offset_binary)
 
-    Exiffer.Buffer.random(buffer, value_offset, 8)
+    buffer
+    |> Exiffer.Buffer.random(value_offset, 8)
     |> Binary.to_signed_rational()
   end
 end

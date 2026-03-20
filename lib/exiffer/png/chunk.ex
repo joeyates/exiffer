@@ -5,9 +5,9 @@ defmodule Exiffer.PNG.Chunk do
   http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html
   """
 
-  require Logger
+  alias __MODULE__.{BKGD, ICCP, IDAT, IEND, IHDR, PHYS, PLTE, TEXT, TIME, Unknown}
 
-  alias Exiffer.PNG.Chunk.{BKGD, ICCP, IDAT, IEND, IHDR, PHYS, PLTE, TEXT, TIME, Unknown}
+  require Logger
 
   def new("bKGD", data) do
     Logger.debug("Reading bKGD chunk")
@@ -24,7 +24,7 @@ defmodule Exiffer.PNG.Chunk do
     %IDAT{data: data}
   end
 
-  def new("IEND", <<>>) do
+  def new("IEND", "") do
     Logger.debug("Reading IEND chunk")
     %IEND{}
   end
@@ -61,7 +61,6 @@ defmodule Exiffer.PNG.Chunk do
 
   def binary(type, value) do
     alias Exiffer.PNG.CRC
-
     length = byte_size(value)
     length_binary = Exiffer.Binary.int32u_to_big_endian(length)
     crc_binary = CRC.crc(<<type::binary, value::binary>>)

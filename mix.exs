@@ -3,7 +3,7 @@ defmodule Exiffer.MixProject do
 
   @app :exiffer
 
-  def project do
+  def project() do
     [
       app: @app,
       version: "0.2.5",
@@ -12,6 +12,7 @@ defmodule Exiffer.MixProject do
       description: "Read and update image metadata",
       package: package(),
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps(),
       consolidate_protocols: Mix.env() != :test,
       releases: [{@app, release()}]
@@ -19,7 +20,7 @@ defmodule Exiffer.MixProject do
   end
 
   # Run "mix help compile.app" to learn about applications.
-  def application do
+  def application() do
     if Mix.env() == :test do
       [extra_applications: [:logger]]
     else
@@ -30,7 +31,7 @@ defmodule Exiffer.MixProject do
     end
   end
 
-  defp deps do
+  defp deps() do
     [
       {:burrito, "~> 1.0"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
@@ -43,7 +44,7 @@ defmodule Exiffer.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  defp release do
+  defp release() do
     [
       overwrite: true,
       cookie: "#{@app}_cookie",
@@ -58,7 +59,7 @@ defmodule Exiffer.MixProject do
     ]
   end
 
-  defp package do
+  defp package() do
     %{
       licenses: ["MIT"],
       links: %{
@@ -66,5 +67,15 @@ defmodule Exiffer.MixProject do
       },
       maintainers: ["Joe Yates"]
     }
+  end
+
+  defp aliases() do
+    [
+      "check.format": "format --check-formatted",
+      check: [
+        "check.format",
+        "cmd mix test"
+      ]
+    ]
   end
 end

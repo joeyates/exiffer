@@ -12,6 +12,7 @@ defmodule Exiffer.PNG.Chunk.TEXT do
       0,
       text.text
     >>
+
     Exiffer.PNG.Chunk.binary("tEXt", value)
   end
 

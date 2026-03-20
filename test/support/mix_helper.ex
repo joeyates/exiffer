@@ -16,8 +16,10 @@ defmodule MixHelper do
   def in_tmp_project(%{tmp_dir: tmp_dir}, function) do
     try do
       File.cd!(tmp_dir, fn ->
-        ~w(lib/my_app lib/my_app_web test/my_app test/my_app_web)
-        |> Enum.each(&File.mkdir_p!/1)
+        Enum.each(
+          ~w(lib/my_app lib/my_app_web test/my_app test/my_app_web),
+          &File.mkdir_p!/1
+        )
 
         File.write!("mix.exs", mixfile_contents())
 
@@ -55,7 +57,7 @@ defmodule MixHelper do
     assert File.dir?(dir), "Expected directory '#{dir}' to exist, but does not"
   end
 
-  defp mixfile_contents do
+  defp mixfile_contents() do
     """
     defmodule MyApp.MixProject do
       use Mix.Project

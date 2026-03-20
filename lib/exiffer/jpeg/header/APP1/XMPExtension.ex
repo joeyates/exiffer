@@ -4,6 +4,7 @@ defmodule Exiffer.JPEG.Header.APP1.XMPExtension do
   """
 
   alias Exiffer.Binary
+
   require Logger
 
   @header "http://ns.adobe.com/xmp/extension/\0"
@@ -11,13 +12,13 @@ defmodule Exiffer.JPEG.Header.APP1.XMPExtension do
   @enforce_keys ~w(xpacket)a
   defstruct ~w(xpacket)a
 
-  defimpl Jason.Encoder  do
+  defimpl Jason.Encoder do
     @spec encode(%Exiffer.JPEG.Header.APP1.XMPExtension{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Jason.Encode.map(
         %{
           module: "Exiffer.JPEG.Header.APP1.XMPExtension",
-          xpacket: "(#{byte_size(entry.xpacket)} bytes)",
+          xpacket: "(#{byte_size(entry.xpacket)} bytes)"
         },
         opts
       )
@@ -45,7 +46,7 @@ defmodule Exiffer.JPEG.Header.APP1.XMPExtension do
   def binary(%__MODULE__{xpacket: xpacket}), do: xpacket
 
   def write(%__MODULE__{} = data, io_device) do
-    Logger.debug "Writing APP1.XMPExtension header"
+    Logger.debug("Writing APP1.XMPExtension header")
     binary = binary(data)
     :ok = IO.binwrite(io_device, binary)
   end

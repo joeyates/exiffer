@@ -3,17 +3,17 @@ defmodule Exiffer.JPEG.IFD do
   Documentation for `Exiffer.JPEG.IFD`.
   """
 
-  require Logger
+  import Exiffer.Logging, only: [integer: 1]
 
   alias Exiffer.Binary
   alias Exiffer.JPEG.Entry
-  import Exiffer.Logging, only: [integer: 1]
+
+  require Logger
 
   defstruct entries: []
 
   defimpl Jason.Encoder do
     alias Exiffer.JPEG.IFD
-
     @spec encode(%IFD{}, Jason.Encode.opts()) :: String.t()
     def encode(ifd, opts) do
       Jason.Encode.map(
@@ -116,6 +116,7 @@ defmodule Exiffer.JPEG.IFD do
             _e ->
               "???"
           end
+
         "#{start} #{rest}"
       else
         # If there's no label, it's a subtitle
@@ -202,6 +203,6 @@ defmodule Exiffer.JPEG.IFD do
         _ -> dimensions
       end
     end)
-    |> then(& if Kernel.map_size(&1) == 2, do: &1, else: nil)
+    |> then(&if Kernel.map_size(&1) == 2, do: &1)
   end
 end

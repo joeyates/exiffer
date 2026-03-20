@@ -9,13 +9,16 @@ defmodule Exiffer.PNG.Chunk.IHDR do
     interlace_method
   )a
 
-  require Logger
-
   alias Exiffer.Binary
+
+  require Logger
 
   def new(data) do
     Logger.debug("Parsing IHDR")
-    <<width::binary-size(4), height::binary-size(4), bits_per_sample, color_type, compression_method, filter_method, interlace_method>> = data
+
+    <<width::binary-size(4), height::binary-size(4), bits_per_sample, color_type,
+      compression_method, filter_method, interlace_method>> = data
+
     %__MODULE__{
       width: Binary.to_integer(width),
       height: Binary.to_integer(height),
@@ -39,6 +42,7 @@ defmodule Exiffer.PNG.Chunk.IHDR do
       ihdr.filter_method,
       ihdr.interlace_method
     >>
+
     Exiffer.PNG.Chunk.binary("IHDR", value)
   end
 
@@ -57,7 +61,7 @@ defmodule Exiffer.PNG.Chunk.IHDR do
   end
 
   def write(%__MODULE__{} = ihdr, io_device) do
-    Logger.debug "Writing IHDR header"
+    Logger.debug("Writing IHDR header")
     binary = binary(ihdr)
     :ok = IO.binwrite(io_device, binary)
   end

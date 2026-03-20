@@ -1,9 +1,9 @@
 defmodule Exiffer.PNG.Chunk.BKGD.RGB do
   defstruct ~w(r g b)a
 
-  require Logger
-
   alias Exiffer.Binary
+
+  require Logger
 
   def binary(%__MODULE__{r: r, g: g, b: b}) do
     value = <<r, g, b>>
@@ -21,7 +21,7 @@ defmodule Exiffer.PNG.Chunk.BKGD.RGB do
   end
 
   def write(%__MODULE__{} = rgb, io_device) do
-    Logger.debug "Writing BKGD.RGD chunk"
+    Logger.debug("Writing BKGD.RGD chunk")
     binary = binary(rgb)
     :ok = IO.binwrite(io_device, binary)
   end

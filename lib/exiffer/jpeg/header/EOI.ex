@@ -4,11 +4,12 @@ defmodule Exiffer.JPEG.Header.EOI do
   """
 
   alias Exiffer.Buffer
+
   require Logger
 
   defstruct ~w()a
 
-  defimpl Jason.Encoder  do
+  defimpl Jason.Encoder do
     @spec encode(%Exiffer.JPEG.Header.EOI{}, Jason.Encode.opts()) :: String.t()
     def encode(_entry, opts) do
       Jason.Encode.map(
@@ -18,17 +19,18 @@ defmodule Exiffer.JPEG.Header.EOI do
     end
   end
 
-  def new(%{data: <<0xff, 0xd9, rest::binary>>} = buffer) do
+  def new(%{data: <<0xFF, 0xD9, rest::binary>>} = buffer) do
     if rest != <<>> do
       Logger.warning("Found #{byte_size(rest)} trailing bytes after end of image")
     end
+
     buffer = Buffer.skip(buffer, 2)
     eoi = %__MODULE__{}
     {:ok, eoi, buffer}
   end
 
   def binary(%__MODULE__{}) do
-    <<0xff, 0xd9>>
+    <<0xFF, 0xD9>>
   end
 
   def text(%__MODULE__{}) do
@@ -39,7 +41,7 @@ defmodule Exiffer.JPEG.Header.EOI do
   end
 
   def write(%__MODULE__{} = data, io_device) do
-    Logger.debug "Writing EOI header"
+    Logger.debug("Writing EOI header")
     binary = binary(data)
     :ok = IO.binwrite(io_device, binary)
   end

@@ -4,6 +4,7 @@ defmodule Exiffer.Binary do
   """
 
   import Bitwise
+
   require Logger
 
   @table :exiffer
@@ -14,10 +15,12 @@ defmodule Exiffer.Binary do
   @spec optionally_create_ets_table() :: :ok
   def optionally_create_ets_table() do
     ref = :ets.whereis(@table)
+
     if ref == :undefined do
-      Logger.debug "Initializing ETS table #{@table}"
+      Logger.debug("Initializing ETS table #{@table}")
       _name = :ets.new(@table, [:set, :public, :named_table])
     end
+
     :ok
   end
 
@@ -52,6 +55,7 @@ defmodule Exiffer.Binary do
     case byte_order() do
       :little ->
         reverse(binary)
+
       :big ->
         binary
     end
@@ -65,6 +69,7 @@ defmodule Exiffer.Binary do
     case byte_order() do
       :little ->
         reverse(binary)
+
       :big ->
         binary
     end
@@ -78,6 +83,7 @@ defmodule Exiffer.Binary do
     case byte_order() do
       :little ->
         int16u_to_little_endian(integer)
+
       :big ->
         int16u_to_big_endian(integer)
     end
@@ -91,6 +97,7 @@ defmodule Exiffer.Binary do
     case byte_order() do
       :little ->
         int32u_to_little_endian(integer)
+
       :big ->
         int32u_to_big_endian(integer)
     end
@@ -101,6 +108,7 @@ defmodule Exiffer.Binary do
     case byte_order() do
       :little ->
         int32s_to_little_endian(integer)
+
       :big ->
         int32s_to_big_endian(integer)
     end
@@ -147,8 +155,8 @@ defmodule Exiffer.Binary do
   """
   def int16u_to_big_endian(integer) do
     <<
-    (integer &&& 0xff00) >>> 8,
-    (integer &&& 0x00ff)
+      (integer &&& 0xFF00) >>> 8,
+      integer &&& 0x00FF
     >>
   end
 
@@ -158,8 +166,8 @@ defmodule Exiffer.Binary do
   """
   def int16u_to_little_endian(integer) do
     <<
-    (integer &&& 0x00ff),
-    (integer &&& 0xff00) >>> 8
+      integer &&& 0x00FF,
+      (integer &&& 0xFF00) >>> 8
     >>
   end
 
@@ -169,10 +177,10 @@ defmodule Exiffer.Binary do
   """
   def int32u_to_big_endian(integer) do
     <<
-    (integer &&& 0xff000000) >>> 24,
-    (integer &&& 0x00ff0000) >>> 16,
-    (integer &&& 0x0000ff00) >>> 8,
-    (integer &&& 0x000000ff)
+      (integer &&& 0xFF000000) >>> 24,
+      (integer &&& 0x00FF0000) >>> 16,
+      (integer &&& 0x0000FF00) >>> 8,
+      integer &&& 0x000000FF
     >>
   end
 
@@ -182,20 +190,20 @@ defmodule Exiffer.Binary do
   """
   def int32u_to_little_endian(integer) do
     <<
-    (integer &&& 0x000000ff),
-    (integer &&& 0x0000ff00) >>> 8,
-    (integer &&& 0x00ff0000) >>> 16,
-    (integer &&& 0xff000000) >>> 24
+      integer &&& 0x000000FF,
+      (integer &&& 0x0000FF00) >>> 8,
+      (integer &&& 0x00FF0000) >>> 16,
+      (integer &&& 0xFF000000) >>> 24
     >>
   end
 
   @spec int32s_to_big_endian(integer) :: <<_::32>>
   def int32s_to_big_endian(integer) when integer >= 0 do
     <<
-    (integer &&& 0xff000000) >>> 24,
-    (integer &&& 0x00ff0000) >>> 16,
-    (integer &&& 0x0000ff00) >>> 8,
-    (integer &&& 0x000000ff)
+      (integer &&& 0xFF000000) >>> 24,
+      (integer &&& 0x00FF0000) >>> 16,
+      (integer &&& 0x0000FF00) >>> 8,
+      integer &&& 0x000000FF
     >>
   end
 
@@ -206,10 +214,10 @@ defmodule Exiffer.Binary do
   @spec int32s_to_little_endian(integer()) :: <<_::32>>
   def int32s_to_little_endian(integer) when integer >= 0 do
     <<
-    (integer &&& 0x000000ff),
-    (integer &&& 0x0000ff00) >>> 8,
-    (integer &&& 0x00ff0000) >>> 16,
-    (integer &&& 0xff000000) >>> 24
+      integer &&& 0x000000FF,
+      (integer &&& 0x0000FF00) >>> 8,
+      (integer &&& 0x00FF0000) >>> 16,
+      (integer &&& 0xFF000000) >>> 24
     >>
   end
 
@@ -252,6 +260,7 @@ defmodule Exiffer.Binary do
   def little_endian_to_signed(<<b0, b1, b2, b3>>) do
     value = b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
     negative = (b3 && 0x80) == 0x80
+
     if negative do
       -1 * (0x100000000 - value)
     else
@@ -263,6 +272,7 @@ defmodule Exiffer.Binary do
   def big_endian_to_signed(<<b0, b1, b2, b3>>) do
     value = 0x1000000 * b0 + 0x10000 * b1 + 0x100 * b2 + b3
     negative = (b0 && 0x80) == 0x80
+
     if negative do
       -1 * (0x100000000 - value)
     else
@@ -283,7 +293,7 @@ defmodule Exiffer.Binary do
     [to_rational(rational1), to_rational(rational2)]
   end
 
-  def to_rational(<<rational::binary-size(8), rest::binary>>) do
+  def to_rational(<<rational::binary-size(8)>> <> rest) do
     [to_rational(rational) | to_rational(rest)]
   end
 
@@ -301,7 +311,7 @@ defmodule Exiffer.Binary do
     [to_signed_rational(rational1), to_signed_rational(rational2)]
   end
 
-  def to_signed_rational(<<rational::binary-size(8), rest::binary>>) do
+  def to_signed_rational(<<rational::binary-size(8)>> <> rest) do
     [to_signed_rational(rational) | to_signed_rational(rest)]
   end
 end

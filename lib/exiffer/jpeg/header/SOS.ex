@@ -4,11 +4,12 @@ defmodule Exiffer.JPEG.Header.SOS do
   """
 
   alias Exiffer.IO.Buffer
+
   require Logger
 
   defstruct ~w(data)a
 
-  defimpl Jason.Encoder  do
+  defimpl Jason.Encoder do
     @spec encode(%Exiffer.JPEG.Header.SOS{}, Jason.Encode.opts()) :: String.t()
     def encode(_entry, opts) do
       Jason.Encode.map(
@@ -18,14 +19,14 @@ defmodule Exiffer.JPEG.Header.SOS do
     end
   end
 
-  def new(%{data: <<0xff, 0xda, _rest::binary>>} = buffer) do
+  def new(%{data: <<0xFF, 0xDA, _rest::binary>>} = buffer) do
     buffer = Buffer.skip(buffer, 2)
     {data, buffer} = read_data(buffer)
     {:ok, %__MODULE__{data: data}, buffer}
   end
 
   def binary(%__MODULE__{} = sos) do
-    <<0xff, 0xda, sos.data::binary>>
+    <<0xFF, 0xDA, sos.data::binary>>
   end
 
   def text(%__MODULE__{}) do
@@ -36,7 +37,7 @@ defmodule Exiffer.JPEG.Header.SOS do
   end
 
   def write(%__MODULE__{} = data, io_device) do
-    Logger.debug "Writing SOS header"
+    Logger.debug("Writing SOS header")
     binary = binary(data)
     :ok = IO.binwrite(io_device, binary)
   end
@@ -46,9 +47,11 @@ defmodule Exiffer.JPEG.Header.SOS do
   # Read into the buffer until we find the end of SOS marker
   defp read_data(buffer, search_start \\ 0) do
     search_length = buffer.remaining - search_start
-    case :binary.match(buffer.data, [<<0xff, 0xd9>>], scope: {search_start, search_length}) do
+
+    case :binary.match(buffer.data, [<<0xFF, 0xD9>>], scope: {search_start, search_length}) do
       {start, _length} ->
         Buffer.consume(buffer, start)
+
       :nomatch ->
         if buffer.status == :eof do
           Buffer.consume(buffer, buffer.remaining)

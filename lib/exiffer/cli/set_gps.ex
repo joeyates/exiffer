@@ -3,16 +3,16 @@ defmodule Exiffer.CLI.SetGPS do
   Documentation for `Exiffer.CLI.SetGPS`.
   """
 
-  require Logger
-
   alias Exiffer.{GPS, Rewrite}
+
+  require Logger
 
   @spec run(map) :: :ok
   @doc """
   Rewrite an image's GPS metadata.
   """
   def run(opts) do
-    Logger.info "Exiffer.CLI.SetGPS.run/4"
+    Logger.info("Exiffer.CLI.SetGPS.run/4")
     source = Map.fetch!(opts, :source)
     destination = Map.fetch!(opts, :destination)
     latitude = Map.fetch!(opts, :latitude)

@@ -4,6 +4,7 @@ defmodule Exiffer.JPEG.Header.SOF0 do
   """
 
   alias Exiffer.Binary
+
   require Logger
 
   @enforce_keys ~w(bits_per_sample width height color_components_count components)a
@@ -17,10 +18,11 @@ defmodule Exiffer.JPEG.Header.SOF0 do
     y_cb_cr_sub_sampling
   )a
 
-  defimpl Jason.Encoder  do
+  defimpl Jason.Encoder do
     @spec encode(%Exiffer.JPEG.Header.SOF0{}, Jason.Encode.opts()) :: String.t()
     def encode(entry, opts) do
       Logger.debug("Encoding SOF0")
+
       Jason.Encode.map(
         %{
           module: "Exiffer.JPEG.Header.SOF0",
@@ -49,14 +51,12 @@ defmodule Exiffer.JPEG.Header.SOF0 do
     {<<components::binary-size(components_length)>>, buffer} =
       Exiffer.Buffer.consume(buffer, components_length)
 
-    <<_lead::binary-size(2), encoding_process, _rest::binary>> = components
+    <<_lead::binary-size(2), encoding_process>> <> _rest = components
 
     y_cb_cr_sub_sampling =
       if color_components_count == 3 do
         <<_lead1::binary-size(5), sub1, _lead2::binary-size(2), sub2>> = components
         {sub1, sub2}
-      else
-        nil
       end
 
     sof0 = %__MODULE__{
@@ -74,12 +74,12 @@ defmodule Exiffer.JPEG.Header.SOF0 do
 
   def text(%__MODULE__{} = sof0) do
     sub =
-    if sof0.y_cb_cr_sub_sampling do
-      {sub1, sub2} = sof0.y_cb_cr_sub_sampling
-      "\nY Cb Cr Sub Sampling: #{sub1} #{sub2}"
-    else
-      ""
-    end
+      if sof0.y_cb_cr_sub_sampling do
+        {sub1, sub2} = sof0.y_cb_cr_sub_sampling
+        "\nY Cb Cr Sub Sampling: #{sub1} #{sub2}"
+      else
+        ""
+      end
 
     """
     Start of Frame 0 - Baseline DCT

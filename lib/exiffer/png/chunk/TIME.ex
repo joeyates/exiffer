@@ -24,6 +24,7 @@ defmodule Exiffer.PNG.Chunk.TIME do
       time.minute,
       time.second
     >>
+
     Exiffer.PNG.Chunk.binary("tIME", value)
   end
 

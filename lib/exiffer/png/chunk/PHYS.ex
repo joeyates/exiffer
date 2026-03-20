@@ -6,6 +6,7 @@ defmodule Exiffer.PNG.Chunk.PHYS do
   def new(<<x_binary::binary-size(4), y_binary::binary-size(4), unit_byte>>) do
     x = Binary.to_integer(x_binary)
     y = Binary.to_integer(y_binary)
+
     unit =
       case unit_byte do
         0 ->
@@ -14,21 +15,25 @@ defmodule Exiffer.PNG.Chunk.PHYS do
         1 ->
           :meter
       end
-      %__MODULE__{x_pixels_per_unit: x, y_pixels_per_unit: y, unit: unit}
+
+    %__MODULE__{x_pixels_per_unit: x, y_pixels_per_unit: y, unit: unit}
   end
 
   def binary(%__MODULE__{} = phys) do
     import Exiffer.Binary, only: [int32u_to_big_endian: 1]
+
     value = <<
       int32u_to_big_endian(phys.x_pixels_per_unit),
       int32u_to_big_endian(phys.y_pixels_per_unit),
       phys.unit
     >>
+
     Exiffer.PNG.Chunk.binary("pHYS", value)
   end
 
   def text(%__MODULE__{} = phys) do
     unit = if phys.unit == 0, do: "Unknown", else: "meters"
+
     """
     pHYs
     ----

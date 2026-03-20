@@ -1,8 +1,10 @@
 defmodule Exiffer.CLI.SetDateTimeTest do
   use ExUnit.Case
-  require Logger
+
   import MixHelper
   import ExUnit.CaptureIO
+
+  require Logger
 
   doctest Exiffer.CLI.SetDateTime
 
@@ -10,7 +12,7 @@ defmodule Exiffer.CLI.SetDateTimeTest do
 
   @tag :tmp_dir
   test "it set date and time", config do
-    source = Path.join(File.cwd!, "test/support/fixtures/with_exif.jpg")
+    source = Path.join(File.cwd!(), "test/support/fixtures/with_exif.jpg")
 
     in_tmp_dir(config, fn ->
       opts = %{
@@ -29,7 +31,8 @@ defmodule Exiffer.CLI.SetDateTimeTest do
       assert_file("result.jpg")
 
       date =
-        capture_io(fn -> Exiffer.CLI.Read.run(%{filename: "result.jpg", format: "json"}) end)
+        fn -> Exiffer.CLI.Read.run(%{filename: "result.jpg", format: "json"}) end
+        |> capture_io()
         |> Jason.decode!()
         |> get_in([
           "headers",
