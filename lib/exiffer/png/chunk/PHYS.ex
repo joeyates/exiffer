@@ -28,8 +28,8 @@ defmodule Exiffer.PNG.Chunk.PHYS do
     import Exiffer.Binary, only: [int32u_to_big_endian: 1]
 
     value = <<
-      int32u_to_big_endian(phys.x_pixels_per_unit),
-      int32u_to_big_endian(phys.y_pixels_per_unit),
+      int32u_to_big_endian(phys.x_pixels_per_unit)::binary,
+      int32u_to_big_endian(phys.y_pixels_per_unit)::binary,
       phys.unit
     >>
 

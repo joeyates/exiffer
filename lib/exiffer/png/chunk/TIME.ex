@@ -26,7 +26,7 @@ defmodule Exiffer.PNG.Chunk.TIME do
 
   def binary(time) do
     value = <<
-      Binary.int16u_to_big_endian(time.year),
+      Binary.int16u_to_big_endian(time.year)::binary,
       time.month,
       time.day,
       time.hour,

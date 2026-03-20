@@ -44,8 +44,8 @@ defmodule Exiffer.PNG.Chunk.IHDR do
     import Exiffer.Binary, only: [int32u_to_big_endian: 1]
 
     value = <<
-      int32u_to_big_endian(ihdr.width),
-      int32u_to_big_endian(ihdr.height),
+      int32u_to_big_endian(ihdr.width)::binary,
+      int32u_to_big_endian(ihdr.height)::binary,
       ihdr.bits_per_sample,
       ihdr.color_type,
       ihdr.compression_method,
