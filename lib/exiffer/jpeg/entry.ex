@@ -7,7 +7,8 @@ defmodule Exiffer.JPEG.Entry do
 
   alias Exiffer.Binary
   alias Exiffer.JPEG.IFD
-  alias Exiffer.JPEG.Entry.MakerNotes
+  alias __MODULE__.Info
+  alias __MODULE__.MakerNotes
 
   require Logger
 
@@ -94,515 +95,535 @@ defmodule Exiffer.JPEG.Entry do
   # Map entry type to entry info
   # TODO: sort by type
   @entry_info %{
-    version: %{type: :version, magic: <<0x00, 0x00>>, formats: [:raw_bytes], label: "Version"},
-    gps_latitude_ref: %{
+    version: %Info{type: :version, magic: <<0x00, 0x00>>, formats: [:raw_bytes], label: "Version"},
+    gps_latitude_ref: %Info{
       type: :gps_latitude_ref,
       magic: <<0x00, 0x01>>,
       formats: [:string],
       label: "GPS Latitude Ref"
     },
-    gps_latitude: %{
+    gps_latitude: %Info{
       type: :gps_latitude,
       magic: <<0x00, 0x02>>,
       formats: [:rational_64u, :rational_64s],
       label: "GPS Latitude"
     },
-    gps_longitude_ref: %{
+    gps_longitude_ref: %Info{
       type: :gps_longitude_ref,
       magic: <<0x00, 0x03>>,
       formats: [:string],
       label: "GPS Longitude Ref"
     },
-    gps_longitude: %{
+    gps_longitude: %Info{
       type: :gps_longitude,
       magic: <<0x00, 0x04>>,
       formats: [:rational_64u, :rational_64s],
       label: "GPS Longitude"
     },
-    gps_altitude_ref: %{
+    gps_altitude_ref: %Info{
       type: :gps_altitude_ref,
       magic: <<0x00, 0x05>>,
       formats: [:int16u],
       label: "GPS Altitude Ref"
     },
-    gps_altitude: %{
+    gps_altitude: %Info{
       type: :gps_altitude,
       magic: <<0x00, 0x06>>,
       formats: [:rational_64u],
       label: "GPS Altitude"
     },
-    gps_time_stamp: %{
+    gps_time_stamp: %Info{
       type: :gps_time_stamp,
       magic: <<0x00, 0x07>>,
       formats: [:rational_64u],
       label: "GPS Time Stamp"
     },
-    processing_software: %{
+    processing_software: %Info{
       type: :processing_software,
       magic: <<0x00, 0x0B>>,
       formats: [:string],
       label: "Processing Software"
     },
-    gps_date_stamp: %{
+    gps_date_stamp: %Info{
       type: :gps_date_stamp,
       magic: <<0x00, 0x1D>>,
       formats: [:string],
       label: "GPS Date Stamp"
     },
-    image_width: %{
+    image_width: %Info{
       type: :image_width,
       magic: <<0x01, 0x00>>,
       formats: [:int32u, :int32s],
       label: "Image Width"
     },
-    image_height: %{
+    image_height: %Info{
       type: :image_height,
       magic: <<0x01, 0x01>>,
       formats: [:int32u, :int32s],
       label: "Image Height"
     },
-    compression: %{
+    compression: %Info{
       type: :compression,
       magic: <<0x01, 0x03>>,
       formats: [:int16u],
       label: "Compression"
     },
-    image_description: %{
+    image_description: %Info{
       type: :image_description,
       magic: <<0x01, 0x0E>>,
       formats: [:string],
       label: "Image Description"
     },
-    make: %{type: :make, magic: <<0x01, 0x0F>>, formats: [:string], label: "Make"},
-    model: %{type: :model, magic: <<0x01, 0x10>>, formats: [:string], label: "Model"},
-    orientation: %{
+    make: %Info{type: :make, magic: <<0x01, 0x0F>>, formats: [:string], label: "Make"},
+    model: %Info{type: :model, magic: <<0x01, 0x10>>, formats: [:string], label: "Model"},
+    orientation: %Info{
       type: :orientation,
       magic: <<0x01, 0x12>>,
       formats: [:int16u, :int32s],
       label: "Orientation"
     },
-    x_resolution: %{
+    x_resolution: %Info{
       type: :x_resolution,
       magic: <<0x01, 0x1A>>,
       formats: [:rational_64u],
       label: "X Resolution"
     },
-    y_resolution: %{
+    y_resolution: %Info{
       type: :y_resolution,
       magic: <<0x01, 0x1B>>,
       formats: [:rational_64u],
       label: "Y Resolution"
     },
-    resolution_unit: %{
+    resolution_unit: %Info{
       type: :resolution_unit,
       magic: <<0x01, 0x28>>,
       formats: [:int16u],
       label: "Resolution Unit"
     },
-    software: %{type: :software, magic: <<0x01, 0x31>>, formats: [:string], label: "Software"},
-    host_computer: %{
+    software: %Info{type: :software, magic: <<0x01, 0x31>>, formats: [:string], label: "Software"},
+    host_computer: %Info{
       type: :host_computer,
       magic: <<0x01, 0x3C>>,
       formats: [:string],
       label: "Host Computer"
     },
-    modification_date: %{
+    modification_date: %Info{
       type: :modification_date,
       magic: <<0x01, 0x32>>,
       formats: [:string],
       label: "Modification Date"
     },
-    thumbnail_offset: %{
+    thumbnail_offset: %Info{
       type: :thumbnail_offset,
       magic: <<0x02, 0x01>>,
       formats: [:int32u],
       label: "Thumbnail Offset"
     },
-    thumbnail_length: %{
+    thumbnail_length: %Info{
       type: :thumbnail_length,
       magic: <<0x02, 0x02>>,
       formats: [:int32u],
       label: "Thumbnail Length"
     },
-    ycbcr_positioning: %{
+    ycbcr_positioning: %Info{
       type: :ycbcr_positioning,
       magic: <<0x02, 0x13>>,
       formats: [:int16u],
       label: "Ycbcr Positioning"
     },
-    quality: %{type: :quality, magic: <<0x10, 0x00>>, formats: [:string], label: "Quality"},
-    sharpness: %{type: :sharpness, magic: <<0x10, 0x01>>, formats: [:int16u], label: "Sharpness"},
-    fuji_white_balance: %{
+    quality: %Info{type: :quality, magic: <<0x10, 0x00>>, formats: [:string], label: "Quality"},
+    sharpness: %Info{
+      type: :sharpness,
+      magic: <<0x10, 0x01>>,
+      formats: [:int16u],
+      label: "Sharpness"
+    },
+    fuji_white_balance: %Info{
       type: :fuji_white_balance,
       magic: <<0x10, 0x02>>,
       formats: [:int16u],
       label: "FUJI White Balance"
     },
-    fuji_flash_mode: %{
+    fuji_flash_mode: %Info{
       type: :fuji_flash_mode,
       magic: <<0x10, 0x10>>,
       formats: [:int16u],
       label: "Fuji Flash Mode"
     },
     # FlashExposureComp seems to be flash strength
-    flash_exposure_comp: %{
+    flash_exposure_comp: %Info{
       type: :flash_exposure_comp,
       magic: <<0x10, 0x11>>,
       formats: [:rational_64s],
       label: "Flash Exposure Comp"
     },
-    macro: %{type: :macro, magic: <<0x10, 0x20>>, formats: [:int16u], label: "Macro"},
-    focus_mode: %{
+    macro: %Info{type: :macro, magic: <<0x10, 0x20>>, formats: [:int16u], label: "Macro"},
+    focus_mode: %Info{
       type: :focus_mode,
       magic: <<0x10, 0x21>>,
       formats: [:int16u],
       label: "Focus Mode"
     },
-    slow_sync: %{type: :slow_sync, magic: <<0x10, 0x30>>, formats: [:int16u], label: "Slow Sync"},
-    picture_mode: %{
+    slow_sync: %Info{
+      type: :slow_sync,
+      magic: <<0x10, 0x30>>,
+      formats: [:int16u],
+      label: "Slow Sync"
+    },
+    picture_mode: %Info{
       type: :picture_mode,
       magic: <<0x10, 0x31>>,
       formats: [:int16u],
       label: "Picture Mode"
     },
-    auto_bracketing: %{
+    auto_bracketing: %Info{
       type: :auto_bracketing,
       magic: <<0x11, 0x00>>,
       formats: [:int16u],
       label: "Auto Bracketing"
     },
-    blur_warning: %{
+    blur_warning: %Info{
       type: :blur_warning,
       magic: <<0x13, 0x00>>,
       formats: [:int16u],
       label: "Blur Warning"
     },
-    focus_warning: %{
+    focus_warning: %Info{
       type: :focus_warning,
       magic: <<0x13, 0x01>>,
       formats: [:int16u],
       label: "Focus Warning"
     },
-    exposure_warning: %{
+    exposure_warning: %Info{
       type: :exposure_warning,
       magic: <<0x13, 0x02>>,
       formats: [:int16u],
       label: "Exposure Warning"
     },
-    exif_offset: %{
+    exif_offset: %Info{
       type: :exif_offset,
       magic: <<0x87, 0x69>>,
       formats: [:int32u],
       label: "Exif Offset"
     },
-    gps_info: %{type: :gps_info, magic: <<0x88, 0x25>>, formats: [:int32u], label: "GPSInfo"},
-    copyright: %{type: :copyright, magic: <<0x82, 0x98>>, formats: [:string], label: "Copyright"},
-    exposure_time: %{
+    gps_info: %Info{type: :gps_info, magic: <<0x88, 0x25>>, formats: [:int32u], label: "GPSInfo"},
+    copyright: %Info{
+      type: :copyright,
+      magic: <<0x82, 0x98>>,
+      formats: [:string],
+      label: "Copyright"
+    },
+    exposure_time: %Info{
       type: :exposure_time,
       magic: <<0x82, 0x9A>>,
       formats: [:rational_64u],
       label: "Exposure Time"
     },
-    f_number: %{
+    f_number: %Info{
       type: :f_number,
       magic: <<0x82, 0x9D>>,
       formats: [:rational_64u],
       label: "F Number"
     },
-    exposure_program: %{
+    exposure_program: %Info{
       type: :exposure_program,
       magic: <<0x88, 0x22>>,
       formats: [:int16u],
       label: "Exposure Program"
     },
-    iso: %{type: :iso, magic: <<0x88, 0x27>>, formats: [:int16u], label: "Iso"},
-    exif_version: %{
+    iso: %Info{type: :iso, magic: <<0x88, 0x27>>, formats: [:int16u], label: "Iso"},
+    exif_version: %Info{
       type: :exif_version,
       magic: <<0x90, 0x00>>,
       formats: [:string, :raw_bytes],
       label: "Exif Version"
     },
-    date_time_original: %{
+    date_time_original: %Info{
       type: :date_time_original,
       magic: <<0x90, 0x03>>,
       formats: [:string],
       label: "Date Time Original"
     },
-    create_date: %{
+    create_date: %Info{
       type: :create_date,
       magic: <<0x90, 0x04>>,
       formats: [:string],
       label: "Create Date"
     },
-    offset_time: %{
+    offset_time: %Info{
       type: :offset_time,
       magic: <<0x90, 0x10>>,
       formats: [:string],
       label: "Offset Time"
     },
-    offset_time_original: %{
+    offset_time_original: %Info{
       type: :offset_time_original,
       magic: <<0x90, 0x11>>,
       formats: [:string],
       label: "Offset Time Original"
     },
-    components_configuration: %{
+    components_configuration: %Info{
       type: :components_configuration,
       magic: <<0x91, 0x01>>,
       formats: [:raw_bytes],
       label: "Components Configuration"
     },
-    compressed_bits_per_pixel: %{
+    compressed_bits_per_pixel: %Info{
       type: :compressed_bits_per_pixel,
       magic: <<0x91, 0x02>>,
       formats: [:rational_64u],
       label: "Compressed Bits Per Pixel"
     },
-    shutter_speed_value: %{
+    shutter_speed_value: %Info{
       type: :shutter_speed_value,
       magic: <<0x92, 0x01>>,
       formats: [:rational_64u, :rational_64s],
       label: "Shutter Speed Value"
     },
-    aperture_value: %{
+    aperture_value: %Info{
       type: :aperture_value,
       magic: <<0x92, 0x02>>,
       formats: [:rational_64u],
       label: "Aperture Value"
     },
-    brightness_value: %{
+    brightness_value: %Info{
       type: :brightness_value,
       magic: <<0x92, 0x03>>,
       formats: [:rational_64s],
       label: "Brightness Value"
     },
-    exposure_compensation: %{
+    exposure_compensation: %Info{
       type: :exposure_compensation,
       magic: <<0x92, 0x04>>,
       formats: [:rational_64s],
       label: "Exposure Compensation"
     },
-    max_aperture_value: %{
+    max_aperture_value: %Info{
       type: :max_aperture_value,
       magic: <<0x92, 0x05>>,
       formats: [:rational_64u],
       label: "Max Aperture Value"
     },
-    subject_distance: %{
+    subject_distance: %Info{
       type: :subject_distance,
       magic: <<0x92, 0x06>>,
       formats: [:rational_64u],
       label: "Subject Distance"
     },
-    metering_mode: %{
+    metering_mode: %Info{
       type: :metering_mode,
       magic: <<0x92, 0x07>>,
       formats: [:int16u],
       label: "Metering Mode"
     },
-    light_source: %{
+    light_source: %Info{
       type: :light_source,
       magic: <<0x92, 0x08>>,
       formats: [:int16u],
       label: "Light Source"
     },
-    flash: %{type: :flash, magic: <<0x92, 0x09>>, formats: [:int16u], label: "Flash"},
-    focal_length: %{
+    flash: %Info{type: :flash, magic: <<0x92, 0x09>>, formats: [:int16u], label: "Flash"},
+    focal_length: %Info{
       type: :focal_length,
       magic: <<0x92, 0x0A>>,
       formats: [:rational_64u],
       label: "Focal Length"
     },
-    maker_notes: %{
+    maker_notes: %Info{
       type: :maker_notes,
       magic: <<0x92, 0x7C>>,
       formats: [:int8u, :raw_bytes, :string],
       label: "Maker Notes"
     },
-    user_comment: %{
+    user_comment: %Info{
       type: :user_comment,
       magic: <<0x92, 0x86>>,
       formats: [:string, :raw_bytes],
       label: "User Comment"
     },
-    sub_sec_time: %{
+    sub_sec_time: %Info{
       type: :sub_sec_time,
       magic: <<0x92, 0x90>>,
       formats: [:string],
       label: "Sub Sec Time"
     },
-    sub_sec_time_original: %{
+    sub_sec_time_original: %Info{
       type: :sub_sec_time_original,
       magic: <<0x92, 0x91>>,
       formats: [:string],
       label: "Sub Sec Time Original"
     },
-    sub_sec_time_digitized: %{
+    sub_sec_time_digitized: %Info{
       type: :sub_sec_time_digitized,
       magic: <<0x92, 0x92>>,
       formats: [:string],
       label: "Sub Sec Time Digitized"
     },
-    xp_keywords: %{
+    xp_keywords: %Info{
       type: :xp_keywords,
       magic: <<0x9C, 0x9E>>,
       formats: [:int8u],
       label: "XPKeywords"
     },
-    flashpix_version: %{
+    flashpix_version: %Info{
       type: :flashpix_version,
       magic: <<0xA0, 0x00>>,
       formats: [:raw_bytes],
       label: "Flashpix Version"
     },
-    color_space: %{
+    color_space: %Info{
       type: :color_space,
       magic: <<0xA0, 0x01>>,
       formats: [:int16u],
       label: "Color Space"
     },
-    exif_image_width: %{
+    exif_image_width: %Info{
       type: :exif_image_width,
       magic: <<0xA0, 0x02>>,
       formats: [:int16u, :int32u, :int32s],
       label: "Exif Image Width"
     },
-    exif_image_height: %{
+    exif_image_height: %Info{
       type: :exif_image_height,
       magic: <<0xA0, 0x03>>,
       formats: [:int16u, :int32u, :int32s],
       label: "Exif Image Height"
     },
-    related_sound_file: %{
+    related_sound_file: %Info{
       type: :related_sound_file,
       magic: <<0xA0, 0x04>>,
       formats: [:string],
       label: "Related Sound File"
     },
-    interop_offset: %{
+    interop_offset: %Info{
       type: :interop_offset,
       magic: <<0xA0, 0x05>>,
       formats: [:int32u],
       label: "Interop Offset"
     },
-    focal_plane_x_resolution: %{
+    focal_plane_x_resolution: %Info{
       type: :focal_plane_x_resolution,
       magic: <<0xA2, 0x0E>>,
       formats: [:rational_64u],
       label: "Focal Plane X Resolution"
     },
-    focal_plane_y_resolution: %{
+    focal_plane_y_resolution: %Info{
       type: :focal_plane_y_resolution,
       magic: <<0xA2, 0x0F>>,
       formats: [:rational_64u],
       label: "Focal Plane Y Resolution"
     },
-    focal_plane_resolution_unit: %{
+    focal_plane_resolution_unit: %Info{
       type: :focal_plane_resolution_unit,
       magic: <<0xA2, 0x10>>,
       formats: [:int16u],
       label: "Focal Plane Resolution Unit"
     },
-    exposure_index: %{
+    exposure_index: %Info{
       type: :exposure_index,
       magic: <<0xA2, 0x15>>,
       formats: [:rational_64u],
       label: "Exposure Index"
     },
-    sensing_method: %{
+    sensing_method: %Info{
       type: :sensing_method,
       magic: <<0xA2, 0x17>>,
       formats: [:int16u],
       label: "Sensing Method"
     },
-    file_source: %{
+    file_source: %Info{
       type: :file_source,
       magic: <<0xA3, 0x00>>,
       formats: [:raw_bytes],
       label: "File Source"
     },
-    scene_type: %{
+    scene_type: %Info{
       type: :scene_type,
       magic: <<0xA3, 0x01>>,
       formats: [:raw_bytes],
       label: "Scene Type"
     },
-    custom_rendered: %{
+    custom_rendered: %Info{
       type: :custom_rendered,
       magic: <<0xA4, 0x01>>,
       formats: [:int16u],
       label: "Custom Rendered"
     },
-    exposure_mode: %{
+    exposure_mode: %Info{
       type: :exposure_mode,
       magic: <<0xA4, 0x02>>,
       formats: [:int16u],
       label: "Exposure Mode"
     },
-    exif_white_balance: %{
+    exif_white_balance: %Info{
       type: :exif_white_balance,
       magic: <<0xA4, 0x03>>,
       formats: [:int16u],
       label: "EXIF White Balance"
     },
-    digital_zoom_ratio: %{
+    digital_zoom_ratio: %Info{
       type: :digital_zoom_ratio,
       magic: <<0xA4, 0x04>>,
       formats: [:rational_64u],
       label: "Digital Zoom Ratio"
     },
-    focal_length_in_35mm_format: %{
+    focal_length_in_35mm_format: %Info{
       type: :focal_length_in_35mm_format,
       magic: <<0xA4, 0x05>>,
       formats: [:int16u],
       label: "Focal Length In 35mm Format"
     },
-    scene_capture_type: %{
+    scene_capture_type: %Info{
       type: :scene_capture_type,
       magic: <<0xA4, 0x06>>,
       formats: [:int16u],
       label: "Scene Capture Type"
     },
-    gain_control: %{
+    gain_control: %Info{
       type: :gain_control,
       magic: <<0xA4, 0x07>>,
       formats: [:int16u],
       label: "Gain Control"
     },
-    contrast: %{type: :contrast, magic: <<0xA4, 0x08>>, formats: [:int16u], label: "Contrast"},
-    saturation: %{
+    contrast: %Info{type: :contrast, magic: <<0xA4, 0x08>>, formats: [:int16u], label: "Contrast"},
+    saturation: %Info{
       type: :saturation,
       magic: <<0xA4, 0x09>>,
       formats: [:int16u],
       label: "Saturation"
     },
-    sharpness_2: %{
+    sharpness_2: %Info{
       type: :sharpness_2,
       magic: <<0xA4, 0x0A>>,
       formats: [:int16u],
       label: "EXIF Sharpness"
     },
-    subject_distance_range: %{
+    subject_distance_range: %Info{
       type: :subject_distance_range,
       magic: <<0xA4, 0x0C>>,
       formats: [:int16u],
       label: "Subject Distance Range"
     },
-    image_unique_id: %{
+    image_unique_id: %Info{
       type: :image_unique_id,
       magic: <<0xA4, 0x20>>,
       formats: [:string],
       label: "Image Unique Id"
     },
-    print_im: %{type: :print_im, magic: <<0xC4, 0xA5>>, formats: [:raw_bytes], label: "Print IM"},
-    panasonic_title: %{
+    print_im: %Info{
+      type: :print_im,
+      magic: <<0xC4, 0xA5>>,
+      formats: [:raw_bytes],
+      label: "Print IM"
+    },
+    panasonic_title: %Info{
       type: :panasonic_title,
       magic: <<0xC6, 0xD2>>,
       formats: [:raw_bytes],
       label: "Panasonic Title"
     },
-    padding: %{type: :padding, magic: <<0xEA, 0x1C>>, formats: [:raw_bytes], label: "Padding"},
-    offset_schema: %{
+    padding: %Info{type: :padding, magic: <<0xEA, 0x1C>>, formats: [:raw_bytes], label: "Padding"},
+    offset_schema: %Info{
       type: :offset_schema,
       magic: <<0xEA, 0x1D>>,
       formats: [:int32s],
@@ -612,25 +633,25 @@ defmodule Exiffer.JPEG.Entry do
 
   # Interop IFD entries reuse generic entry magic numbers, so we use a specific table for them
   @interop_entry_info %{
-    interop_index: %{
+    interop_index: %Info{
       type: :interop_index,
       magic: <<0x00, 0x01>>,
       formats: [:string],
       label: "Interop Index"
     },
-    interop_version: %{
+    interop_version: %Info{
       type: :interop_version,
       magic: <<0x00, 0x02>>,
       formats: [:raw_bytes],
       label: "Interop Version"
     },
-    related_image_width: %{
+    related_image_width: %Info{
       type: :related_image_width,
       magic: <<0x10, 0x01>>,
       formats: [:int16u],
       label: "Related Image Width"
     },
-    related_image_height: %{
+    related_image_height: %Info{
       type: :related_image_height,
       magic: <<0x10, 0x02>>,
       formats: [:int16u],
@@ -639,31 +660,31 @@ defmodule Exiffer.JPEG.Entry do
   }
 
   @maker_notes_entry_info %{
-    maker_note_version: %{
+    maker_note_version: %Info{
       type: :maker_note_version,
       magic: <<0x00, 0x01>>,
       formats: [:raw_bytes],
       label: "Maker Note Version"
     },
-    device_type: %{
+    device_type: %Info{
       type: :device_type,
       magic: <<0x00, 0x02>>,
       formats: [:int32u],
       label: "Device Type"
     },
-    raw_data_byte_order: %{
+    raw_data_byte_order: %Info{
       type: :raw_data_byte_order,
       magic: <<0x00, 0x40>>,
       formats: [:int32u],
       label: "Raw Data Byte Order"
     },
-    raw_data_cfa_pattern: %{
+    raw_data_cfa_pattern: %Info{
       type: :raw_data_cfa_pattern,
       magic: <<0x00, 0x50>>,
       formats: [:int32u],
       label: "Raw Data CFA Pattern"
     },
-    face_detect: %{
+    face_detect: %Info{
       type: :face_detect,
       magic: <<0x01, 0x00>>,
       formats: [:int16u],
