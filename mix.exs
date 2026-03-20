@@ -34,6 +34,7 @@ defmodule Exiffer.MixProject do
     [
       {:burrito, "~> 1.0"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:green, "~> 0.1.11", only: :dev},
       {:helpful_options, ">= 0.3.3"},
       {:jason, ">= 0.0.0"}
     ]
