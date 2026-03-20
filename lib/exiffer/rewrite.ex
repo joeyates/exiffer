@@ -127,11 +127,46 @@ defmodule Exiffer.Rewrite do
     update_entry(headers, exif_index, gps_index, entry)
   end
 
+  def gps_entry(%JPEG{} = jpeg) do
+    case gps_entry_path(jpeg) do
+      {:ok, path} ->
+        {:ok, get_in(jpeg.headers, path)}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def has_gps_entry?(%JPEG{} = jpeg) do
+    case gps_entry_path(jpeg) do
+      {:ok, _path} ->
+        true
+
+      _ ->
+        false
+    end
+  end
+
+  def gps_entry_path(%JPEG{headers: headers}) do
+    with exif_index when not is_nil(exif_index) <- exif_index(headers),
+         gps_entry_index when not is_nil(gps_entry_index) <-
+           entry_index(headers, exif_index, :gps_info) do
+      {:ok, ifd_entries_path(exif_index) ++ [Access.at(gps_entry_index)]}
+    else
+      _ ->
+        {:error, "No GPS entry present"}
+    end
+  end
+
   ###################
   # Top-level APP1 EXIF block
 
+  defp exif_index(headers) do
+    Enum.find_index(headers, &is_struct(&1, EXIF))
+  end
+
   defp ensure_exif(headers) do
-    index = Enum.find_index(headers, &is_struct(&1, EXIF))
+    index = exif_index(headers)
 
     if index do
       {headers, index}
@@ -158,6 +193,11 @@ defmodule Exiffer.Rewrite do
   ###################
   # APP1 EXIF IFD entries
 
+  defp entry_index(headers, exif_index, type) do
+    entries = ifd_entries(headers, exif_index)
+    Enum.find_index(entries, fn ifd -> ifd.type == type end)
+  end
+
   defp ensure_entry(headers, exif_index, type) do
     index = entry_index(headers, exif_index, type)
 
@@ -181,11 +221,6 @@ defmodule Exiffer.Rewrite do
       ifd_entries_path(exif_index) ++ [Access.at(entry_index)],
       fn _existing -> entry end
     )
-  end
-
-  defp entry_index(headers, exif_index, type) do
-    entries = ifd_entries(headers, exif_index)
-    Enum.find_index(entries, fn ifd -> ifd.type == type end)
   end
 
   defp ifd_entries(headers, exif_index) do
