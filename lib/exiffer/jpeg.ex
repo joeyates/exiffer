@@ -56,7 +56,7 @@ defmodule Exiffer.JPEG do
     %{jpeg | headers: headers}
   end
 
-  def set_date_time(%__MODULE__{headers: headers}, %NaiveDateTime{} = date_time) do
+  def set_date_time(%__MODULE__{headers: headers} = jpeg, %NaiveDateTime{} = date_time) do
     date_time_text = NaiveDateTime.to_string(date_time)
 
     Logger.debug("Adding/updating date/time")
@@ -90,21 +90,28 @@ defmodule Exiffer.JPEG do
 
     create_date = Entry.new_by_type(:create_date, date_time_text)
 
-    update_exif_block_entry(
-      headers,
-      exif_index,
-      exif_block_index,
-      create_date_index,
-      create_date
-    )
+    headers =
+      update_exif_block_entry(
+        headers,
+        exif_index,
+        exif_block_index,
+        create_date_index,
+        create_date
+      )
+
+    %{jpeg | headers: headers}
   end
 
-  def set_gps(%__MODULE__{headers: headers}, %GPS{} = gps) do
+  def set_gps(%__MODULE__{headers: headers} = jpeg, %GPS{} = gps) do
     {headers, exif_index} = ensure_exif(headers)
     {headers, gps_index} = ensure_entry(headers, exif_index, :gps_info)
     entry = GPS.to_entry(gps)
-    update_entry(headers, exif_index, gps_index, entry)
+    headers = update_entry(headers, exif_index, gps_index, entry)
+    %{jpeg | headers: headers}
   end
+
+  ###############################
+  # Access functions
 
   def gps_entry(%__MODULE__{} = jpeg) do
     case gps_entry_path(jpeg) do
