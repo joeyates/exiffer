@@ -2,7 +2,7 @@ defmodule Exiffer.OffsetBuffer do
   @moduledoc """
   Documentation for `Exiffer.OffsetBuffer`.
 
-  Wraps Exiffer.Buffer with appending an offset amount to positions
+  Wraps Exiffer.Buffer while appending an offset amount to positions
   """
 
   alias Exiffer.Buffer
