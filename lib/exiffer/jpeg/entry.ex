@@ -153,14 +153,20 @@ defmodule Exiffer.JPEG.Entry do
     image_width: %Info{
       type: :image_width,
       magic: <<0x01, 0x00>>,
-      formats: [:int32u, :int32s],
+      formats: [:int32u, :int32s, :int16u],
       label: "Image Width"
     },
     image_height: %Info{
       type: :image_height,
       magic: <<0x01, 0x01>>,
-      formats: [:int32u, :int32s],
+      formats: [:int32u, :int32s, :int16u],
       label: "Image Height"
+    },
+    bits_per_sample: %Info{
+      type: :bits_per_sample,
+      magic: <<0x01, 0x02>>,
+      formats: [:int16u],
+      label: "Bits Per Sample"
     },
     compression: %Info{
       type: :compression,
@@ -194,6 +200,12 @@ defmodule Exiffer.JPEG.Entry do
       formats: [:rational_64u],
       label: "Y Resolution"
     },
+    # document_name: %Info{
+    #  type: :document_name,
+    #  magic: <<0x01, 0x1D>>,
+    #  formats: [??? Check standard],
+    #  label: "Document Name"
+    # },
     resolution_unit: %Info{
       type: :resolution_unit,
       magic: <<0x01, 0x28>>,
@@ -225,6 +237,7 @@ defmodule Exiffer.JPEG.Entry do
       formats: [:int32u],
       label: "Thumbnail Length"
     },
+    # 0x02, 0x12: ycbcr_subsampling - used (badly) by Picasa
     ycbcr_positioning: %Info{
       type: :ycbcr_positioning,
       magic: <<0x02, 0x13>>,
@@ -419,7 +432,7 @@ defmodule Exiffer.JPEG.Entry do
     light_source: %Info{
       type: :light_source,
       magic: <<0x92, 0x08>>,
-      formats: [:int16u],
+      formats: [:int16u, :int32u],
       label: "Light Source"
     },
     flash: %Info{type: :flash, magic: <<0x92, 0x09>>, formats: [:int16u], label: "Flash"},
@@ -597,6 +610,12 @@ defmodule Exiffer.JPEG.Entry do
       magic: <<0xA4, 0x0A>>,
       formats: [:int16u],
       label: "EXIF Sharpness"
+    },
+    device_setting_description: %Info{
+      type: :device_setting_description,
+      magic: <<0xA4, 0x0B>>,
+      formats: [:raw_bytes],
+      label: "Device Setting Description"
     },
     subject_distance_range: %Info{
       type: :subject_distance_range,
