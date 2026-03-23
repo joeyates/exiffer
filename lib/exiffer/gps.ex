@@ -27,7 +27,7 @@ defmodule Exiffer.GPS do
   end
 
   defp parse_angle(text, coordinate) when coordinate in [:longitude, :latitude] do
-    decimal_regex = ~r/^-?\d+(\.\d+)$/
+    decimal_regex = ~r/^-?\d+(\.\d+)?$/
     dms_regex = ~r/^(?<degrees>\d+)°(?<minutes>\d+)′(?<seconds>\d+)″(?<direction>[NESW])$/
 
     cond do
