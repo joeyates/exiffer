@@ -19,7 +19,7 @@ defmodule Exiffer.JPEG.Header.EOI do
     end
   end
 
-  def new(%{data: <<0xFF, 0xD9, rest::binary>>} = buffer) do
+  def new(%{data: <<0xFF, 0xD9>> <> _rest} = buffer) do
     if rest != <<>> do
       Logger.warning("Found #{byte_size(rest)} trailing bytes after end of image")
     end
