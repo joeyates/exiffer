@@ -110,50 +110,63 @@ defmodule Exiffer.JPEG do
     %{jpeg | headers: headers}
   end
 
-  ###############################
-  # Access functions
-
-  def gps_entry(%__MODULE__{} = jpeg) do
-    case gps_entry_path(jpeg) do
-      {:ok, path} ->
-        {:ok, get_in(jpeg.headers, path)}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def has_gps_entry?(%__MODULE__{} = jpeg) do
-    case gps_entry_path(jpeg) do
-      {:ok, _path} ->
-        true
-
-      _ ->
-        false
-    end
-  end
-
-  def gps_entry_path(%__MODULE__{headers: headers}) do
-    with exif_index when not is_nil(exif_index) <- exif_index(headers),
-         gps_entry_index when not is_nil(gps_entry_index) <-
-           entry_index(headers, exif_index, :gps_info) do
-      {:ok, ifd_entries_path(exif_index) ++ [Access.at(gps_entry_index)]}
-    else
-      _ ->
-        {:error, "No GPS entry present"}
-    end
-  end
-
   defp ensure_exif_entry(headers, name) do
     {headers, exif_index} = ensure_exif(headers)
     {headers, entry_index} = ensure_entry(headers, exif_index, name)
     {headers, exif_index, entry_index}
   end
 
+  ###############################
+  # Access functions
+
+  def entry_path(%__MODULE__{headers: headers}, type) when is_atom(type) do
+    with exif_index when not is_nil(exif_index) <- exif_index(headers),
+         entry_index when not is_nil(entry_index) <- entry_index(headers, exif_index, type) do
+      {:ok, ifd_entries_path(exif_index) ++ [Access.at(entry_index)]}
+    else
+      _ ->
+        {:error, "EXIF entry ':#{type}' not found"}
+    end
+  end
+
+  def has_entry?(%__MODULE__{headers: headers}, type) when is_atom(type) do
+    with exif_index when not is_nil(exif_index) <- exif_index(headers),
+         entry_index when not is_nil(entry_index) <- entry_index(headers, exif_index, type) do
+      true
+    else
+      _ ->
+        false
+    end
+  end
+
+  def entry(%__MODULE__{headers: headers} = jpeg, type) when is_atom(type) do
+    case entry_path(jpeg, type) do
+      {:ok, path} ->
+        {:ok, get_in(headers, path)}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  # GPS-specific
+
+  def gps_entry(%__MODULE__{} = jpeg) do
+    entry(jpeg, :gps_info)
+  end
+
+  def has_gps_entry?(%__MODULE__{} = jpeg) do
+    has_entry?(jpeg, :gps_info)
+  end
+
+  def gps_entry_path(%__MODULE__{} = jpeg) do
+    entry_path(jpeg, :gps_info)
+  end
+
   ###################
   # Top-level APP1 EXIF block
 
-  defp exif_index(headers) do
+  def exif_index(headers) do
     Enum.find_index(headers, &is_struct(&1, EXIF))
   end
 
@@ -185,7 +198,7 @@ defmodule Exiffer.JPEG do
   ###################
   # APP1 EXIF IFD entries
 
-  defp entry_index(headers, exif_index, type) do
+  def entry_index(headers, exif_index, type) do
     entries = ifd_entries(headers, exif_index)
     Enum.find_index(entries, fn ifd -> ifd.type == type end)
   end
