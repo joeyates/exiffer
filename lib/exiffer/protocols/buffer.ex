@@ -6,4 +6,5 @@ defprotocol Exiffer.Buffer do
   def skip(buffer, count)
   def random(buffer, read_position, count)
   def tell(buffer)
+  def read_eof(buffer)
 end

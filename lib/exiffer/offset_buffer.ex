@@ -40,6 +40,11 @@ defmodule Exiffer.OffsetBuffer do
     buffer.position - offset
   end
 
+  def read_eof(%__MODULE__{buffer: buffer} = offset_buffer) do
+    {chunk, buffer} = Buffer.read_eof(buffer)
+    {chunk, %{offset_buffer | buffer: buffer}}
+  end
+
   defimpl Exiffer.Buffer do
     alias Exiffer.OffsetBuffer
 
@@ -65,6 +70,10 @@ defmodule Exiffer.OffsetBuffer do
 
     def tell(buffer) do
       OffsetBuffer.tell(buffer)
+    end
+
+    def read_eof(buffer) do
+      OffsetBuffer.read_eof(buffer)
     end
   end
 end

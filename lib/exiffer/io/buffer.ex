@@ -169,16 +169,32 @@ defmodule Exiffer.IO.Buffer do
     read(buffer, needed)
   end
 
-  defp read(%__MODULE__{io_device: io_device, data: data, remaining: remaining} = buffer, amount) do
+  @doc "Read the remaining bytes"
+  def read_eof(%__MODULE__{status: :eof} = buffer) do
+    data = buffer.data
+    buffer = %{buffer | data: "", remaining: 0}
+    {data, buffer}
+  end
+
+  def read_eof(%__MODULE__{io_device: io_device} = buffer) do
+    chunk = IO.binread(io_device, :eof)
+    data = buffer.data <> chunk
+
+    buffer = %{buffer | data: "", remaining: 0, status: :eof}
+    {data, buffer}
+  end
+
+  defp read(%__MODULE__{io_device: io_device} = buffer, amount) do
     case IO.binread(io_device, amount) do
       :eof ->
         Logger.debug("Buffer.read EOF")
-        struct!(buffer, status: :eof)
+        %{buffer | status: :eof}
 
       chunk ->
+        %{data: data, remaining: remaining} = buffer
         bytes_read = byte_size(chunk)
-        data = <<data::binary, chunk::binary>>
-        struct!(buffer, data: data, remaining: remaining + bytes_read)
+        data = data <> chunk
+        %{buffer | data: data, remaining: remaining + bytes_read}
     end
   end
 
@@ -207,6 +223,10 @@ defmodule Exiffer.IO.Buffer do
 
     def tell(buffer) do
       Buffer.tell(buffer)
+    end
+
+    def read_eof(buffer) do
+      Buffer.read_eof(buffer)
     end
   end
 end
