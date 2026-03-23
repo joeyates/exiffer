@@ -20,10 +20,6 @@ defmodule Exiffer.JPEG.Header.EOI do
   end
 
   def new(%{data: <<0xFF, 0xD9>> <> _rest} = buffer) do
-    if rest != <<>> do
-      Logger.warning("Found #{byte_size(rest)} trailing bytes after end of image")
-    end
-
     buffer = Buffer.skip(buffer, 2)
     eoi = %__MODULE__{}
     {:ok, eoi, buffer}

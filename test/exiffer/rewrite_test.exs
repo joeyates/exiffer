@@ -9,7 +9,7 @@ defmodule Exiffer.RewriteTest do
     @describetag :tmp_dir
 
     setup config do
-      {:ok, source} = copy_tmp(config, "test/support/fixtures/exiffer_code.jpg")
+      {:ok, source} = copy_tmp(config, "test/support/fixtures/code_with_samsung_trailer.jpg")
       destination = Path.join(config.tmp_dir, "result.jpeg")
       %{source: source, destination: destination}
     end

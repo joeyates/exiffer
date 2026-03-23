@@ -7,7 +7,7 @@ defmodule Exiffer.JPEG do
 
   alias Exiffer.Binary
   alias Exiffer.GPS
-  alias __MODULE__.Header.{APP1, APP4, COM, Data, EOI, JFIF, SOF0, SOS}
+  alias __MODULE__.Header.{APP1, APP4, COM, Data, EOI, JFIF, SOF0, SOS, Trailer}
   alias __MODULE__.Header.APP1.EXIF
   alias __MODULE__.Entry
   alias __MODULE__.IFD
@@ -295,6 +295,22 @@ defmodule Exiffer.JPEG do
 
   defp headers(buffer, headers)
 
+  defp headers(%{data: <<0xFF, 0xD9, _rest::binary>>} = buffer, headers) do
+    Logger.debug("Reading EOI header at #{integer(buffer.position)}")
+    {:ok, eoi, buffer} = EOI.new(buffer)
+
+    {buffer, headers} =
+      if buffer.data == "" do
+        {buffer, [eoi | headers]}
+      else
+        {:ok, trailer, buffer} = Trailer.new(buffer)
+        {buffer, [trailer, eoi] ++ headers}
+      end
+
+    # Complete recursion
+    {buffer, headers}
+  end
+
   defp headers(%{data: <<0xFF, 0xE1, _rest::binary>>} = buffer, headers) do
     Logger.debug("Reading APP1 header at #{integer(buffer.position)}")
     {:ok, app1, buffer} = APP1.new(buffer)
@@ -326,12 +342,6 @@ defmodule Exiffer.JPEG do
     Logger.debug("Reading SOF0 header at #{integer(buffer.position)}")
     {:ok, sof0, buffer} = SOF0.new(buffer)
     headers(buffer, [sof0 | headers])
-  end
-
-  defp headers(%{data: <<0xFF, 0xD9, _rest::binary>>} = buffer, headers) do
-    Logger.debug("Reading EOI header at #{integer(buffer.position)}")
-    {:ok, eoi, buffer} = EOI.new(buffer)
-    {buffer, [eoi | headers]}
   end
 
   defp headers(%{data: <<0xFF, 0xDA, _rest::binary>>} = buffer, headers) do
