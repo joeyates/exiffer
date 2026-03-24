@@ -6,6 +6,8 @@ defmodule Exiffer.JPEG.Header.Data do
   import Exiffer.Logging, only: [integer: 1]
 
   alias Exiffer.Binary
+  alias Exiffer.Buffer
+  alias Exiffer.JPEG.Header.Junk
 
   require Logger
 
@@ -58,7 +60,7 @@ defmodule Exiffer.JPEG.Header.Data do
     position = buffer.position
 
     {<<magic::binary-size(2), length_binary::binary-size(2)>>, buffer} =
-      Exiffer.Buffer.consume(buffer, 4)
+      Buffer.consume(buffer, 4)
 
     type = @data_type[magic]
 
@@ -70,11 +72,12 @@ defmodule Exiffer.JPEG.Header.Data do
         "Reading #{type.name} header at #{integer(position)}, length #{integer(2 + length)}"
       )
 
-      {data, buffer} = Exiffer.Buffer.consume(buffer, length - 2)
+      {data, buffer} = Buffer.consume(buffer, length - 2)
       header = %__MODULE__{type: type.key, data: data}
       {:ok, header, buffer}
     else
-      {:error, "Unknown header magic #{inspect(magic, base: :hex)} found at #{integer(position)}"}
+      buffer = Buffer.push(buffer, magic <> length_binary)
+      Junk.new(buffer)
     end
   end
 
