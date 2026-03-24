@@ -876,6 +876,10 @@ defmodule Exiffer.JPEG.Entry do
   """
   def text(entry)
 
+  def text(%__MODULE__{type: :unknown} = entry) do
+    [{entry.label, inspect(entry.value)}]
+  end
+
   def text(%__MODULE__{type: :gps_info} = entry) do
     texts =
       entry.value.entries
