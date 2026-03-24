@@ -88,6 +88,10 @@ defmodule Exiffer.IO.Buffer do
     {consumed, buffer}
   end
 
+  def push(%__MODULE__{data: data, remaining: remaining} = buffer, chunk) do
+    %{buffer | data: chunk <> data, remaining: remaining + byte_size(chunk)}
+  end
+
   def skip(%__MODULE__{} = buffer, count) do
     seek(buffer, buffer.position + count)
   end
@@ -207,6 +211,10 @@ defmodule Exiffer.IO.Buffer do
 
     def consume(buffer, count) do
       Buffer.consume(buffer, count)
+    end
+
+    def push(buffer, chunk) do
+      Buffer.push(buffer, chunk)
     end
 
     def seek(buffer, position) do
