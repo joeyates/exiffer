@@ -27,6 +27,11 @@ defmodule Exiffer.OffsetBuffer do
     {result, struct!(offset_buffer, buffer: buffer)}
   end
 
+  def push(%__MODULE__{buffer: buffer} = offset_buffer, chunk) do
+    buffer = Buffer.push(buffer, chunk)
+    %{offset_buffer | buffer: buffer}
+  end
+
   def skip(%__MODULE__{buffer: buffer} = offset_buffer, amount) do
     buffer = Buffer.skip(buffer, amount)
     struct!(offset_buffer, buffer: buffer)
@@ -54,6 +59,10 @@ defmodule Exiffer.OffsetBuffer do
 
     def consume(buffer, count) do
       OffsetBuffer.consume(buffer, count)
+    end
+
+    def push(buffer, chunk) do
+      OffsetBuffer.push(buffer, chunk)
     end
 
     def seek(buffer, position) do
