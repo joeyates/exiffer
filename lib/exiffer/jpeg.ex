@@ -7,7 +7,7 @@ defmodule Exiffer.JPEG do
 
   alias Exiffer.Binary
   alias Exiffer.GPS
-  alias __MODULE__.Header.{APP1, APP4, COM, Data, EOI, JFIF, SOF0, SOS, Trailer}
+  alias __MODULE__.Header.{APP1, APP4, COM, Data, EOI, JFIF, Junk, SOF0, SOS, Trailer}
   alias __MODULE__.Header.APP1.EXIF
   alias __MODULE__.Entry
   alias __MODULE__.IFD
@@ -114,6 +114,11 @@ defmodule Exiffer.JPEG do
     {headers, exif_index} = ensure_exif(headers)
     {headers, entry_index} = ensure_entry(headers, exif_index, name)
     {headers, exif_index, entry_index}
+  end
+
+  def remove_non_standard_headers(%__MODULE{} = jpeg) do
+    headers = Enum.filter(jpeg.headers, &(&1.__struct__ != Junk))
+    %{jpeg | headers: headers}
   end
 
   ###############################
