@@ -101,6 +101,6 @@ defmodule Exiffer.JPEG.IFDBlock do
 
   def dimensions(%__MODULE__{} = ifd_block) do
     ifd_block.ifds
-    |> Enum.find(&IFD.dimensions/1)
+    |> Enum.find_value(&IFD.dimensions/1)
   end
 end

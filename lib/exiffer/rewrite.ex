@@ -3,7 +3,9 @@ defmodule Exiffer.Rewrite do
   Rewrite an image file, adding and removing arbitrary metadata
   """
 
-  alias Exiffer.{Binary, GPS, JPEG}
+  alias Exiffer.Binary
+  alias Exiffer.GPS
+  alias Exiffer.JPEG
   alias Exiffer.IO.Buffer
 
   require Logger
@@ -31,8 +33,8 @@ defmodule Exiffer.Rewrite do
 
     rewrite(source, destination, fn jpeg ->
       jpeg
-      |> JPEG.set_field(:make, make)
-      |> JPEG.set_field(:model, model)
+      |> JPEG.set_exif_field(:make, make)
+      |> JPEG.set_exif_field(:model, model)
     end)
   end
 
@@ -42,7 +44,13 @@ defmodule Exiffer.Rewrite do
 
   def set_date_time(source, destination, %NaiveDateTime{} = date_time) do
     Logger.info("Exiffer.Rewrite.set_date_time/3")
-    rewrite(source, destination, &JPEG.set_date_time(&1, date_time))
+
+    rewrite(source, destination, fn jpeg ->
+      jpeg
+      |> JPEG.set_modification_date(date_time)
+      |> JPEG.set_date_time_original(date_time)
+      |> JPEG.set_create_date(date_time)
+    end)
   end
 
   def set_gps(source, destination, %GPS{} = gps) do

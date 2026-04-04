@@ -46,74 +46,65 @@ defmodule Exiffer.JPEG do
   end
 
   ###############################
-  # Manipulation functions
+  # High-level Manipulation functions
 
-  def set_field(%__MODULE__{headers: headers} = jpeg, name, value) do
-    Logger.debug("Adding/updating :#{name} field to '#{value}'")
-    {headers, exif_index, entry_index} = ensure_exif_entry(headers, name)
-    entry = Entry.new_by_type(name, value)
-    headers = update_entry(headers, exif_index, entry_index, entry)
-    %{jpeg | headers: headers}
+  ###############################
+  ## 1. GPS
+
+  def gps_entry(%__MODULE__{} = jpeg) do
+    exif_entry(jpeg, :gps_info)
   end
 
-  def set_date_time(%__MODULE__{headers: headers} = jpeg, %NaiveDateTime{} = date_time) do
-    date_time_text = NaiveDateTime.to_string(date_time)
-
-    Logger.debug("Adding/updating date/time")
-    {headers, exif_index} = ensure_exif(headers)
-
-    # Modification Date
-    {headers, modification_date_index} = ensure_entry(headers, exif_index, :modification_date)
-    modification_date = Entry.new_by_type(:modification_date, date_time_text)
-    headers = update_entry(headers, exif_index, modification_date_index, modification_date)
-
-    {headers, exif_block_index} = ensure_exif_block(headers, exif_index)
-
-    # Date Time Original
-    {headers, date_time_index} =
-      ensure_exif_block_entry(headers, exif_index, exif_block_index, :date_time_original)
-
-    date_time_original = Entry.new_by_type(:date_time_original, date_time_text)
-
-    headers =
-      update_exif_block_entry(
-        headers,
-        exif_index,
-        exif_block_index,
-        date_time_index,
-        date_time_original
-      )
-
-    # Create Date
-    {headers, create_date_index} =
-      ensure_exif_block_entry(headers, exif_index, exif_block_index, :create_date)
-
-    create_date = Entry.new_by_type(:create_date, date_time_text)
-
-    headers =
-      update_exif_block_entry(
-        headers,
-        exif_index,
-        exif_block_index,
-        create_date_index,
-        create_date
-      )
-
-    %{jpeg | headers: headers}
+  def has_gps_entry?(%__MODULE__{} = jpeg) do
+    has_exif_entry?(jpeg, :gps_info)
   end
 
-  def set_gps(%__MODULE__{headers: headers} = jpeg, %GPS{} = gps) do
-    {headers, exif_index} = ensure_exif(headers)
-    {headers, gps_index} = ensure_entry(headers, exif_index, :gps_info)
+  def get_gps(%__MODULE__{} = jpeg) do
+    case gps_entry(jpeg) do
+      {:ok, entry} -> GPS.from_entry(entry)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def set_gps(%__MODULE__{} = jpeg, %GPS{} = gps) do
     entry = GPS.to_entry(gps)
-    headers = update_entry(headers, exif_index, gps_index, entry)
-    %{jpeg | headers: headers}
+    set_exif_field(jpeg, :gps_info, entry.value)
   end
 
-  defp ensure_exif_entry(headers, name) do
-    {headers, exif_index} = ensure_exif(headers)
-    {headers, entry_index} = ensure_entry(headers, exif_index, name)
-    {headers, exif_index, entry_index}
+  ###############################
+  ## 2. Date/Time
+
+  def get_modification_date(%__MODULE__{} = jpeg) do
+    case get_exif_field(jpeg, :modification_date) do
+      {:ok, value} -> NaiveDateTime.from_iso8601(value)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def set_modification_date(%__MODULE__{} = jpeg, %NaiveDateTime{} = date_time) do
+    set_exif_field(jpeg, :modification_date, NaiveDateTime.to_string(date_time))
+  end
+
+  def get_date_time_original(%__MODULE__{} = jpeg) do
+    case get_sub_ifd_field(jpeg, :exif_offset, :date_time_original) do
+      {:ok, value} -> NaiveDateTime.from_iso8601(value)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def set_date_time_original(%__MODULE__{} = jpeg, %NaiveDateTime{} = date_time) do
+    set_sub_ifd_field(jpeg, :exif_offset, :date_time_original, NaiveDateTime.to_string(date_time))
+  end
+
+  def get_create_date(%__MODULE__{} = jpeg) do
+    case get_sub_ifd_field(jpeg, :exif_offset, :create_date) do
+      {:ok, value} -> NaiveDateTime.from_iso8601(value)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def set_create_date(%__MODULE__{} = jpeg, %NaiveDateTime{} = date_time) do
+    set_sub_ifd_field(jpeg, :exif_offset, :create_date, NaiveDateTime.to_string(date_time))
   end
 
   def remove_non_standard_headers(%__MODULE{} = jpeg) do
@@ -121,59 +112,32 @@ defmodule Exiffer.JPEG do
     %{jpeg | headers: headers}
   end
 
-  ###############################
-  # Access functions
-
-  def entry_path(%__MODULE__{headers: headers}, type) when is_atom(type) do
-    with exif_index when not is_nil(exif_index) <- exif_index(headers),
-         entry_index when not is_nil(entry_index) <- entry_index(headers, exif_index, type) do
-      {:ok, ifd_entries_path(exif_index) ++ [Access.at(entry_index)]}
-    else
-      _ ->
-        {:error, "EXIF entry ':#{type}' not found"}
-    end
-  end
-
-  def has_entry?(%__MODULE__{headers: headers}, type) when is_atom(type) do
-    with exif_index when not is_nil(exif_index) <- exif_index(headers),
-         entry_index when not is_nil(entry_index) <- entry_index(headers, exif_index, type) do
-      true
-    else
-      _ ->
-        false
-    end
-  end
-
-  def entry(%__MODULE__{headers: headers} = jpeg, type) when is_atom(type) do
-    case entry_path(jpeg, type) do
-      {:ok, path} ->
-        {:ok, get_in(headers, path)}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  # GPS-specific
-
-  def gps_entry(%__MODULE__{} = jpeg) do
-    entry(jpeg, :gps_info)
-  end
-
-  def has_gps_entry?(%__MODULE__{} = jpeg) do
-    has_entry?(jpeg, :gps_info)
-  end
-
-  def gps_entry_path(%__MODULE__{} = jpeg) do
-    entry_path(jpeg, :gps_info)
-  end
-
   ###################
   # Top-level APP1 EXIF block
 
-  def exif_index(headers) do
+  def get_exif_field(%__MODULE__{} = jpeg, name) do
+    case exif_entry(jpeg, name) do
+      {:ok, entry} -> {:ok, entry.value}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def set_exif_field(%__MODULE__{headers: headers} = jpeg, name, value) do
+    {headers, exif_index, entry_index} = ensure_exif_entry(headers, name)
+    entry = Entry.new_by_type(name, value)
+    headers = update_exif_entry(headers, exif_index, entry_index, entry)
+    %{jpeg | headers: headers}
+  end
+
+  def exif_index(%__MODULE__{} = jpeg) do
+    exif_index(jpeg.headers)
+  end
+
+  def exif_index(headers) when is_list(headers) do
     Enum.find_index(headers, &is_struct(&1, EXIF))
   end
+
+  defp ensure_exif([]), do: {default_exif(), 0}
 
   defp ensure_exif(headers) do
     index = exif_index(headers)
@@ -201,44 +165,50 @@ defmodule Exiffer.JPEG do
   end
 
   ###################
-  # APP1 EXIF IFD entries
+  # Top-level APP1 EXIF block's entries
 
-  def entry_index(headers, exif_index, type) do
-    entries = ifd_entries(headers, exif_index)
-    Enum.find_index(entries, fn ifd -> ifd.type == type end)
-  end
+  def exif_entry(%__MODULE__{headers: headers} = jpeg, type) when is_atom(type) do
+    case exif_entry_path(jpeg, type) do
+      {:ok, path} ->
+        {:ok, get_in(headers, path)}
 
-  defp ensure_entry(headers, exif_index, type) do
-    index = entry_index(headers, exif_index, type)
-
-    if index do
-      {headers, index}
-    else
-      headers =
-        update_in(
-          headers,
-          ifd_entries_path(exif_index),
-          fn entries -> [Entry.new_by_type(type, nil) | entries] end
-        )
-
-      {headers, 0}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
-  defp update_entry(headers, exif_index, entry_index, entry) do
-    update_in(
-      headers,
-      ifd_entries_path(exif_index) ++ [Access.at(entry_index)],
-      fn _existing -> entry end
-    )
+  def has_exif_entry?(%__MODULE__{headers: headers}, type) when is_atom(type) do
+    with exif_index when not is_nil(exif_index) <- exif_index(headers),
+         entry_index when not is_nil(entry_index) <- exif_entry_index(headers, exif_index, type) do
+      true
+    else
+      _ ->
+        false
+    end
   end
 
-  defp ifd_entries(headers, exif_index) do
-    get_in(headers, ifd_entries_path(exif_index))
+  defp exif_entry_path(%__MODULE__{headers: headers}, type) when is_atom(type) do
+    with exif_index when not is_nil(exif_index) <- exif_index(headers),
+         entry_index when not is_nil(entry_index) <-
+           exif_entry_index(headers, exif_index, type) do
+      {:ok, exif_ifd_entries_path(exif_index) ++ [Access.at(entry_index)]}
+    else
+      _ ->
+        {:error, "EXIF entry ':#{type}' not found"}
+    end
+  end
+
+  defp exif_entry_index(headers, exif_index, type) do
+    entries = exif_ifd_entries(headers, exif_index)
+    Enum.find_index(entries, fn ifd -> ifd.type == type end)
+  end
+
+  defp exif_ifd_entries(headers, exif_index) do
+    get_in(headers, exif_ifd_entries_path(exif_index))
   end
 
   # We assume there is only one IFD in the EXIF block
-  defp ifd_entries_path(exif_index) do
+  defp exif_ifd_entries_path(exif_index) do
     [
       Access.at(exif_index),
       Access.key(:ifd_block),
@@ -248,28 +218,14 @@ defmodule Exiffer.JPEG do
     ]
   end
 
-  ###################
-  # APP1 EXIF IFD 'EXIF OFFSET' entry IFD entries
-
-  defp ensure_exif_block(headers, exif_index) do
-    index = entry_index(headers, exif_index, :exif_offset)
-
-    if index do
-      {headers, index}
-    else
-      headers =
-        update_in(
-          headers,
-          ifd_entries_path(exif_index),
-          fn entries -> [Entry.new_by_type(:exif_offset, %IFD{}) | entries] end
-        )
-
-      {headers, 0}
-    end
+  defp ensure_exif_entry(headers, name) do
+    {headers, exif_index} = ensure_exif(headers)
+    {headers, entry_index} = ensure_exif_entry(headers, exif_index, name)
+    {headers, exif_index, entry_index}
   end
 
-  defp ensure_exif_block_entry(headers, exif_index, exif_block_index, type) do
-    index = exif_block_entry_index(headers, exif_index, exif_block_index, type)
+  defp ensure_exif_entry(headers, exif_index, type) do
+    index = exif_entry_index(headers, exif_index, type)
 
     if index do
       {headers, index}
@@ -277,7 +233,7 @@ defmodule Exiffer.JPEG do
       headers =
         update_in(
           headers,
-          exif_block_entries_path(exif_index, exif_block_index),
+          exif_ifd_entries_path(exif_index),
           fn entries -> [Entry.new_by_type(type, nil) | entries] end
         )
 
@@ -285,31 +241,145 @@ defmodule Exiffer.JPEG do
     end
   end
 
-  defp update_exif_block_entry(headers, exif_index, exif_block_index, entry_index, entry) do
+  defp update_exif_entry(headers, exif_index, entry_index, entry) do
     update_in(
       headers,
-      exif_block_entries_path(exif_index, exif_block_index) ++ [Access.at(entry_index)],
+      exif_ifd_entries_path(exif_index) ++ [Access.at(entry_index)],
       fn _existing -> entry end
     )
   end
 
-  defp exif_block_entry_index(headers, exif_index, exif_block_index, type) do
-    entries = exif_block_entries(headers, exif_index, exif_block_index)
-    Enum.find_index(entries, fn ifd -> ifd.type == type end)
+  ###################
+  # APP1 EXIF SUB IFD entries
+
+  def get_sub_ifd_field(%__MODULE__{} = jpeg, block, name) do
+    sub_ifd_field(jpeg, block, name)
   end
 
-  defp exif_block_entries(headers, exif_index, exif_block_index) do
-    get_in(headers, exif_block_entries_path(exif_index, exif_block_index))
+  def set_sub_ifd_field(%__MODULE__{headers: headers} = jpeg, block, name, value) do
+    {headers, exif_index} = ensure_exif(headers)
+    {headers, block_entry_index} = ensure_sub_ifd_block(headers, exif_index, block)
+
+    {headers, entry_index} =
+      ensure_sub_ifd_block_entry(headers, exif_index, block_entry_index, name)
+
+    entry = Entry.new_by_type(name, value)
+
+    headers =
+      update_sub_ifd_block_entry(headers, exif_index, block_entry_index, entry_index, entry)
+
+    %{jpeg | headers: headers}
   end
 
-  defp exif_block_entries_path(exif_index, exif_block_index) do
-    ifd_entries_path(exif_index) ++
+  def sub_ifd_field(%__MODULE__{} = jpeg, block, name) do
+    case sub_ifd_entry(jpeg, block, name) do
+      {:ok, entry} -> {:ok, entry.value}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def sub_ifd_entry(%__MODULE__{headers: headers}, block, type) when is_atom(type) do
+    case sub_ifd_entry_path(%__MODULE__{headers: headers}, block, type) do
+      {:ok, path} ->
+        {:ok, get_in(headers, path)}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp sub_ifd_entry_path(%__MODULE__{} = jpeg, block, type) when is_atom(type) do
+    with {:ok, sub_ifd_entries} <- sub_ifd_entries(jpeg, block),
+         entry_index when not is_nil(entry_index) <-
+           Enum.find_index(sub_ifd_entries, fn ifd -> ifd.type == type end) do
+      {:ok, sub_ifd_path} = sub_ifd_path(jpeg, block)
+      {:ok, sub_ifd_path ++ [Access.at(entry_index)]}
+    else
+      _ ->
+        {:error, "EXIF subblock ':#{block}' entry '#{type}' not found"}
+    end
+  end
+
+  defp ensure_sub_ifd_block(headers, exif_index, block) do
+    index = exif_entry_index(headers, exif_index, block)
+
+    if index do
+      {headers, index}
+    else
+      block_entry = Entry.new_by_type(block, %IFD{entries: []})
+
+      headers =
+        update_in(headers, exif_ifd_entries_path(exif_index), fn entries ->
+          [block_entry | entries]
+        end)
+
+      {headers, 0}
+    end
+  end
+
+  defp ensure_sub_ifd_block_entry(headers, exif_index, block_entry_index, type) do
+    path = sub_ifd_block_entries_path(exif_index, block_entry_index)
+    entries = get_in(headers, path) || []
+    index = Enum.find_index(entries, fn e -> e.type == type end)
+
+    if index do
+      {headers, index}
+    else
+      headers =
+        update_in(headers, path, fn entries ->
+          [Entry.new_by_type(type, nil) | entries || []]
+        end)
+
+      {headers, 0}
+    end
+  end
+
+  defp sub_ifd_block_entries_path(exif_index, block_entry_index) do
+    exif_ifd_entries_path(exif_index) ++
       [
-        Access.at(exif_block_index),
+        Access.at(block_entry_index),
         Access.key(:value),
         Access.key(:entries)
       ]
   end
+
+  defp update_sub_ifd_block_entry(headers, exif_index, block_entry_index, entry_index, entry) do
+    update_in(
+      headers,
+      sub_ifd_block_entries_path(exif_index, block_entry_index) ++ [Access.at(entry_index)],
+      fn _existing -> entry end
+    )
+  end
+
+  defp sub_ifd_entries(%__MODULE__{headers: headers}, block) do
+    case sub_ifd_path(%__MODULE__{headers: headers}, block) do
+      {:ok, path} ->
+        {:ok, get_in(headers, path)}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp sub_ifd_path(%__MODULE__{headers: headers}, block) do
+    with exif_index when not is_nil(exif_index) <- exif_index(headers),
+         sub_ifd_entry_index when not is_nil(sub_ifd_entry_index) <-
+           exif_entry_index(headers, exif_index, block) do
+      {:ok,
+       exif_ifd_entries_path(exif_index) ++
+         [
+           Access.at(sub_ifd_entry_index),
+           Access.key(:value),
+           Access.key(:entries)
+         ]}
+    else
+      _ ->
+        {:error, "EXIF subblock ':#{block}' not found"}
+    end
+  end
+
+  #################################
+  # Header parsing functions
 
   defp headers(buffer, headers)
 

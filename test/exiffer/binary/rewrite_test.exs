@@ -46,10 +46,36 @@ defmodule Exiffer.Binary.RewriteTest do
       entry = find_ifd_entry(result, :modification_date)
       assert entry.value == "1954-04-17 08:22:51"
     end
+
+    test "sets date_time_original", %{binary: binary, date_time: date_time} do
+      result = Rewrite.set_date_time(binary, date_time)
+      jpeg = Exiffer.parse_binary(result)
+      assert {:ok, ^date_time} = Exiffer.JPEG.get_date_time_original(jpeg)
+    end
+
+    test "sets create_date", %{binary: binary, date_time: date_time} do
+      result = Rewrite.set_date_time(binary, date_time)
+      jpeg = Exiffer.parse_binary(result)
+      assert {:ok, ^date_time} = Exiffer.JPEG.get_create_date(jpeg)
+    end
+  end
+
+  describe ".set_make_and_model" do
+    test "sets make", %{binary: binary} do
+      result = Rewrite.set_make_and_model(binary, "Acme", "Cam 1")
+      jpeg = Exiffer.parse_binary(result)
+      assert {:ok, "Acme"} = Exiffer.JPEG.get_exif_field(jpeg, :make)
+    end
+
+    test "sets model", %{binary: binary} do
+      result = Rewrite.set_make_and_model(binary, "Acme", "Cam 1")
+      jpeg = Exiffer.parse_binary(result)
+      assert {:ok, "Cam 1"} = Exiffer.JPEG.get_exif_field(jpeg, :model)
+    end
   end
 
   describe ".set_gps" do
-    @describetag gps: %{longitude: 2, latitude: 1, altitude: 3}
+    @describetag gps: %Exiffer.GPS{longitude: 2, latitude: 1, altitude: 3}
 
     test "it returns a JPEG binary", %{binary: binary, gps: gps} do
       result = Rewrite.set_gps(binary, gps)
