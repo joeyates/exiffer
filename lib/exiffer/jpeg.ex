@@ -76,7 +76,7 @@ defmodule Exiffer.JPEG do
 
   def get_modification_date(%__MODULE__{} = jpeg) do
     case get_exif_field(jpeg, :modification_date) do
-      {:ok, value} -> NaiveDateTime.from_iso8601(value)
+      {:ok, value} -> parse_date_time(value)
       {:error, reason} -> {:error, reason}
     end
   end
@@ -87,7 +87,7 @@ defmodule Exiffer.JPEG do
 
   def get_date_time_original(%__MODULE__{} = jpeg) do
     case get_sub_ifd_field(jpeg, :exif_offset, :date_time_original) do
-      {:ok, value} -> NaiveDateTime.from_iso8601(value)
+      {:ok, value} -> parse_date_time(value)
       {:error, reason} -> {:error, reason}
     end
   end
@@ -98,13 +98,43 @@ defmodule Exiffer.JPEG do
 
   def get_create_date(%__MODULE__{} = jpeg) do
     case get_sub_ifd_field(jpeg, :exif_offset, :create_date) do
-      {:ok, value} -> NaiveDateTime.from_iso8601(value)
+      {:ok, value} -> parse_date_time(value)
       {:error, reason} -> {:error, reason}
     end
   end
 
   def set_create_date(%__MODULE__{} = jpeg, %NaiveDateTime{} = date_time) do
     set_sub_ifd_field(jpeg, :exif_offset, :create_date, NaiveDateTime.to_string(date_time))
+  end
+
+  defp parse_date_time(value) when is_binary(value) do
+    all_colons_regex = ~r/
+      ^
+      (?<year>\d{4})
+      :
+      (?<month>\d{2})
+      :
+      (?<day>\d{2})
+      (\s|T)
+      (?<hour>\d{2})
+      :
+      (?<minute>\d{2})
+      :
+      (?<second>\d{2})
+      $
+      /x
+
+    case Regex.run(all_colons_regex, value,
+           capture: [:year, :month, :day, :hour, :minute, :second]
+         ) do
+      nil ->
+        NaiveDateTime.from_iso8601(value)
+
+      [year, month, day, hour, minute, second] ->
+        # If the value matches the all-colons format, we convert it to ISO8601 format
+        iso_value = "#{year}-#{month}-#{day}T#{hour}:#{minute}:#{second}"
+        NaiveDateTime.from_iso8601(iso_value)
+    end
   end
 
   def remove_non_standard_headers(%__MODULE{} = jpeg) do
