@@ -802,8 +802,22 @@ defmodule Exiffer.JPEG.Entry do
     else
       {:error, :unknown_format_magic} ->
         message = "Unknown format magic #{inspect(big_endian_format_magic, base: :hex)}"
-        Logger.error(message)
-        {nil, buffer}
+        Logger.warning(message)
+
+        format_type = :raw_bytes
+        value = value(:unknown, format_type, buffer)
+        label = "Unknown entry tag #{pair(big_endian_magic)}"
+
+        entry =
+          %__MODULE__{
+            type: :unknown,
+            format: format_type,
+            value: value,
+            label: label,
+            magic: big_endian_magic
+          }
+
+        {entry, buffer}
     end
   end
 
