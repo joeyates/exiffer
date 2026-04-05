@@ -36,4 +36,12 @@ defmodule Exiffer do
 
     metadata
   end
+
+  def save(%JPEG{} = jpeg, filename) when is_binary(filename) do
+    File.open("file.txt", [:write], fn file ->
+      :ok = JPEG.write(jpeg, file)
+    end)
+
+    :ok
+  end
 end
