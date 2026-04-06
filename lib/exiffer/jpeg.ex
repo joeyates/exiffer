@@ -429,6 +429,11 @@ defmodule Exiffer.JPEG do
     {buffer, headers}
   end
 
+  defp headers(%{data: ""} = buffer, headers) do
+    Logger.debug("Buffer empty at #{integer(buffer.position)}, stopping header parsing")
+    {buffer, headers}
+  end
+
   defp headers(%{data: <<0xFF, 0xE1, _rest::binary>>} = buffer, headers) do
     Logger.debug("Reading APP1 header at #{integer(buffer.position)}")
     {:ok, app1, buffer} = APP1.new(buffer)
