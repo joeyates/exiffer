@@ -35,8 +35,8 @@ defmodule Exiffer.GPS do
         parse_float(text, coordinate)
 
       Regex.match?(dms_regex, text) ->
-        with [_match, degrees, minutes, seconds, direction] <-
-               Regex.run(dms_regex, text, captures: [:degrees, :minutes, :seconds, :direction]),
+        with [degrees, minutes, seconds, direction] <-
+               Regex.run(dms_regex, text, capture: [:degrees, :minutes, :seconds, :direction]),
              {:ok, sign} <- sign(direction, coordinate) do
           {:ok, sign * (float!(degrees) + float!(minutes) / 60 + float!(seconds) / 3600)}
         end
