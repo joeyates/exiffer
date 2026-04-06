@@ -141,16 +141,11 @@ defmodule Exiffer.JPEG.IFD do
 
     {entry, buffer} = Entry.new(buffer, opts)
 
-    if entry do
-      format = Entry.format_name(entry)
-      content = Entry.text(entry)
-      Logger.debug("#{format} Entry #{nth} read: #{inspect(content)}")
+    format = Entry.format_name(entry)
+    content = Entry.text(entry)
+    Logger.debug("#{format} Entry #{nth} read: #{inspect(content)}")
 
-      read_entry(buffer, count - 1, [entry | entries], opts)
-    else
-      Logger.debug("Entry #{nth} not read")
-      read_entry(buffer, 0, entries, opts)
-    end
+    read_entry(buffer, count - 1, [entry | entries], opts)
   end
 
   defp load_thumbnail(%{} = buffer, entries) do
