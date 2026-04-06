@@ -259,7 +259,7 @@ defmodule Exiffer.Binary do
   @spec little_endian_to_signed(<<_::32>>) :: integer()
   def little_endian_to_signed(<<b0, b1, b2, b3>>) do
     value = b0 + 0x100 * b1 + 0x10000 * b2 + 0x1000000 * b3
-    negative = (b3 && 0x80) == 0x80
+    negative = (b3 &&& 0x80) == 0x80
 
     if negative do
       -1 * (0x100000000 - value)
@@ -271,7 +271,7 @@ defmodule Exiffer.Binary do
   @spec big_endian_to_signed(<<_::32>>) :: integer()
   def big_endian_to_signed(<<b0, b1, b2, b3>>) do
     value = 0x1000000 * b0 + 0x10000 * b1 + 0x100 * b2 + b3
-    negative = (b0 && 0x80) == 0x80
+    negative = (b0 &&& 0x80) == 0x80
 
     if negative do
       -1 * (0x100000000 - value)
