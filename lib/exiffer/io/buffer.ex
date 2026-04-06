@@ -89,7 +89,9 @@ defmodule Exiffer.IO.Buffer do
   end
 
   def push(%__MODULE__{data: data, remaining: remaining} = buffer, chunk) do
-    %{buffer | data: chunk <> data, remaining: remaining + byte_size(chunk)}
+    size = byte_size(chunk)
+    new_position = buffer.position - size
+    %{buffer | data: chunk <> data, position: new_position, remaining: remaining + size}
   end
 
   def skip(%__MODULE__{} = buffer, count) do
